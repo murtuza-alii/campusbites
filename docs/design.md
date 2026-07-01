@@ -194,9 +194,30 @@ graph TD
     *   "Cancel / Close" button: discards changes, closes modal instantly.
     *   "Delete Item" button: prompts a secondary confirmation dialog before executing.
 
+
 ---
 
-## 4. Typography & Spacing Hierarchy
+## 4. Layout & Grid Specifications (Responsive Ratios)
+
+Stitch must preserve these grid ratios and layout behaviors across screen size changes:
+
+### 4.1. Responsive Breakpoints
+*   **Mobile Screen (< 768px):** Single column layout. Sidebars (like the Cart drawer) collapse into bottom sheet overlays.
+*   **Tablet Screen (768px - 1024px):** Standard grid structures scale down; the menu grid adjusts to a 2-column layout.
+*   **Desktop & Laptop Screens (> 1024px):** Split columns. The sidebar cart is locked as a sticky column beside the menu grid.
+
+### 4.2. Grids & Panels Layout
+*   **Main Header:** Height fixed to `64px` (`py-3`). Content aligned using flexbox (`justify-between`).
+*   **Food Menu Grid:** Set to standard CSS grid.
+    *   Desktop/Laptop: `grid-cols-3` with `gap-5`.
+    *   Tablet: `grid-cols-2` with `gap-5`.
+    *   Mobile: `grid-cols-1` with `gap-4`.
+*   **Cart Drawer Sidebar:** Max width set to `320px` (`w-80`). Vertical sizing must be constrained using `max-h-[calc(100vh-140px)]` to prevent footer clipping.
+*   **Kanban Board (Staff):** Uses `grid-cols-3` with `gap-6` on desktop/laptop. Each column wrapper is set to a fixed height limit of `70vh` (`max-h-[70vh]`) and has scroll overflow `overflow-y-auto` enabled. This guarantees all 3 columns stay aligned on one screen.
+
+---
+
+## 5. Typography & Spacing Hierarchy
 
 Fonts must align with these size, weight, and spacing tokens to preserve high geometric legibility:
 
@@ -208,7 +229,7 @@ Fonts must align with these size, weight, and spacing tokens to preserve high ge
 
 ---
 
-## 5. Transition & Motion Curves
+## 6. Transition & Motion Curves
 
 Stitch must use these specific animation properties on all visual components:
 
@@ -216,3 +237,4 @@ Stitch must use these specific animation properties on all visual components:
 *   **Card Scale Curves:** `300ms cubic-bezier(0.16, 1, 0.3, 1)` (smooth deceleration curve).
 *   **Drawer Slide-ups:** `300ms cubic-bezier(0.16, 1, 0.3, 1)` sliding vertically along the Y-axis.
 *   **Choreography Delay:** Sequential list entries must fade-in using staggered delays (`50ms` increments).
+
