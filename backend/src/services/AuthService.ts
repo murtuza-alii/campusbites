@@ -1,22 +1,23 @@
 import jwt from 'jsonwebtoken';
 import bcrypt from 'bcryptjs';
 import { config } from '../config/unifiedConfig.js';
+import { getDb } from '../db.js';
 
 export class AuthService {
-  private hashedStaffPassword: string;
+  async login(username: string, password: string): Promise<string | null> {
+    const db = await getDb();
+    const result = await db.query('SELECT * FROM users WHERE username = $1', [username]);
+    const user = result.rows[0];
 
-  constructor() {
-    // Generate bcrypt hash of the environment password at startup to demonstrate secure hashing
-    this.hashedStaffPassword = bcrypt.hashSync(config.auth.staffPassword, 10);
-  }
-
-  async login(password: string): Promise<string | null> {
-    const isValid = await bcrypt.compare(password, this.hashedStaffPassword);
-    
-    if (isValid) {
+    if (user && await bcrypt.compare(password, user.password_hash)) {
       // Sign token, valid for 12 hours
       const token = jwt.sign(
-        { role: 'staff' },
+        { 
+          id: user.id, 
+          username: user.username, 
+          role: user.role, 
+          canteenId: user.canteen_id 
+        },
         config.auth.jwtSecret,
         { expiresIn: '12h' }
       );

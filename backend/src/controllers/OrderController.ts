@@ -28,7 +28,14 @@ export class OrderController extends BaseController {
 
   async getAllOrders(req: Request, res: Response): Promise<void> {
     try {
-      const orders = await this.orderService.getAllOrders();
+      const authUser = (req as any).user;
+      let canteenId: string | undefined = req.query.canteenId as string | undefined;
+
+      if (!canteenId && authUser && authUser.role !== 'admin') {
+        canteenId = authUser.canteenId;
+      }
+
+      const orders = await this.orderService.getAllOrders(canteenId);
       this.handleSuccess(res, orders);
     } catch (error) {
       this.handleError(error, res, 'getAllOrders');
@@ -39,6 +46,7 @@ export class OrderController extends BaseController {
     try {
       const { id } = req.params;
       const { status } = req.body;
+
       await this.orderService.updateOrderStatus(id, status);
       this.handleSuccess(res, { success: true, id, status });
     } catch (error) {

@@ -1,0 +1,338 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>My Orders | CampusBites</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700;800&amp;family=Inter:wght@400;500;600&amp;family=Courier+Prime&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "on-primary-container": "#dad7ff",
+                        "on-tertiary-container": "#ffd2be",
+                        "secondary-fixed-dim": "#c6c6c8",
+                        "on-tertiary-fixed": "#351000",
+                        "primary-fixed-dim": "#c3c0ff",
+                        "on-secondary-fixed-variant": "#464749",
+                        "secondary": "#5d5e60",
+                        "on-primary-fixed-variant": "#3323cc",
+                        "on-primary": "#ffffff",
+                        "surface-dim": "#dcd8e5",
+                        "surface-bright": "#fcf8ff",
+                        "surface-container": "#f0ecf9",
+                        "tertiary-fixed-dim": "#ffb695",
+                        "tertiary-fixed": "#ffdbcc",
+                        "surface-container-low": "#f5f2ff",
+                        "on-background": "#1b1b24",
+                        "outline": "#777587",
+                        "surface-variant": "#e4e1ee",
+                        "success": "#059669",
+                        "warning": "#D97706",
+                        "primary": "#3525cd",
+                        "inverse-surface": "#302f39",
+                        "text-secondary": "#475569",
+                        "inverse-primary": "#c3c0ff",
+                        "error-container": "#ffdad6",
+                        "background": "#fcf8ff",
+                        "on-error-container": "#93000a",
+                        "on-tertiary-fixed-variant": "#7b2f00",
+                        "on-secondary-fixed": "#1a1c1d",
+                        "surface-container-lowest": "#ffffff",
+                        "primary-fixed": "#e2dfff",
+                        "surface": "#fcf8ff",
+                        "inverse-on-surface": "#f3effc",
+                        "secondary-fixed": "#e3e2e4",
+                        "primary-container": "#4f46e5",
+                        "on-secondary-container": "#626264",
+                        "outline-variant": "#c7c4d8",
+                        "text-primary": "#1E293B",
+                        "on-error": "#ffffff",
+                        "hazy-lavender": "rgba(165, 180, 252, 0.18)",
+                        "on-tertiary": "#ffffff",
+                        "on-surface-variant": "#464555",
+                        "text-muted": "#64748B",
+                        "surface-container-highest": "#e4e1ee",
+                        "surface-tint": "#4d44e3",
+                        "hazy-rose": "rgba(244, 143, 177, 0.14)",
+                        "on-surface": "#1b1b24",
+                        "surface-container-high": "#eae6f4",
+                        "secondary-container": "#e0dfe1",
+                        "hazy-mint": "rgba(167, 243, 208, 0.11)",
+                        "error": "#DC2626",
+                        "on-secondary": "#ffffff",
+                        "surface-bg": "rgba(255, 255, 255, 0.35)",
+                        "on-primary-fixed": "#0f0069",
+                        "tertiary": "#7e3000",
+                        "tertiary-container": "#a44100"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "2xl": "1.25rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "margin-mobile": "1rem",
+                        "margin-desktop": "2.5rem",
+                        "gutter": "1.5rem",
+                        "container-max": "1280px",
+                        "stack-sm": "0.5rem",
+                        "stack-md": "1rem",
+                        "stack-lg": "2rem"
+                    },
+                    "fontFamily": {
+                        "headline-sm": ["Outfit"],
+                        "label-md": ["Inter"],
+                        "headline-lg": ["Outfit"],
+                        "label-sm": ["Inter"],
+                        "body-sm": ["Inter"],
+                        "body-lg": ["Inter"],
+                        "headline-xl": ["Outfit"],
+                        "headline-md": ["Outfit"],
+                        "body-md": ["Inter"],
+                        "mono": ["Courier Prime", "monospace"]
+                    }
+                }
+            }
+        }
+    </script>
+<style>body {
+    font-family: "Inter", sans-serif;
+    background-color: #FAF9FB
+    }
+.glass-card {
+    background: rgba(255, 255, 255, 0.45);
+    backdrop-filter: blur(24px);
+    border-top: 1px solid rgba(255, 255, 255, 0.6);
+    border-left: 1px solid rgba(255, 255, 255, 0.6);
+    border-bottom: 1px solid rgba(15, 23, 42, 0.03);
+    border-right: 1px solid rgba(15, 23, 42, 0.03);
+    box-shadow: 0 32px 32px rgba(31, 38, 135, 0.03)
+    }
+.grain {
+    background-image: url(https://lh3.googleusercontent.com/aida-public/AB6AXuBkpcW2iDwOVxFZDTgSYwXElMvIsR1D566ETl8N6EJmD_-iclibZd62uw2M87VlmXzWBvbw9DleAh1G3irUzLLwD9NveD4xksq9Skgcp_AzhyH7wziUfC-85zdw1kQ1NlWkmCW-vfjQzP00IRVehrYukdyQqeO9F_7vIXzQK1mQ0h4nl8zZhuzbDrLWPp7UQp0wC6VJ0YVZodb65zwZkpu7b5jkSSgCSFNxez8RAvnMkPk0hKNE3bUh2bvRk1UaATA1ZOhrAWScpXo);
+    opacity: 0.03;
+    pointer-events: none
+    }
+.blob {
+    position: fixed;
+    border-radius: 50%;
+    filter: blur(80px);
+    z-index: -1;
+    opacity: 0.5
+    }
+.primary-gloss {
+    background: linear-gradient(135deg, #a5b4fc 0%, #f48fb1 100%);
+    transition: all 0.3s cubic-bezier(0.25, 1, 0.5, 1)
+    }
+.primary-gloss:active {
+    transform: scale(0.95)
+    }</style>
+</head>
+<body class="min-h-screen overflow-x-hidden text-on-surface">
+<!-- Atmospheric Background Components -->
+<div class="fixed inset-0 grain"></div>
+<div class="blob bg-hazy-lavender w-[500px] h-[500px] -top-20 -left-20 animate-pulse"></div>
+<div class="blob bg-hazy-rose w-[400px] h-[400px] bottom-0 -right-20"></div>
+<div class="blob bg-hazy-mint w-[300px] h-[300px] top-1/2 left-1/3"></div>
+<!-- TopNavBar -->
+<header class="fixed top-0 w-full h-[64px] z-50 glass-card bg-white/55 flex items-center justify-between px-margin-mobile md:px-margin-desktop">
+<div class="flex items-center gap-2">
+<div class="w-10 h-10 rounded-xl bg-primary flex items-center justify-center text-white shadow-lg">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">restaurant</span>
+</div>
+<div class="flex flex-col">
+<span class="font-headline-md text-headline-md font-bold text-primary leading-tight">CampusBites</span>
+<span class="text-[10px] font-label-sm uppercase tracking-widest text-text-muted">College Canteen Hub</span>
+</div>
+</div>
+<button class="flex items-center gap-2 px-4 py-2 rounded-full border border-primary/20 text-primary font-label-md hover:bg-primary/5 transition-all">
+<span class="material-symbols-outlined text-[20px]">security</span>
+            Staff Dashboard
+        </button>
+</header>
+<main class="pt-[100px] pb-20 max-w-4xl mx-auto px-margin-mobile">
+<!-- View Toggle -->
+<div class="flex justify-center mb-12">
+<div class="p-1 glass-card rounded-2xl flex gap-1 border border-white/20">
+<button class="px-6 py-2.5 rounded-xl font-label-md text-on-surface-variant hover:bg-white/40 transition-all">
+                    Browse Menu
+                </button>
+<button class="px-6 py-2.5 rounded-xl font-label-md bg-primary text-white shadow-md flex items-center gap-2">
+                    My Orders
+                    <span class="w-5 h-5 rounded-full bg-white/20 flex items-center justify-center text-[10px]">2</span>
+</button>
+</div>
+</div>
+<!-- Title Section -->
+<div class="mb-10 text-center md:text-left">
+<h1 class="font-headline-lg text-headline-lg text-text-primary mb-2">My Placed Orders</h1>
+<p class="font-body-md text-body-md text-text-muted">Track the progress of your items and pay at the counter</p>
+</div>
+<!-- Orders List -->
+<div class="space-y-gutter">
+<!-- Active Order Card: Pending -->
+<div class="glass-card rounded-2xl p-stack-lg flex flex-col md:flex-row gap-gutter relative overflow-hidden group">
+<div class="flex-1">
+<div class="flex items-center justify-between mb-8">
+<div class="flex items-center gap-4">
+<span class="font-headline-sm text-headline-sm text-text-primary">#1005</span>
+<span class="font-body-sm text-body-sm text-text-muted">01:50 PM</span>
+</div>
+<span class="px-4 py-1.5 rounded-full bg-warning/10 text-warning font-label-sm border border-warning/20 flex items-center gap-1.5">
+<span class="w-2 h-2 rounded-full bg-warning animate-pulse"></span>
+                            PENDING
+                        </span>
+</div>
+<div class="space-y-4 mb-8">
+<div class="flex flex-col gap-1">
+<span class="font-label-sm text-text-muted uppercase tracking-wider">ORDERED DISHES</span>
+<div class="flex justify-between items-center group/item">
+<span class="font-body-md text-text-primary">Cold Coffee <span class="text-primary font-bold">x1</span></span>
+<span class="font-headline-sm text-headline-sm text-text-primary">₹50</span>
+</div>
+</div>
+<hr class="border-outline-variant/30"/>
+<div class="flex justify-between items-end">
+<div class="flex flex-col gap-1">
+<span class="font-label-sm text-text-muted uppercase tracking-wider">ORDERED BY</span>
+<span class="font-body-md text-text-primary font-semibold">murtu</span>
+</div>
+<div class="flex flex-col items-end">
+<span class="font-label-sm text-text-muted uppercase tracking-wider">TOTAL PAID</span>
+<span class="font-headline-md text-headline-md text-primary">₹50</span>
+</div>
+</div>
+</div>
+</div>
+<!-- OTP & QR Section -->
+<div class="md:w-1/3 bg-surface-container/50 rounded-2xl p-6 flex flex-col items-center justify-center border border-white/20 gap-4 relative">
+<div class="text-center w-full">
+<span class="font-label-sm text-text-muted uppercase tracking-wider block mb-2">PICKUP OTP</span>
+<div class="font-mono text-[40px] font-bold text-primary tracking-[8px] leading-tight mb-1">
+                            6681
+                        </div>
+<p class="text-[10px] leading-tight text-text-muted px-4">Pay offline and show code to canteen staff</p>
+</div>
+<div class="p-3 bg-white rounded-xl shadow-inner border border-outline-variant/20 group-hover:scale-105 transition-transform duration-500">
+<img class="w-24 h-24 object-contain" data-alt="A clean, minimalist white square QR code centered on a crisp white background with rounded corners. The design is modern and high-contrast, fitting a glassmorphic food ordering app. The lighting is soft and even, highlighting the technical nature of the scan code for secure transactions in a calm hazy aesthetic." src="https://lh3.googleusercontent.com/aida-public/AB6AXuAw56Dk3Lo-mIpHPx-bTT47ZbYzLFXkI06NNl391PbA7hCDZGMmGoz_WtioWUzE-WhO-Uwgk5qOBG_VZ1TPSbCCbaM0VXwlZjSr7oyLjjDnF4i3KSJcfB5sf7HawIfdMhjUWkUwRlwbrj7Oo3JAGF9FFhIIFBFgHZkiYuIErB4ixBv3aAJ3lqZ6VGrsPLtDKnYmFpaNaXebF0lBBah6r9VXhqUCj1jOAW1HyHWvLU4w97EPoEmoi6ycWx1_abnp0n3a5mPF9f85bq4"/>
+</div>
+</div>
+</div>
+<!-- Active Order Card: Preparing -->
+<div class="glass-card rounded-2xl p-stack-lg flex flex-col md:flex-row gap-gutter relative overflow-hidden">
+<div class="flex-1">
+<div class="flex items-center justify-between mb-8">
+<div class="flex items-center gap-4">
+<span class="font-headline-sm text-headline-sm text-text-primary">#1002</span>
+<span class="font-body-sm text-body-sm text-text-muted">12:15 PM</span>
+</div>
+<span class="px-4 py-1.5 rounded-full bg-primary/10 text-primary font-label-sm border border-primary/20 flex items-center gap-1.5">
+<span class="w-2 h-2 rounded-full bg-primary animate-pulse"></span>
+                            PREPARING
+                        </span>
+</div>
+<div class="space-y-4 mb-8">
+<div class="flex flex-col gap-1">
+<span class="font-label-sm text-text-muted uppercase tracking-wider">ORDERED DISHES</span>
+<div class="flex justify-between items-center">
+<span class="font-body-md text-text-primary">Chicken Pasta <span class="text-primary font-bold">x1</span></span>
+<span class="font-headline-sm text-headline-sm text-text-primary">₹120</span>
+</div>
+<div class="flex justify-between items-center">
+<span class="font-body-md text-text-primary">Lemon Soda <span class="text-primary font-bold">x2</span></span>
+<span class="font-headline-sm text-headline-sm text-text-primary">₹60</span>
+</div>
+</div>
+<hr class="border-outline-variant/30"/>
+<div class="flex justify-between items-end">
+<div class="flex flex-col gap-1">
+<span class="font-label-sm text-text-muted uppercase tracking-wider">ORDERED BY</span>
+<span class="font-body-md text-text-primary font-semibold">murtu</span>
+</div>
+<div class="flex flex-col items-end">
+<span class="font-label-sm text-text-muted uppercase tracking-wider">TOTAL PAID</span>
+<span class="font-headline-md text-headline-md text-primary">₹180</span>
+</div>
+</div>
+</div>
+</div>
+<!-- OTP & QR Section -->
+<div class="md:w-1/3 bg-surface-container/50 rounded-2xl p-6 flex flex-col items-center justify-center border border-white/20 gap-4">
+<div class="text-center w-full">
+<span class="font-label-sm text-text-muted uppercase tracking-wider block mb-2">PICKUP OTP</span>
+<div class="font-mono text-[40px] font-bold text-primary tracking-[8px] leading-tight mb-1">
+                            4920
+                        </div>
+<p class="text-[10px] leading-tight text-text-muted px-4">Pay offline and show code to canteen staff</p>
+</div>
+<div class="p-3 bg-white rounded-xl shadow-inner border border-outline-variant/20">
+<img class="w-24 h-24 object-contain" data-alt="A precise, clean white QR code image specifically for a mobile canteen application. The code is centered on a high-gloss white surface with soft ambient occlusion shadows. The aesthetic is extremely minimalist and clear, using high-key lighting to emphasize security and ease of use within a calm hazy design system." src="https://lh3.googleusercontent.com/aida-public/AB6AXuC9Zd0tqcYChQ6kJRV-WiDkIjTwrWZ5EcbiThNi0iWSDzJBn7tk7lNh-FaItEVCKbGl0XG2iuoE8O9thmhbWAm5nOYh2DP16DeogStdJRQmIVONgFZXr3KhMXC3-KV8eqAsnc8yePHwihNiLP_iso3yTMVN_P1UgVm-dcKgR8d7V7nnMcM7wFbpFnCjwQ_7BKxkPqfqhN3R5v04ZG5qBTu8a7HgOLAer49Uv-V_I08YE2RwbY50Z5BxdM_CDGNC0bde8E3VCOiWSME"/>
+</div>
+</div>
+</div>
+<!-- History Section Title -->
+<div class="pt-8 border-t border-outline-variant/20">
+<h2 class="font-headline-sm text-headline-sm text-text-muted mb-6">Recent History</h2>
+</div>
+<!-- Completed Order Card -->
+<div class="glass-card opacity-70 rounded-2xl p-stack-md flex flex-col md:flex-row items-center justify-between gap-4 border border-white/40">
+<div class="flex items-center gap-6">
+<div class="flex flex-col">
+<span class="font-label-sm text-text-muted uppercase">#0988</span>
+<span class="font-headline-sm text-headline-sm text-text-primary">₹45</span>
+</div>
+<div class="h-10 w-[1px] bg-outline-variant/30 hidden md:block"></div>
+<div class="flex flex-col">
+<span class="font-label-sm text-text-muted">Veg Burger x1</span>
+<span class="font-body-sm text-body-sm text-text-muted">Yesterday, 4:20 PM</span>
+</div>
+</div>
+<div class="flex items-center gap-4">
+<span class="px-4 py-1.5 rounded-full bg-success/10 text-success font-label-sm border border-success/20">COMPLETED</span>
+<button class="primary-gloss p-2 rounded-xl text-white flex items-center justify-center shadow-lg hover:shadow-primary/20">
+<span class="material-symbols-outlined text-[18px]">delete_sweep</span>
+</button>
+</div>
+</div>
+</div>
+</main>
+<!-- Side View FAB for Desktop (Contextual Order Quick View) -->
+<button class="fixed bottom-10 right-10 w-16 h-16 rounded-2xl primary-gloss text-white shadow-2xl flex items-center justify-center hover:scale-105 active:scale-95 transition-all z-40">
+<span class="material-symbols-outlined text-[32px]">receipt_long</span>
+</button>
+<script>
+        // Micro-interactions for glass card movement
+        document.querySelectorAll('.glass-card').forEach(card => {
+            card.addEventListener('mousemove', (e) => {
+                const rect = card.getBoundingClientRect();
+                const x = e.clientX - rect.left;
+                const y = e.clientY - rect.top;
+                
+                const centerX = rect.width / 2;
+                const centerY = rect.height / 2;
+                
+                const rotateX = (y - centerY) / 30;
+                const rotateY = (centerX - x) / 30;
+                
+                card.style.transform = `perspective(1000px) rotateX(${rotateX}deg) rotateY(${rotateY}deg)`;
+            });
+            
+            card.addEventListener('mouseleave', () => {
+                card.style.transform = 'perspective(1000px) rotateX(0deg) rotateY(0deg)';
+                card.style.transition = 'all 0.5s ease';
+            });
+            
+            card.addEventListener('mouseenter', () => {
+                card.style.transition = 'none';
+            });
+        });
+    </script>
+</body></html>

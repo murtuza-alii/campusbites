@@ -1,0 +1,535 @@
+<!DOCTYPE html><html class="light" lang="en" style=""><head>
+<meta charset="utf-8">
+<meta content="width=device-width, initial-scale=1.0" name="viewport">
+<title>Menu Management | CampusBites</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&amp;family=Inter:wght@400;500;600&amp;family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@100..900&amp;family=Outfit:wght@100..900&amp;display=swap" rel="stylesheet">
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                "outline": "#777587",
+                "on-surface": "#1b1b24",
+                "primary-fixed": "#e2dfff",
+                "on-secondary-fixed-variant": "#464749",
+                "surface-tint": "#4d44e3",
+                "on-secondary-fixed": "#1a1c1d",
+                "secondary-fixed-dim": "#c6c6c8",
+                "surface-container-lowest": "#ffffff",
+                "outline-variant": "#c7c4d8",
+                "hazy-mint": "rgba(167, 243, 208, 0.11)",
+                "inverse-on-surface": "#f3effc",
+                "surface-container-highest": "#e4e1ee",
+                "primary-fixed-dim": "#c3c0ff",
+                "on-primary": "#ffffff",
+                "surface-variant": "#e4e1ee",
+                "on-primary-fixed-variant": "#3323cc",
+                "on-surface-variant": "#464555",
+                "surface-container": "#f0ecf9",
+                "secondary-fixed": "#e3e2e4",
+                "hazy-lavender": "rgba(165, 180, 252, 0.18)",
+                "on-error": "#ffffff",
+                "surface-bg": "rgba(255, 255, 255, 0.35)",
+                "tertiary": "#7e3000",
+                "secondary": "#5d5e60",
+                "surface-container-low": "#f5f2ff",
+                "primary-container": "#4f46e5",
+                "text-primary": "#1E293B",
+                "on-tertiary-fixed-variant": "#7b2f00",
+                "inverse-surface": "#302f39",
+                "tertiary-container": "#a44100",
+                "surface-container-high": "#eae6f4",
+                "on-tertiary-fixed": "#351000",
+                "tertiary-fixed": "#ffdbcc",
+                "on-secondary": "#ffffff",
+                "secondary-container": "#e0dfe1",
+                "on-secondary-container": "#626264",
+                "surface-dim": "#dcd8e5",
+                "on-primary-container": "#dad7ff",
+                "error": "#DC2626",
+                "surface": "#fcf8ff",
+                "primary": "#3525cd",
+                "hazy-rose": "rgba(244, 143, 177, 0.14)",
+                "background": "#fcf8ff",
+                "tertiary-fixed-dim": "#ffb695",
+                "on-error-container": "#93000a",
+                "surface-bright": "#fcf8ff",
+                "text-secondary": "#475569",
+                "on-primary-fixed": "#0f0069",
+                "warning": "#D97706",
+                "on-tertiary": "#ffffff",
+                "on-background": "#1b1b24",
+                "inverse-primary": "#c3c0ff",
+                "on-tertiary-container": "#ffd2be",
+                "error-container": "#ffdad6",
+                "success": "#059669",
+                "text-muted": "#64748B"
+            },
+            "borderRadius": {
+                "DEFAULT": "0.25rem",
+                "lg": "0.5rem",
+                "xl": "0.75rem",
+                "full": "9999px"
+            },
+            "spacing": {
+                "stack-lg": "2rem",
+                "margin-mobile": "1rem",
+                "gutter": "1.5rem",
+                "stack-md": "1rem",
+                "stack-sm": "0.5rem",
+                "container-max": "1280px",
+                "margin-desktop": "2.5rem"
+            },
+            "fontFamily": {
+                "headline-xl": ["Outfit"],
+                "headline-sm": ["Outfit"],
+                "body-lg": ["Inter"],
+                "headline-lg": ["Outfit"],
+                "label-sm": ["Inter"],
+                "body-sm": ["Inter"],
+                "label-md": ["Inter"],
+                "body-md": ["Inter"],
+                "headline-md": ["Outfit"],
+                "headline-lg-mobile": ["Outfit"]
+            }
+          }
+        }
+      }
+    </script>
+<style>body {
+    background-color: #FAF9FB;
+    overflow-x: hidden
+    }
+.glass-card {
+    background: rgba(255, 255, 255, 0.35);
+    backdrop-filter: blur(24px);
+    -webkit-backdrop-filter: blur(24px);
+    border-top: 1px solid rgba(255, 255, 255, 0.45);
+    border-left: 1px solid rgba(255, 255, 255, 0.45);
+    border-bottom: 1px solid rgba(15, 23, 42, 0.03);
+    border-right: 1px solid rgba(15, 23, 42, 0.03);
+    box-shadow: 0 32px 32px rgba(31, 38, 135, 0.03)
+    }
+.glossy-primary {
+    background: linear-gradient(135deg, rgba(79, 70, 229, 0.9) 0%, rgba(244, 143, 177, 0.8) 100%);
+    transition: transform 0.3s cubic-bezier(0.25, 1, 0.5, 1)
+    }
+.glossy-primary:active {
+    transform: scale(0.95)
+    }
+.grain-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    z-index: 100;
+    opacity: 0.02;
+    background-image: url(https://lh3.googleusercontent.com/aida-public/AB6AXuAeOhEKHy36kM4G1Bjjm8rCYi_p8FEfwRZhjNXIOPWhb4zObVdTVqWTVHuUennoKn4mc9iRrpUScIsJ-CX7eIlCuZLnUh5TbIaOpFDfBMLFsE9uTYXmah0nRdybDvA8_hNXPOSGAq0w3fRUUTY9ozl7SCOmaAiihzJSU5ls-i3amwmBR7ABOB99OlDq0mfemWff8AESVHXOrsiYApWFHHIvO9QeIEkMhIqv9kcZX0xv9vn3bD2VqXffHiAvTei1xJPXOC5iv_2vkso)
+    }
+.blob {
+    position: fixed;
+    border-radius: 50%;
+    filter: blur(80px);
+    z-index: -1;
+    animation: float 20s infinite alternate cubic-bezier(0.45, 0.05, 0.55, 0.95)
+    }
+@keyframes float {
+    0% {
+        transform: translate(0, 0);
+        } 100% {
+        transform: translate(40px, 40px);
+        }
+    }
+.toggle-switch {
+    appearance: none;
+    width: 44px;
+    height: 24px;
+    background: rgba(224, 223, 225, 0.5);
+    border-radius: 999px;
+    position: relative;
+    cursor: pointer;
+    transition: background 0.3s ease
+    }
+.toggle-switch:checked {
+    background: rgba(5, 150, 105, 0.7)
+    }
+.toggle-switch::before {
+    content: "";
+    position: absolute;
+    width: 18px;
+    height: 18px;
+    background: white;
+    border-radius: 50%;
+    top: 3px;
+    left: 3px;
+    transition: transform 0.3s ease
+    }
+.toggle-switch:checked::before {
+    transform: translatex(20px)
+    }
+.material-symbols-outlined {
+    font-variation-settings: "FILL" 0, "wght" 400, "GRAD" 0, "opsz" 24;
+    vertical-align: middle
+    }</style>
+</head>
+<body class="font-body-md text-on-surface">
+<div class="grain-overlay"></div>
+<!-- Atmospheric Blobs -->
+<div class="blob w-96 h-96 bg-hazy-lavender top-[-10%] left-[-10%]"></div>
+<div class="blob w-[500px] h-[500px] bg-hazy-rose bottom-[10%] right-[-10%]"></div>
+<div class="blob w-80 h-80 bg-hazy-mint top-[40%] left-[20%]"></div>
+<!-- Navigation Shell -->
+<nav class="fixed top-0 left-0 w-full z-50 flex justify-between items-center px-margin-desktop py-stack-sm bg-surface-bg/55 backdrop-blur-[16px] border-b border-white/45 shadow-[0_32px_32px_rgba(31,38,135,0.03)]">
+<div class="flex items-center gap-12">
+<span class="font-headline-md text-headline-md font-bold text-primary">Canteen Dashboard</span>
+<div class="hidden md:flex items-center gap-8">
+<a class="font-label-md text-label-md text-on-surface-variant hover:text-primary transition-colors" href="#">Orders</a>
+<a class="font-label-md text-label-md text-primary border-b-2 border-primary pb-1" href="#">Edit Menu</a>
+</div>
+</div>
+<div class="flex items-center gap-6">
+<a class="flex items-center gap-2 font-label-md text-label-md text-on-surface-variant hover:text-primary transition-colors" href="#">
+<span class="material-symbols-outlined text-[20px]">arrow_back</span>
+                Student Menu
+            </a>
+<div class="flex items-center gap-4 border-l border-outline-variant pl-6">
+<button class="p-2 rounded-lg hover:bg-hazy-lavender/20 transition-all duration-300">
+<span class="material-symbols-outlined text-on-surface-variant" data-icon="notifications">notifications</span>
+</button>
+<button class="p-2 rounded-lg hover:bg-hazy-lavender/20 transition-all duration-300">
+<span class="material-symbols-outlined text-on-surface-variant" data-icon="settings">settings</span>
+</button>
+<div class="flex items-center gap-3 ml-2">
+<img class="w-10 h-10 rounded-full object-cover border-2 border-white shadow-sm" data-alt="A professional headshot of a canteen staff member wearing a clean white apron, smiling warmly against a soft-focus kitchen background with warm evening lighting. The overall style is light, bright, and professional with a gentle pastel color palette." src="https://lh3.googleusercontent.com/aida-public/AB6AXuAdf86_VdwA0jx9Sa1GE6EBCq5xH31uOYq5DOCRaDUAeuhXcVCvsetUkfH3Iul1FyDRhbnOHYfVfIMM0Uw_e5EWQDX2fLB99vXebBFkNdyxOOFgjexOrB5-SdXlZWx-K8PV0ENgFnck0V67Bi_qraZuGd9ZnNdU3QoSneGNJH9NzUbSxCITT2xwO9WIGEAoe8mNvjHwfBzR6G1gfb1ycecqTiZ-t59jnSHUZtECvAfF5OzQeYQAkm0iKMvKlnx4KH9lYDmm7cTSIRA">
+<button class="font-label-md text-label-md text-error px-3 py-1.5 rounded-lg hover:bg-error/5 transition-all">Logout</button>
+</div>
+</div>
+</div>
+</nav>
+<main class="pt-32 pb-20 px-margin-desktop max-w-container-max mx-auto">
+<!-- Header Section -->
+<header class="flex justify-between items-end mb-stack-lg">
+<div>
+<h1 class="font-headline-lg text-headline-lg text-on-surface mb-2">Menu Management</h1>
+<p class="font-body-lg text-body-lg text-text-muted">Configure available dishes, pricing, and stock status for the student portal.</p>
+</div>
+<button class="glossy-primary px-6 py-3 rounded-xl flex items-center gap-2 text-white font-label-md text-label-md shadow-lg shadow-indigo-200">
+<span class="material-symbols-outlined" data-icon="add">add</span>
+                Add Item
+            </button>
+</header>
+<!-- Search and Filter Bar -->
+<div class="glass-card p-4 rounded-2xl mb-8 flex flex-col md:flex-row gap-4 items-center">
+<div class="relative flex-grow w-full">
+<span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-text-muted">search</span>
+<input class="w-full pl-12 pr-4 py-3 bg-white/40 border border-white/60 rounded-xl focus:ring-2 focus:ring-primary focus:border-transparent transition-all outline-none text-body-md" placeholder="Search dishes by name or category..." type="text">
+</div>
+<div class="flex items-center gap-3 w-full md:w-auto">
+<button class="px-5 py-3 rounded-xl bg-white/40 border border-white/60 font-label-md text-label-md text-on-surface-variant flex items-center gap-2 hover:bg-white/60 transition-all">
+<span class="material-symbols-outlined" data-icon="filter_list">filter_list</span>
+                    Category
+                </button>
+<button class="px-5 py-3 rounded-xl bg-white/40 border border-white/60 font-label-md text-label-md text-on-surface-variant flex items-center gap-2 hover:bg-white/60 transition-all">
+<span class="material-symbols-outlined" data-icon="sort">sort</span>
+                    Price
+                </button>
+</div>
+</div>
+<!-- Inventory Table -->
+<div class="glass-card rounded-[2rem] overflow-hidden">
+<table class="w-full border-collapse">
+<thead>
+<tr class="bg-white/40 border-b border-white/45" style="transform: translateX(0px); transition: 0.3s cubic-bezier(0.25, 1, 0.5, 1);">
+<th class="px-8 py-5 text-left font-label-md text-label-md text-on-surface-variant">Dish Details</th>
+<th class="px-8 py-5 text-left font-label-md text-label-md text-on-surface-variant">Category</th>
+<th class="px-8 py-5 text-left font-label-md text-label-md text-on-surface-variant">Price</th>
+<th class="px-8 py-5 text-center font-label-md text-label-md text-on-surface-variant">Stock Status</th>
+<th class="px-8 py-5 text-right font-label-md text-label-md text-on-surface-variant">Actions</th>
+</tr>
+</thead>
+<tbody class="divide-y divide-white/20">
+<!-- Item 1: Paneer Tikka Roll -->
+<tr class="hover:bg-white/30 transition-colors group" style="transform: translateX(0px); transition: 0.3s cubic-bezier(0.25, 1, 0.5, 1);">
+<td class="px-8 py-5">
+<div class="flex items-center gap-4">
+<img class="w-14 h-14 rounded-full object-cover border-2 border-white/80 shadow-sm" data-alt="A close-up gourmet photography shot of a fresh Paneer Tikka Roll with vibrant green mint chutney, charred paneer cubes, and colorful bell peppers. The lighting is soft and airy, shot in a high-key light mode style with a shallow depth of field. Soft pastel hues of lavender and mint are reflected in the highlights." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDPiwi7QpiZG8bLFKgdPkIsR9w8cjt4u6Bcoy7bpNIbprKBf3GtlxNgSNy6eK_c4dTBmTuOf_0M3lldLWirb1ltdzwsDnwmBz9Su0G2TyAXhh0blY1nWIsBosvR0k9KxpQANmSiLU7bnAkZurw2-LoWFH6BC_FIhaBo6RdykK_7T_HqbMcGx9boexvUL8Dv4ASgJ91NBXMCraA1Nd981ql2cFONPnU3i-SxsPvb7Gi2UY-BpPcf7DkCtzw6W3rtC1_5l5NjOQlRphk">
+<span class="font-headline-sm text-headline-sm text-text-primary">Paneer Tikka Roll</span>
+</div>
+</td>
+<td class="px-8 py-5">
+<span class="px-3 py-1 rounded-full bg-hazy-mint text-success text-label-sm font-label-sm">Meals</span>
+</td>
+<td class="px-8 py-5 font-headline-sm text-headline-sm text-on-surface">₹80</td>
+<td class="px-8 py-5 text-center">
+<label class="relative inline-flex items-center cursor-pointer group/toggle">
+  <input type="checkbox" class="sr-only peer" checked="" style="background-color: rgb(16, 185, 129) !important;">
+  <div class="w-11 h-6 bg-on-secondary-container/10 rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-success/20 transition-all duration-300" style="background-color: rgb(16, 185, 129) !important;"></div>
+</label>
+</td>
+<td class="px-8 py-5 text-right">
+<div class="flex justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+<button class="p-2 rounded-lg bg-white/60 hover:bg-primary/10 text-on-surface-variant hover:text-primary transition-all">
+<span class="material-symbols-outlined" data-icon="edit">edit</span>
+</button>
+<button class="p-2 rounded-lg bg-white/60 hover:bg-error/10 text-on-surface-variant hover:text-error transition-all">
+<span class="material-symbols-outlined" data-icon="delete">delete</span>
+</button>
+</div>
+</td>
+</tr>
+<!-- Item 2: Cold Coffee -->
+<tr class="hover:bg-white/30 transition-colors group" style="transform: translateX(0px); transition: 0.3s cubic-bezier(0.25, 1, 0.5, 1);">
+<td class="px-8 py-5">
+<div class="flex items-center gap-4">
+<img class="w-14 h-14 rounded-full object-cover border-2 border-white/80 shadow-sm" data-alt="A tall glass of frothy cold coffee topped with a swirl of chocolate syrup, sitting on a marble surface. The lighting is bright and cheerful, emphasizing the creamy texture. The image follows a calm hazy aesthetic with soft indigo and lavender tones in the background blur." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCCqDIzJTJgxLXwxosqUs59_xea9QJYUiZGK3hBZMYT9nFPRXbmRlQRFHim1CdHauPw1W6ThGtmDm5fhsXlGEbW1HG1cozWeKqS4ZG6ckoLPk2VJZ0f-TsRy27gTZpP-wsVc5ZY3aofe_r_uLiCm3lSI3El8NLaSE-9SADkWVDJAdEOfK2GME88mYUK3ADJETBrdoUpUMNN937hoobXoWAXCO3oZ5oAL4j-jci57JrC-SA7Ih8J_-rvFCaooA5i9oLzb3rCprhNdtI">
+<span class="font-headline-sm text-headline-sm text-text-primary">Cold Coffee</span>
+</div>
+</td>
+<td class="px-8 py-5">
+<span class="px-3 py-1 rounded-full bg-hazy-lavender text-primary text-label-sm font-label-sm">Beverages</span>
+</td>
+<td class="px-8 py-5 font-headline-sm text-headline-sm text-on-surface">₹45</td>
+<td class="px-8 py-5 text-center">
+<label class="relative inline-flex items-center cursor-pointer group/toggle">
+  <input type="checkbox" class="sr-only peer" checked="" style="background-color: rgb(16, 185, 129) !important;">
+  <div class="w-11 h-6 bg-on-secondary-container/10 rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-success/20 transition-all duration-300" style="background-color: rgb(16, 185, 129) !important;"></div>
+</label>
+</td>
+<td class="px-8 py-5 text-right">
+<div class="flex justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+<button class="p-2 rounded-lg bg-white/60 hover:bg-primary/10 text-on-surface-variant hover:text-primary transition-all">
+<span class="material-symbols-outlined" data-icon="edit">edit</span>
+</button>
+<button class="p-2 rounded-lg bg-white/60 hover:bg-error/10 text-on-surface-variant hover:text-error transition-all">
+<span class="material-symbols-outlined" data-icon="delete">delete</span>
+</button>
+</div>
+</td>
+</tr>
+<!-- Item 3: Cheese Veg Burger -->
+<tr class="hover:bg-white/30 transition-colors group" style="transform: translateX(0px); transition: 0.3s cubic-bezier(0.25, 1, 0.5, 1);">
+<td class="px-8 py-5">
+<div class="flex items-center gap-4">
+<img class="w-14 h-14 rounded-full object-cover border-2 border-white/80 shadow-sm" data-alt="A delicious veggie burger with melting cheese, crisp lettuce, and juicy tomatoes in a soft toasted bun. The composition is focused and bright, styled with a modern food-photography approach. High-key lighting highlights the fresh ingredients, consistent with a clean, hazy light-mode theme." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBnCfqoTUyd4iSAVUWhXa51FQf-1j5Lh_vk9ZgofYlzVSGOfnx5Hji4zK55f-kAW3K0e87ZxJdw8ruf0OLtIuhYKc85krFCD8GwKRhPF-PFbwk-JrXyIzk9XnwQwLPTz9KXGQ8SrNzYv_eluvI5ZAjkgDJ69_SCo-8RsIYvv3Ce_Kbrcu-GPnC5w8H3MdKdmLs1FYBe2U8aFBNeLnrGs3czO3B7x0Xzz4OLJ4ehWXgPUKRWUcerbc8IGOVhNT4CTNNclL-9j1ET79Y">
+<span class="font-headline-sm text-headline-sm text-text-primary">Cheese Veg Burger</span>
+</div>
+</td>
+<td class="px-8 py-5">
+<span class="px-3 py-1 rounded-full bg-hazy-mint text-success text-label-sm font-label-sm">Meals</span>
+</td>
+<td class="px-8 py-5 font-headline-sm text-headline-sm text-on-surface">₹95</td>
+<td class="px-8 py-5 text-center">
+<label class="relative inline-flex items-center cursor-pointer group/toggle">
+  <input type="checkbox" class="sr-only peer" checked="" style="background-color: rgb(16, 185, 129) !important;">
+  <div class="w-11 h-6 bg-on-secondary-container/10 rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-success/20 transition-all duration-300" style="background-color: rgb(16, 185, 129) !important;"></div>
+</label>
+</td>
+<td class="px-8 py-5 text-right">
+<div class="flex justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+<button class="p-2 rounded-lg bg-white/60 hover:bg-primary/10 text-on-surface-variant hover:text-primary transition-all">
+<span class="material-symbols-outlined" data-icon="edit">edit</span>
+</button>
+<button class="p-2 rounded-lg bg-white/60 hover:bg-error/10 text-on-surface-variant hover:text-error transition-all">
+<span class="material-symbols-outlined" data-icon="delete">delete</span>
+</button>
+</div>
+</td>
+</tr>
+<!-- Item 4: Masala Dosa -->
+<tr class="hover:bg-white/30 transition-colors group" style="transform: translateX(0px); transition: 0.3s cubic-bezier(0.25, 1, 0.5, 1); opacity: 0.6;">
+<td class="px-8 py-5">
+<div class="flex items-center gap-4">
+<img class="w-14 h-14 rounded-full object-cover border-2 border-white/80 shadow-sm" data-alt="A crisp, golden Masala Dosa served with stainless steel bowls of coconut chutney and sambar. The plate is beautifully arranged on a light wood surface. The lighting is soft and natural, with a sophisticated palette of warm golds and clean whites, fitting a calm hazy dashboard aesthetic." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBiScxv4Q8dMGmK5MUmNRXoRWPWVqkxXS1T_wlHZ1cR3CKqWIDsJijCJ88-sR67wVkQhxxG-UeMwa0St17PQUQz7W0H7LxPofL8hZcTNXWUND8mmupYI3Je7lLVqzYCvPdt98TCR_5ywCjxA4Lj4EFAI30QIDYZU7U8OGsw3qv1o4NuYk1MOCIWazY9ZBYUS_Tnpda6ySxBnEiQu7GA_SmuYBZtmvQrxPifb4ErE9u9Dc_SXlxpDDRuKFWL6_w_F61qFQcrpKn5GRg">
+<span class="font-headline-sm text-headline-sm text-text-primary">Masala Dosa</span>
+</div>
+</td>
+<td class="px-8 py-5">
+<span class="px-3 py-1 rounded-full bg-hazy-mint text-success text-label-sm font-label-sm">Meals</span>
+</td>
+<td class="px-8 py-5 font-headline-sm text-headline-sm text-on-surface">₹70</td>
+<td class="px-8 py-5 text-center">
+<label class="relative inline-flex items-center cursor-pointer group/toggle">
+  <input type="checkbox" class="sr-only peer" checked="" style="background-color: rgb(16, 185, 129) !important;">
+  <div class="w-11 h-6 bg-on-secondary-container/10 rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-success/20 transition-all duration-300" style="background-color: rgb(16, 185, 129) !important;"></div>
+</label>
+</td>
+<td class="px-8 py-5 text-right">
+<div class="flex justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+<button class="p-2 rounded-lg bg-white/60 hover:bg-primary/10 text-on-surface-variant hover:text-primary transition-all">
+<span class="material-symbols-outlined" data-icon="edit">edit</span>
+</button>
+<button class="p-2 rounded-lg bg-white/60 hover:bg-error/10 text-on-surface-variant hover:text-error transition-all">
+<span class="material-symbols-outlined" data-icon="delete">delete</span>
+</button>
+</div>
+</td>
+</tr>
+<!-- Item 5: Samosa (Out of Stock) -->
+<tr class="hover:bg-white/30 transition-colors group" style="transform: translateX(0px); transition: 0.3s cubic-bezier(0.25, 1, 0.5, 1);">
+<td class="px-8 py-5">
+<div class="flex items-center gap-4 opacity-60">
+<img class="w-14 h-14 rounded-full object-cover border-2 border-white/80 shadow-sm" data-alt="Two golden-brown crispy samosas served with sweet tamarind sauce. The lighting is warm yet bright, highlighting the flaky texture of the pastry. The scene is presented in a minimalist, light-mode setting with soft shadows and a high-end glassmorphic feel." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDs1Vvqpi-JFeMfDWw9jcalQfQmLJw1p2Lzwp3wSfWa6eNF7J1eM8pqqrnU8dNcPXpf_wZwIKsyYi7SEniyd48za4KMHt2gcUmCvXqNAqA9bRu6ryAmkMoKy4pELjYGMQMH_iAjNFNxorB2QiOYSpw0VGloa0fk2jqn34crETEpb9EJUumfITZHWVX8unLhknt87VCyNvXkf7Mhg65ZZpQ4kMvb7itm57xVF6KRak-fs8yltTl5kgwVSusDpBjVl6uVcI_esodztxs">
+<span class="font-headline-sm text-headline-sm text-text-primary">Samosa (2 pcs)</span>
+</div>
+</td>
+<td class="px-8 py-5">
+<span class="px-3 py-1 rounded-full bg-hazy-rose text-error text-label-sm font-label-sm">Snacks</span>
+</td>
+<td class="px-8 py-5 font-headline-sm text-headline-sm text-on-surface opacity-60">₹30</td>
+<td class="px-8 py-5 text-center">
+<label class="relative inline-flex items-center cursor-pointer group/toggle">
+  <input type="checkbox" class="sr-only peer" style="background-color: rgb(16, 185, 129) !important;">
+  <div class="w-11 h-6 bg-on-secondary-container/10 rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-success/20 transition-all duration-300" style="background-color: rgb(16, 185, 129) !important;"></div>
+</label>
+</td>
+<td class="px-8 py-5 text-right">
+<div class="flex justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+<button class="p-2 rounded-lg bg-white/60 hover:bg-primary/10 text-on-surface-variant hover:text-primary transition-all">
+<span class="material-symbols-outlined" data-icon="edit">edit</span>
+</button>
+<button class="p-2 rounded-lg bg-white/60 hover:bg-error/10 text-on-surface-variant hover:text-error transition-all">
+<span class="material-symbols-outlined" data-icon="delete">delete</span>
+</button>
+</div>
+</td>
+</tr>
+<!-- Item 6: French Fries -->
+<tr class="hover:bg-white/30 transition-colors group" style="transform: translateX(0px); transition: 0.3s cubic-bezier(0.25, 1, 0.5, 1);">
+<td class="px-8 py-5">
+<div class="flex items-center gap-4">
+<img class="w-14 h-14 rounded-full object-cover border-2 border-white/80 shadow-sm" data-alt="Golden, crispy French fries seasoned with fine herbs, served in a modern white ceramic bowl. The lighting is clean and high-key, creating an airy and appetizing look. The background is a soft, blurry mix of pastel mint and lavender, echoing the calm hazy design language." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCS5t1DmPjmvKJHehVz-9QhJHwqMj_nZACtlEVyUXzxYSIN0p1S9Rs8xHRxa22bcUWKHB5hMrxZKeEbBJqvJH8oJY6ClKpVGFU28HP4W7RMi3n7eMi2ZY4ErklEM8zv4_M5aB2RFYs8KiSA9YWUAyxtnnJOuvkhQdffVzCxY-vN_ZXJ1_ONGCflM3BvhE6hMCyj6quVQj45PSTrqHv4s9PfDTO_bm8PTvwTQ7fGCUX5tK5NixdcTKPogRMQOlWaIExOLs87w-J8t1E">
+<span class="font-headline-sm text-headline-sm text-text-primary">French Fries</span>
+</div>
+</td>
+<td class="px-8 py-5">
+<span class="px-3 py-1 rounded-full bg-hazy-rose text-error text-label-sm font-label-sm">Snacks</span>
+</td>
+<td class="px-8 py-5 font-headline-sm text-headline-sm text-on-surface">₹60</td>
+<td class="px-8 py-5 text-center">
+<label class="relative inline-flex items-center cursor-pointer group/toggle">
+  <input type="checkbox" class="sr-only peer" checked="" style="background-color: rgb(16, 185, 129) !important;">
+  <div class="w-11 h-6 bg-on-secondary-container/10 rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-success/20 transition-all duration-300" style="background-color: rgb(16, 185, 129) !important;"></div>
+</label>
+</td>
+<td class="px-8 py-5 text-right">
+<div class="flex justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+<button class="p-2 rounded-lg bg-white/60 hover:bg-primary/10 text-on-surface-variant hover:text-primary transition-all">
+<span class="material-symbols-outlined" data-icon="edit">edit</span>
+</button>
+<button class="p-2 rounded-lg bg-white/60 hover:bg-error/10 text-on-surface-variant hover:text-error transition-all">
+<span class="material-symbols-outlined" data-icon="delete">delete</span>
+</button>
+</div>
+</td>
+</tr>
+<!-- Item 7: Mango Lassi -->
+<tr class="hover:bg-white/30 transition-colors group" style="transform: translateX(0px); transition: 0.3s cubic-bezier(0.25, 1, 0.5, 1);">
+<td class="px-8 py-5">
+<div class="flex items-center gap-4">
+<img class="w-14 h-14 rounded-full object-cover border-2 border-white/80 shadow-sm" data-alt="A refreshing Mango Lassi garnished with crushed pistachios in a tall, elegant glass. The vibrant yellow drink stands out against a soft, bright white background. The lighting is diffused and luminous, creating a serene, upscale cafe vibe consistent with the Calm Hazy aesthetic." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDrDpX-b1SQhFTwnN-0MUxVVaFXr9tSxoeNPdxJIuHQQRCBBbvQ9XSzGeoCr1PXY5Fq2EQXfeK1sOSbJLCJS1Zr0bcgiiQhi3axGXby2GIVC8CdDxLC7idJaXJKcqsRXXZ36ktXPmXhbxoPIggb4e9DMoMs3wzB0Rat-V5WGFu2HNmQiWajUNcVmeH13gD0doKMBsyhaZ76NqXfE30NqV7MA_bHS8sixj7QYU-q9kUXNROfkA7JMv14mmTTzEflU0BgmB2dapQTtg8">
+<span class="font-headline-sm text-headline-sm text-text-primary">Mango Lassi</span>
+</div>
+</td>
+<td class="px-8 py-5">
+<span class="px-3 py-1 rounded-full bg-hazy-lavender text-primary text-label-sm font-label-sm">Beverages</span>
+</td>
+<td class="px-8 py-5 font-headline-sm text-headline-sm text-on-surface">₹50</td>
+<td class="px-8 py-5 text-center">
+<label class="relative inline-flex items-center cursor-pointer group/toggle">
+  <input type="checkbox" class="sr-only peer" checked="" style="background-color: rgb(16, 185, 129) !important;">
+  <div class="w-11 h-6 bg-on-secondary-container/10 rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-success/20 transition-all duration-300" style="background-color: rgb(16, 185, 129) !important;"></div>
+</label>
+</td>
+<td class="px-8 py-5 text-right">
+<div class="flex justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+<button class="p-2 rounded-lg bg-white/60 hover:bg-primary/10 text-on-surface-variant hover:text-primary transition-all">
+<span class="material-symbols-outlined" data-icon="edit">edit</span>
+</button>
+<button class="p-2 rounded-lg bg-white/60 hover:bg-error/10 text-on-surface-variant hover:text-error transition-all">
+<span class="material-symbols-outlined" data-icon="delete">delete</span>
+</button>
+</div>
+</td>
+</tr>
+<!-- Item 8: Chocolate Brownie -->
+<tr class="hover:bg-white/30 transition-colors group" style="transform: translateX(0px); transition: 0.3s cubic-bezier(0.25, 1, 0.5, 1);">
+<td class="px-8 py-5">
+<div class="flex items-center gap-4">
+<img class="w-14 h-14 rounded-full object-cover border-2 border-white/80 shadow-sm" data-alt="A decadent fudgy chocolate brownie with a cracked top, served with a drizzle of dark chocolate sauce on a white plate. The lighting is soft and airy, emphasizing the rich chocolate tones. The overall presentation is modern and clean, set against a background with subtle glassmorphic blurs." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDuruTs-ri1zi8GjxGCQUDd--kHwxXf4yn_VsFasUPgLjyYV91U3g7p21pDWdRCuN6w_ZdEUiEiKRUCEvn_NTFN7vt23N3G2YcQJHxeXiEYzjr8ssB0NwytffDGrqsBHVDskPbZFqCCF9uDFP5uwiMhG9QXl6AX6AfwY2S3x3OBU1p7Cg12fCvEHjFcVisxzZDyJ7OGySdnyo_JGFvaUTgbuTqI6FQWSa7xPLcy_yJaaWi14FDbnCNj6Gaia7J-PLqCcfrxpPyf0NY">
+<span class="font-headline-sm text-headline-sm text-text-primary">Chocolate Brownie</span>
+</div>
+</td>
+<td class="px-8 py-5">
+<span class="px-3 py-1 rounded-full bg-hazy-rose text-error text-label-sm font-label-sm">Desserts</span>
+</td>
+<td class="px-8 py-5 font-headline-sm text-headline-sm text-on-surface">₹110</td>
+<td class="px-8 py-5 text-center">
+<label class="relative inline-flex items-center cursor-pointer group/toggle">
+  <input type="checkbox" class="sr-only peer" checked="" style="background-color: rgb(16, 185, 129) !important;">
+  <div class="w-11 h-6 bg-on-secondary-container/10 rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-success/20 transition-all duration-300" style="background-color: rgb(16, 185, 129) !important;"></div>
+</label>
+</td>
+<td class="px-8 py-5 text-right">
+<div class="flex justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+<button class="p-2 rounded-lg bg-white/60 hover:bg-primary/10 text-on-surface-variant hover:text-primary transition-all">
+<span class="material-symbols-outlined" data-icon="edit">edit</span>
+</button>
+<button class="p-2 rounded-lg bg-white/60 hover:bg-error/10 text-on-surface-variant hover:text-error transition-all">
+<span class="material-symbols-outlined" data-icon="delete">delete</span>
+</button>
+</div>
+</td>
+</tr>
+</tbody>
+</table>
+<!-- Table Footer/Pagination -->
+<div class="px-8 py-6 flex justify-between items-center bg-white/20">
+<span class="font-body-sm text-body-sm text-text-muted">Showing 8 of 24 dishes</span>
+<div class="flex items-center gap-2">
+<button class="p-2 rounded-lg bg-white/40 hover:bg-white/60 transition-all border border-white/60 disabled:opacity-30" disabled="">
+<span class="material-symbols-outlined">chevron_left</span>
+</button>
+<button class="w-10 h-10 rounded-lg bg-primary text-white font-label-md">1</button>
+<button class="w-10 h-10 rounded-lg bg-white/40 hover:bg-white/60 transition-all font-label-md">2</button>
+<button class="w-10 h-10 rounded-lg bg-white/40 hover:bg-white/60 transition-all font-label-md">3</button>
+<button class="p-2 rounded-lg bg-white/40 hover:bg-white/60 transition-all border border-white/60">
+<span class="material-symbols-outlined">chevron_right</span>
+</button>
+</div>
+</div>
+</div>
+</main>
+<script>
+        // Micro-interactions for table rows
+        document.querySelectorAll('tr').forEach(row => {
+            row.addEventListener('mouseenter', () => {
+                row.style.transform = 'translateX(8px)';
+                row.style.transition = 'all 0.3s cubic-bezier(0.25, 1, 0.5, 1)';
+            });
+            row.addEventListener('mouseleave', () => {
+                row.style.transform = 'translateX(0)';
+            });
+        });
+
+        // Toggle stock status effect
+        document.querySelectorAll('.toggle-switch').forEach(toggle => {
+            toggle.addEventListener('change', (e) => {
+                const row = e.target.closest('tr');
+                const content = row.querySelectorAll('.dish-info, td:not(:last-child)');
+                if (e.target.checked) {
+                    row.style.opacity = '1';
+                } else {
+                    row.style.opacity = '0.6';
+                }
+            });
+        });
+    </script>
+
+
+</body></html>

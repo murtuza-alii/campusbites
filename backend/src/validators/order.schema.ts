@@ -7,6 +7,9 @@ export const createOrderSchema = z.object({
   rollNumber: z.string({
     required_error: 'Roll number or phone is required'
   }).min(1, 'Roll number cannot be empty'),
+  canteenId: z.string({
+    required_error: 'Canteen ID is required'
+  }).min(1, 'Canteen ID cannot be empty'),
   totalPrice: z.number({
     required_error: 'Total price is required'
   }).min(0, 'Total price must be positive'),

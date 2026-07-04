@@ -1,0 +1,329 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>CampusBites | Add New Food Item</title>
+<!-- Tailwind CSS -->
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<!-- Google Fonts: Outfit (Headlines) & Inter (Body) -->
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700&amp;family=Inter:wght@400;500;600&amp;display=swap" rel="stylesheet"/>
+<!-- Material Symbols -->
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+          darkMode: "class",
+          theme: {
+            extend: {
+              "colors": {
+                      "on-tertiary-fixed-variant": "#7b2f00",
+                      "secondary-fixed": "#e3e2e4",
+                      "warning": "#D97706",
+                      "hazy-rose": "rgba(244, 143, 177, 0.14)",
+                      "on-tertiary-container": "#ffd2be",
+                      "on-primary-fixed-variant": "#3323cc",
+                      "on-primary-container": "#dad7ff",
+                      "on-error": "#ffffff",
+                      "hazy-mint": "rgba(167, 243, 208, 0.11)",
+                      "text-muted": "#64748B",
+                      "on-tertiary-fixed": "#351000",
+                      "on-surface-variant": "#464555",
+                      "primary-fixed": "#e2dfff",
+                      "outline-variant": "#c7c4d8",
+                      "text-secondary": "#475569",
+                      "on-secondary": "#ffffff",
+                      "surface-container": "#f0ecf9",
+                      "error": "#DC2626",
+                      "on-error-container": "#93000a",
+                      "tertiary-fixed": "#ffdbcc",
+                      "on-primary-fixed": "#0f0069",
+                      "tertiary-container": "#a44100",
+                      "surface-bg": "rgba(255, 255, 255, 0.35)",
+                      "hazy-lavender": "rgba(165, 180, 252, 0.18)",
+                      "primary-fixed-dim": "#c3c0ff",
+                      "surface-dim": "#dcd8e5",
+                      "surface-variant": "#e4e1ee",
+                      "secondary-container": "#e0dfe1",
+                      "on-secondary-container": "#626264",
+                      "surface-container-lowest": "#ffffff",
+                      "inverse-primary": "#c3c0ff",
+                      "on-secondary-fixed": "#1a1c1d",
+                      "surface-container-low": "#f5f2ff",
+                      "text-primary": "#1E293B",
+                      "primary": "#3525cd",
+                      "surface-container-high": "#eae6f4",
+                      "outline": "#777587",
+                      "success": "#059669",
+                      "primary-container": "#4f46e5",
+                      "on-secondary-fixed-variant": "#464749",
+                      "surface-tint": "#4d44e3",
+                      "error-container": "#ffdad6",
+                      "background": "#fcf8ff",
+                      "on-primary": "#ffffff",
+                      "tertiary": "#7e3000",
+                      "surface": "#fcf8ff",
+                      "inverse-surface": "#302f39",
+                      "on-tertiary": "#ffffff",
+                      "surface-bright": "#fcf8ff",
+                      "secondary": "#5d5e60",
+                      "on-surface": "#1b1b24",
+                      "on-background": "#1b1b24",
+                      "inverse-on-surface": "#f3effc",
+                      "secondary-fixed-dim": "#c6c6c8",
+                      "surface-container-highest": "#e4e1ee",
+                      "tertiary-fixed-dim": "#ffb695"
+              },
+              "borderRadius": {
+                      "DEFAULT": "0.25rem",
+                      "lg": "0.5rem",
+                      "xl": "0.75rem",
+                      "full": "9999px"
+              },
+              "spacing": {
+                      "stack-sm": "0.5rem",
+                      "stack-md": "1rem",
+                      "stack-lg": "2rem",
+                      "gutter": "1.5rem",
+                      "container-max": "1280px",
+                      "margin-desktop": "2.5rem",
+                      "margin-mobile": "1rem"
+              },
+              "fontFamily": {
+                      "body-sm": ["Inter"],
+                      "headline-sm": ["Outfit"],
+                      "headline-lg": ["Outfit"],
+                      "body-md": ["Inter"],
+                      "headline-md": ["Outfit"],
+                      "headline-lg-mobile": ["Outfit"],
+                      "body-lg": ["Inter"],
+                      "label-md": ["Inter"],
+                      "headline-xl": ["Outfit"],
+                      "label-sm": ["Inter"]
+              },
+              "fontSize": {
+                      "body-sm": ["14px", {"lineHeight": "20px", "fontWeight": "400"}],
+                      "headline-sm": ["20px", {"lineHeight": "28px", "fontWeight": "600"}],
+                      "headline-lg": ["32px", {"lineHeight": "40px", "fontWeight": "700"}],
+                      "body-md": ["16px", {"lineHeight": "24px", "fontWeight": "400"}],
+                      "headline-md": ["24px", {"lineHeight": "32px", "fontWeight": "600"}],
+                      "headline-lg-mobile": ["28px", {"lineHeight": "36px", "fontWeight": "700"}],
+                      "body-lg": ["18px", {"lineHeight": "28px", "fontWeight": "400"}],
+                      "label-md": ["14px", {"lineHeight": "16px", "letterSpacing": "0.02em", "fontWeight": "600"}],
+                      "headline-xl": ["48px", {"lineHeight": "56px", "fontWeight": "700"}],
+                      "label-sm": ["12px", {"lineHeight": "16px", "fontWeight": "500"}]
+              }
+            },
+          },
+        }
+    </script>
+<style>
+        .glass-card {
+            background: rgba(255, 255, 255, 0.35);
+            backdrop-filter: blur(24px);
+            -webkit-backdrop-filter: blur(24px);
+            border-top: 1px solid rgba(255, 255, 255, 0.45);
+            border-left: 1px solid rgba(255, 255, 255, 0.45);
+            border-bottom: 1px solid rgba(15, 23, 42, 0.03);
+            border-right: 1px solid rgba(15, 23, 42, 0.03);
+            box-shadow: 0 32px 32px rgba(31, 38, 135, 0.03);
+        }
+
+        .glass-nav {
+            background: rgba(255, 255, 255, 0.55);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+        }
+
+        .primary-glossy {
+            background: linear-gradient(135deg, #4f46e5 0%, #f48fb1 100%);
+            transition: all 0.3s cubic-bezier(0.25, 1, 0.5, 1);
+        }
+
+        .primary-glossy:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 15px -3px rgba(79, 70, 229, 0.2);
+        }
+
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+
+        .toggle-checkbox:checked + .toggle-label {
+            background-color: #3525cd;
+        }
+
+        .toggle-checkbox:checked + .toggle-label .toggle-dot {
+            transform: translateX(100%);
+        }
+
+        input::placeholder {
+            color: #64748B;
+        }
+
+        .hazy-blob {
+            filter: blur(80px);
+            z-index: -1;
+            position: absolute;
+        }
+    </style>
+</head>
+<body class="bg-background text-on-surface font-body-md selection:bg-primary-container selection:text-white overflow-hidden">
+<!-- Atmospheric Background Blobs -->
+<div class="fixed inset-0 overflow-hidden pointer-events-none">
+<div class="hazy-blob w-96 h-96 bg-hazy-lavender top-[-10%] left-[-5%] rounded-full"></div>
+<div class="hazy-blob w-[500px] h-[500px] bg-hazy-rose bottom-[10%] right-[-10%] rounded-full"></div>
+<div class="hazy-blob w-72 h-72 bg-hazy-mint top-[40%] left-[20%] rounded-full opacity-60"></div>
+</div>
+<!-- Background Content (Blurred Dashboard) -->
+<div class="min-h-screen filter blur-lg transition-all duration-700">
+<!-- TopNavBar from Shared Components -->
+<header class="fixed top-0 w-full z-50 flex justify-between items-center px-margin-desktop py-stack-sm w-full bg-surface-bg backdrop-blur-md border-b border-white/45 shadow-[0_32px_32px_rgba(31,38,135,0.03)]">
+<div class="flex items-center gap-2">
+<span class="font-headline-md text-headline-md font-bold text-primary">CampusBites</span>
+</div>
+<nav class="hidden md:flex items-center gap-8 font-body-md text-body-md">
+<a class="text-text-muted hover:text-primary transition-colors duration-300" href="#">Orders</a>
+<a class="text-primary border-b-2 border-primary font-bold pb-1" href="#">Edit Menu</a>
+</nav>
+<div class="flex items-center gap-4">
+<button class="px-4 py-2 rounded-xl text-primary font-label-md hover:bg-white/10 transition-all duration-300">Student Menu</button>
+<button class="px-4 py-2 rounded-xl text-text-muted font-label-md hover:bg-white/10 transition-all">Logout</button>
+</div>
+</header>
+<main class="pt-24 px-margin-desktop container-max mx-auto">
+<div class="flex justify-between items-end mb-stack-lg">
+<div>
+<h1 class="font-headline-lg text-headline-lg text-text-primary">Menu Management</h1>
+<p class="text-text-secondary mt-2">Configure available dishes, pricing, and stock status</p>
+</div>
+<button class="primary-glossy px-6 py-3 rounded-xl text-white font-label-md flex items-center gap-2">
+<span class="material-symbols-outlined">add</span>
+                    Add Item
+                </button>
+</div>
+<div class="glass-card rounded-2xl overflow-hidden mb-12">
+<table class="w-full text-left">
+<thead class="bg-surface-container-low/50 border-b border-white/20">
+<tr>
+<th class="px-6 py-4 font-label-md text-text-muted uppercase tracking-wider">Image</th>
+<th class="px-6 py-4 font-label-md text-text-muted uppercase tracking-wider">Dish Name</th>
+<th class="px-6 py-4 font-label-md text-text-muted uppercase tracking-wider">Category</th>
+<th class="px-6 py-4 font-label-md text-text-muted uppercase tracking-wider">Price</th>
+<th class="px-6 py-4 font-label-md text-text-muted uppercase tracking-wider">Stock Status</th>
+<th class="px-6 py-4 font-label-md text-text-muted uppercase tracking-wider">Actions</th>
+</tr>
+</thead>
+<tbody class="divide-y divide-white/10">
+<tr class="hover:bg-white/10 transition-colors">
+<td class="px-6 py-4">
+<div class="w-12 h-12 rounded-lg bg-cover bg-center" data-alt="A macro photography shot of a deliciously crispy Paneer Tikka roll with visible grill marks and fresh green herbs. The lighting is soft and warm, highlighting the texture of the wrap in a clean, high-end cafe setting. The overall aesthetic is bright and appetizing, consistent with a modern light-mode food application." style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuCtqrhdXCNlQRqKSo3ZKohOV8M9E5uDJvR_UD1nahYwOB8OvliV0WEGFrrLsVCfPInk81Es8OrS4Bs6qc3ZbeLclb5uRtaCiRrQs2XKqd2_Fv-FtgK7154YxE3ObRkQ6odoPQqrqb7B2i5jwMgpFmXXW5Ino6g_foNb3-_AxlezNogu9hKKfBRJ_28z3wBIEnZjYA8Bb57vq7mnNa8p6YSGmyEs9DcCBViiPROIlQiJeLbo3PRj4do7Sw5VYZppel7btDpSV5tk06A')"></div>
+</td>
+<td class="px-6 py-4 font-label-md text-text-primary">Paneer Tikka Roll</td>
+<td class="px-6 py-4">
+<span class="bg-hazy-mint text-success px-3 py-1 rounded-full text-label-sm">Snacks</span>
+</td>
+<td class="px-6 py-4 font-body-md">₹80</td>
+<td class="px-6 py-4">
+<span class="text-success font-label-sm flex items-center gap-1">
+<span class="w-2 h-2 rounded-full bg-success"></span> In Stock
+                                </span>
+</td>
+<td class="px-6 py-4">
+<div class="flex gap-2">
+<button class="p-2 rounded-lg hover:bg-primary/10 text-primary transition-colors">
+<span class="material-symbols-outlined">edit</span>
+</button>
+<button class="p-2 rounded-lg hover:bg-error/10 text-error transition-colors">
+<span class="material-symbols-outlined">delete</span>
+</button>
+</div>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</main>
+</div>
+<!-- Modal Overlay -->
+<div class="fixed inset-0 z-[100] flex items-center justify-center p-gutter bg-inverse-surface/40 backdrop-blur-sm">
+<!-- Modal Card -->
+<div class="glass-card w-full max-w-lg rounded-2xl overflow-hidden animate-in fade-in zoom-in duration-300 flex flex-col">
+<!-- Header -->
+<div class="px-stack-lg py-stack-md flex justify-between items-center border-b border-white/20">
+<h2 class="font-headline-md text-headline-md text-text-primary">Add New Food Item</h2>
+<button class="p-2 rounded-full hover:bg-white/20 text-text-secondary transition-all" onclick="window.history.back()">
+<span class="material-symbols-outlined">close</span>
+</button>
+</div>
+<!-- Form Body -->
+<div class="p-stack-lg space-y-6">
+<!-- Dish Name -->
+<div class="space-y-2">
+<label class="font-label-md text-text-secondary block">Dish Name</label>
+<input class="w-full bg-white/40 border border-white/50 rounded-xl px-4 py-3 focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all placeholder:text-text-muted" placeholder="e.g. Paneer Tikka Sandwich" type="text"/>
+</div>
+<div class="grid grid-cols-2 gap-4">
+<!-- Price -->
+<div class="space-y-2">
+<label class="font-label-md text-text-secondary block">Price (₹)</label>
+<div class="relative">
+<span class="absolute left-4 top-1/2 -translate-y-1/2 text-text-muted font-body-md">₹</span>
+<input class="w-full bg-white/40 border border-white/50 rounded-xl pl-9 pr-4 py-3 focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all" placeholder="e.g. 60" type="number"/>
+</div>
+</div>
+<!-- Category -->
+<div class="space-y-2">
+<label class="font-label-md text-text-secondary block">Category</label>
+<div class="relative">
+<select class="w-full appearance-none bg-white/40 border border-white/50 rounded-xl px-4 py-3 focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all pr-10">
+<option>Meals</option>
+<option selected="">Snacks</option>
+<option>Beverages</option>
+<option>Desserts</option>
+</select>
+<span class="material-symbols-outlined absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-text-muted">expand_more</span>
+</div>
+</div>
+</div>
+<!-- Image URL -->
+<div class="space-y-2">
+<label class="font-label-md text-text-secondary block">Image URL (Optional)</label>
+<input class="w-full bg-white/40 border border-white/50 rounded-xl px-4 py-3 focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all placeholder:text-text-muted" placeholder="Unsplash food image URL or leave empty" type="text"/>
+</div>
+<!-- Stock Toggle -->
+<div class="flex items-center justify-between py-2">
+<span class="font-label-md text-text-primary">Set Item Available In-Stock</span>
+<label class="relative inline-flex items-center cursor-pointer">
+<input checked="" class="sr-only toggle-checkbox" type="checkbox"/>
+<div class="toggle-label w-12 h-6 bg-slate-300 rounded-full transition-colors duration-300 ease-in-out relative">
+<div class="toggle-dot absolute left-1 top-1 bg-white w-4 h-4 rounded-full transition-transform duration-300 ease-in-out"></div>
+</div>
+</label>
+</div>
+</div>
+<!-- Footer Actions -->
+<div class="px-stack-lg py-stack-md bg-white/10 flex justify-end gap-4 border-t border-white/20">
+<button class="px-6 py-3 rounded-xl font-label-md text-text-primary hover:bg-white/20 border border-white/40 backdrop-blur-md transition-all active:scale-95">
+                    Cancel
+                </button>
+<button class="primary-glossy px-8 py-3 rounded-xl font-label-md text-white flex items-center gap-2 active:scale-95 shadow-lg">
+<span class="material-symbols-outlined text-[20px]" style="font-variation-settings: 'FILL' 1;">save</span>
+                    Create Dish
+                </button>
+</div>
+</div>
+</div>
+<!-- Micro-interaction Scripts -->
+<script>
+        // Simple scale effect for input fields on focus
+        document.querySelectorAll('input, select').forEach(el => {
+            el.addEventListener('focus', () => {
+                el.parentElement.classList.add('scale-[1.01]');
+            });
+            el.addEventListener('blur', () => {
+                el.parentElement.classList.remove('scale-[1.01]');
+            });
+        });
+    </script>
+</body></html>

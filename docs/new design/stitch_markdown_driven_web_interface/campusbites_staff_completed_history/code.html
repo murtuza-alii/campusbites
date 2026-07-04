@@ -1,0 +1,350 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>CampusBites | Completed History</title>
+<!-- Google Fonts -->
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&amp;family=Outfit:wght@600;700;800&amp;display=swap" rel="stylesheet"/>
+<!-- Material Symbols -->
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<!-- Tailwind CSS -->
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "on-error": "#ffffff",
+                        "hazy-lavender": "rgba(165, 180, 252, 0.18)",
+                        "tertiary-fixed": "#ffdbcc",
+                        "on-primary": "#ffffff",
+                        "text-primary": "#1E293B",
+                        "success": "#059669",
+                        "on-secondary-fixed": "#1a1c1d",
+                        "on-error-container": "#93000a",
+                        "primary-container": "#4f46e5",
+                        "surface-container-highest": "#e4e1ee",
+                        "secondary": "#5d5e60",
+                        "surface-container-lowest": "#ffffff",
+                        "error": "#DC2626",
+                        "inverse-surface": "#302f39",
+                        "error-container": "#ffdad6",
+                        "secondary-fixed": "#e3e2e4",
+                        "outline-variant": "#c7c4d8",
+                        "on-primary-fixed": "#0f0069",
+                        "primary": "#3525cd",
+                        "on-secondary-fixed-variant": "#464749",
+                        "background": "#fcf8ff",
+                        "surface-tint": "#4d44e3",
+                        "on-tertiary-container": "#ffd2be",
+                        "tertiary-container": "#a44100",
+                        "primary-fixed": "#e2dfff",
+                        "on-secondary": "#ffffff",
+                        "surface-bg": "rgba(255, 255, 255, 0.35)",
+                        "on-background": "#1b1b24",
+                        "hazy-rose": "rgba(244, 143, 177, 0.14)",
+                        "surface": "#fcf8ff",
+                        "inverse-on-surface": "#f3effc",
+                        "tertiary-fixed-dim": "#ffb695",
+                        "on-tertiary-fixed": "#351000",
+                        "surface-container": "#f0ecf9",
+                        "inverse-primary": "#c3c0ff",
+                        "text-secondary": "#475569",
+                        "surface-bright": "#fcf8ff",
+                        "on-surface-variant": "#464555",
+                        "tertiary": "#7e3000",
+                        "on-surface": "#1b1b24",
+                        "on-primary-container": "#dad7ff",
+                        "hazy-mint": "rgba(167, 243, 208, 0.11)",
+                        "on-tertiary": "#ffffff",
+                        "surface-container-low": "#f5f2ff",
+                        "surface-dim": "#dcd8e5",
+                        "text-muted": "#64748B",
+                        "on-tertiary-fixed-variant": "#7b2f00",
+                        "surface-container-high": "#eae6f4",
+                        "surface-variant": "#e4e1ee",
+                        "primary-fixed-dim": "#c3c0ff",
+                        "secondary-fixed-dim": "#c6c6c8",
+                        "secondary-container": "#e0dfe1",
+                        "on-primary-fixed-variant": "#3323cc",
+                        "outline": "#777587",
+                        "on-secondary-container": "#626264",
+                        "warning": "#D97706"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "gutter": "1.5rem",
+                        "stack-md": "1rem",
+                        "margin-mobile": "1rem",
+                        "margin-desktop": "2.5rem",
+                        "container-max": "1280px",
+                        "stack-lg": "2rem",
+                        "stack-sm": "0.5rem"
+                    },
+                    "fontFamily": {
+                        "headline-lg-mobile": ["Outfit"],
+                        "label-md": ["Inter"],
+                        "headline-lg": ["Outfit"],
+                        "body-sm": ["Inter"],
+                        "headline-xl": ["Outfit"],
+                        "body-lg": ["Inter"],
+                        "headline-sm": ["Outfit"],
+                        "label-sm": ["Inter"],
+                        "headline-md": ["Outfit"],
+                        "body-md": ["Inter"]
+                    },
+                    "fontSize": {
+                        "headline-lg-mobile": ["28px", {"lineHeight": "36px", "fontWeight": "700"}],
+                        "label-md": ["14px", {"lineHeight": "16px", "letterSpacing": "0.02em", "fontWeight": "600"}],
+                        "headline-lg": ["32px", {"lineHeight": "40px", "fontWeight": "700"}],
+                        "body-sm": ["14px", {"lineHeight": "20px", "fontWeight": "400"}],
+                        "headline-xl": ["48px", {"lineHeight": "56px", "fontWeight": "700"}],
+                        "body-lg": ["18px", {"lineHeight": "28px", "fontWeight": "400"}],
+                        "headline-sm": ["20px", {"lineHeight": "28px", "fontWeight": "600"}],
+                        "label-sm": ["12px", {"lineHeight": "16px", "fontWeight": "500"}],
+                        "headline-md": ["24px", {"lineHeight": "32px", "fontWeight": "600"}],
+                        "body-md": ["16px", {"lineHeight": "24px", "fontWeight": "400"}]
+                    }
+                },
+            },
+        }
+    </script>
+<style>body {
+    background-color: #FAF9FB;
+    overflow-x: hidden
+    }
+.glass-card {
+    background: rgba(255, 255, 255, 0.35);
+    backdrop-filter: blur(24px);
+    -webkit-backdrop-filter: blur(24px);
+    border-top: 1px solid rgba(255, 255, 255, 0.45);
+    border-left: 1px solid rgba(255, 255, 255, 0.45);
+    border-bottom: 1px solid rgba(15, 23, 42, 0.03);
+    border-right: 1px solid rgba(15, 23, 42, 0.03);
+    box-shadow: 0 32px 32px rgba(31, 38, 135, 0.03)
+    }
+.ambient-blob {
+    position: fixed;
+    filter: blur(80px);
+    z-index: -1;
+    border-radius: 50%;
+    opacity: 0.6;
+    animation: float 20s infinite ease-in-out
+    }
+@keyframes float {
+    0%, 100% {
+        transform: translate(0, 0) scale(1);
+        } 33% {
+        transform: translate(30px, -50px) scale(1.1);
+        } 66% {
+        transform: translate(-20px, 20px) scale(0.9);
+        }
+    }
+.grain {
+    position: fixed;
+    inset: 0;
+    z-index: -1;
+    opacity: 0.02;
+    pointer-events: none;
+    background-image: url(https://lh3.googleusercontent.com/aida-public/AB6AXuC_abpxgKa0fgSzjt_TeZ3bJVRfUkPAGVtQT_qKGtySWN4lLiBIFOonqC1sJ9sFGimyzuZU2jp3TFXHincsXGbXHzEpnwGNqcP6amn6Nj8Bo4G3coIXY8wTWsrfMVSw36EQ3n0xc1vMYQgimOv9OrNTJLCY7L8iG-Kyz59ImrR_DFiYeXP5Kr_pqRA3ZqU66IZG5jS4zq2WtMTGO2FWMwnQA4FUDQFnUzrT0MUQCOge3m8cxEkQToxRLkkBsKW6CQtU3GjmU4KiaXM)
+    }
+.swoosh-transition {
+    transition: all 300ms cubic-bezier(0.25, 1, 0.5, 1)
+    }
+.glossy-primary {
+    background: linear-gradient(135deg, #4f46e5 0%, #f472b6 100%);
+    box-shadow: 0 4px 12px rgba(79, 70, 229, 0.2)
+    }</style>
+</head>
+<body class="font-body-md text-text-primary antialiased">
+<!-- Atmospheric Elements -->
+<div class="ambient-blob w-[500px] h-[500px] bg-hazy-lavender top-[-10%] left-[-10%]"></div>
+<div class="ambient-blob w-[400px] h-[400px] bg-hazy-rose bottom-[10%] right-[5%] animation-delay-2000"></div>
+<div class="ambient-blob w-[300px] h-[300px] bg-hazy-mint top-[20%] right-[20%] animation-delay-4000"></div>
+<div class="grain"></div>
+<!-- TopNavBar -->
+<nav class="fixed top-0 w-full bg-surface-bg backdrop-blur-md flex justify-between items-center px-margin-desktop py-stack-sm z-50 border-b border-white/45 shadow-[0_32px_32px_rgba(31,38,135,0.03)]">
+<div class="flex items-center gap-stack-md">
+<div class="w-10 h-10 bg-primary-container rounded-xl flex items-center justify-center text-on-primary-container shadow-lg">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">restaurant</span>
+</div>
+<div>
+<span class="font-headline-md text-headline-md font-bold text-primary block">CampusBites</span>
+<span class="font-label-sm text-label-sm text-text-muted">College Canteen Hub</span>
+</div>
+</div>
+<div class="flex items-center gap-gutter">
+<div class="hidden md:flex items-center gap-stack-lg">
+<a class="font-body-md text-body-md text-text-muted hover:text-primary transition-colors duration-300" href="#">Orders</a>
+<a class="font-body-md text-body-md text-text-muted hover:text-primary transition-colors duration-300" href="#">Edit Menu</a>
+</div>
+<div class="h-8 w-px bg-outline-variant/30"></div>
+<div class="flex items-center gap-stack-md">
+<button class="flex items-center gap-stack-sm font-label-md text-label-md text-text-secondary hover:text-primary swoosh-transition">
+<span class="material-symbols-outlined text-[20px]">arrow_back</span>
+<span>Student Menu</span>
+</button>
+<button class="flex items-center gap-stack-sm font-label-md text-label-md text-error hover:opacity-80 swoosh-transition">
+<span class="material-symbols-outlined text-[20px]">logout</span>
+<span>Logout</span>
+</button>
+</div>
+</div>
+</nav>
+<!-- Main Content -->
+<main class="pt-32 pb-margin-desktop px-margin-desktop max-w-container-max mx-auto">
+<!-- Header Section -->
+<header class="flex flex-col md:flex-row md:items-end justify-between gap-stack-lg mb-stack-lg">
+<div class="space-y-stack-sm">
+<h1 class="font-headline-xl text-headline-xl text-text-primary tracking-tight">Orders Board</h1>
+<p class="font-body-lg text-body-lg text-text-secondary">Process student orders in real time</p>
+</div>
+<!-- Tab Toggle -->
+<div class="glass-card p-1.5 rounded-2xl flex items-center gap-1 self-start md:self-auto">
+<button class="px-6 py-2.5 rounded-xl font-label-md text-label-md text-text-secondary hover:text-primary swoosh-transition">
+                    Active Orders (3)
+                </button>
+<button class="px-6 py-2.5 rounded-xl font-label-md text-label-md bg-primary text-on-primary shadow-lg swoosh-transition font-bold">
+                    Completed History
+                </button>
+</div>
+</header>
+<!-- Completed History Table -->
+<section class="glass-card rounded-3xl overflow-hidden">
+<div class="overflow-x-auto">
+<table class="w-full text-left border-collapse">
+<thead>
+<tr class="border-b border-outline-variant/20">
+<th class="px-gutter py-stack-lg font-label-md text-label-md text-text-muted uppercase tracking-wider">Order Num</th>
+<th class="px-gutter py-stack-lg font-label-md text-label-md text-text-muted uppercase tracking-wider">Student Detail</th>
+<th class="px-gutter py-stack-lg font-label-md text-label-md text-text-muted uppercase tracking-wider">Food Items</th>
+<th class="px-gutter py-stack-lg font-label-md text-label-md text-text-muted uppercase tracking-wider">Price</th>
+<th class="px-gutter py-stack-lg font-label-md text-label-md text-text-muted uppercase tracking-wider">Pickup Time</th>
+<th class="px-gutter py-stack-lg font-label-md text-label-md text-text-muted uppercase tracking-wider">Status</th>
+</tr>
+</thead>
+<tbody class="divide-y divide-outline-variant/10">
+<!-- Row 1 -->
+<tr class="hover:bg-white/20 swoosh-transition group">
+<td class="px-gutter py-stack-lg">
+<span class="font-headline-sm text-headline-sm text-text-primary font-bold">#1002</span>
+</td>
+<td class="px-gutter py-stack-lg">
+<div class="flex flex-col">
+<span class="font-label-md text-label-md text-text-primary font-bold">murtu</span>
+<span class="font-body-sm text-body-sm text-text-muted">867</span>
+</div>
+</td>
+<td class="px-gutter py-stack-lg">
+<span class="font-body-md text-body-md text-text-secondary">Cheese Veg Burger (x1)</span>
+</td>
+<td class="px-gutter py-stack-lg">
+<span class="font-headline-sm text-headline-sm text-text-primary font-bold">₹70</span>
+</td>
+<td class="px-gutter py-stack-lg">
+<span class="font-body-md text-body-md text-text-muted">10:27 AM</span>
+</td>
+<td class="px-gutter py-stack-lg">
+<div class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-success/10 text-success rounded-full border border-success/20">
+<span class="material-symbols-outlined text-[18px]">check_circle</span>
+<span class="font-label-sm text-label-sm font-bold">Completed</span>
+</div>
+</td>
+</tr>
+<!-- Row 2 -->
+<tr class="hover:bg-white/20 swoosh-transition group">
+<td class="px-gutter py-stack-lg">
+<span class="font-headline-sm text-headline-sm text-text-primary font-bold">#1001</span>
+</td>
+<td class="px-gutter py-stack-lg">
+<div class="flex flex-col">
+<span class="font-label-md text-label-md text-text-primary font-bold">Murtuza Ali</span>
+<span class="font-body-sm text-body-sm text-text-muted">12</span>
+</div>
+</td>
+<td class="px-gutter py-stack-lg">
+<span class="font-body-md text-body-md text-text-secondary">Cheese Veg Burger (x2)</span>
+</td>
+<td class="px-gutter py-stack-lg">
+<span class="font-headline-sm text-headline-sm text-text-primary font-bold">₹140</span>
+</td>
+<td class="px-gutter py-stack-lg">
+<span class="font-body-md text-body-md text-text-muted">10:22 AM</span>
+</td>
+<td class="px-gutter py-stack-lg">
+<div class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-success/10 text-success rounded-full border border-success/20">
+<span class="material-symbols-outlined text-[18px]">check_circle</span>
+<span class="font-label-sm text-label-sm font-bold">Completed</span>
+</div>
+</td>
+</tr>
+<!-- Row 3 -->
+<tr class="hover:bg-white/20 swoosh-transition group">
+<td class="px-gutter py-stack-lg">
+<span class="font-headline-sm text-headline-sm text-text-primary font-bold">#0999</span>
+</td>
+<td class="px-gutter py-stack-lg">
+<div class="flex flex-col">
+<span class="font-label-md text-label-md text-text-primary font-bold">Ananya Sharma</span>
+<span class="font-body-sm text-body-sm text-text-muted">452</span>
+</div>
+</td>
+<td class="px-gutter py-stack-lg">
+<span class="font-body-md text-body-md text-text-secondary">Paneer Wrap (x1), Cold Coffee (x1)</span>
+</td>
+<td class="px-gutter py-stack-lg">
+<span class="font-headline-sm text-headline-sm text-text-primary font-bold">₹210</span>
+</td>
+<td class="px-gutter py-stack-lg">
+<span class="font-body-md text-body-md text-text-muted">09:45 AM</span>
+</td>
+<td class="px-gutter py-stack-lg">
+<div class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-success/10 text-success rounded-full border border-success/20">
+<span class="material-symbols-outlined text-[18px]">check_circle</span>
+<span class="font-label-sm text-label-sm font-bold">Completed</span>
+</div>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+<!-- Footer of Table -->
+<div class="px-gutter py-stack-md flex justify-between items-center bg-white/10">
+<span class="font-body-sm text-body-sm text-text-muted">Showing 3 of 124 completed orders</span>
+<div class="flex items-center gap-2">
+<button class="p-2 rounded-lg border border-outline-variant/30 text-text-muted hover:border-primary hover:text-primary swoosh-transition">
+<span class="material-symbols-outlined">chevron_left</span>
+</button>
+<button class="p-2 rounded-lg border border-outline-variant/30 text-text-muted hover:border-primary hover:text-primary swoosh-transition">
+<span class="material-symbols-outlined">chevron_right</span>
+</button>
+</div>
+</div>
+</section>
+</main>
+<!-- Footer -->
+<footer class="w-full py-stack-lg text-center mt-auto">
+<p class="font-label-sm text-label-sm text-text-muted opacity-60">
+            © 2026 CampusBites. Made for college canteens.
+        </p>
+</footer>
+<script>
+        // Simple micro-interaction for rows
+        document.querySelectorAll('tr').forEach(row => {
+            row.addEventListener('click', () => {
+                row.classList.add('scale-[0.995]');
+                setTimeout(() => row.classList.remove('scale-[0.995]'), 150);
+            });
+        });
+    </script>
+</body></html>

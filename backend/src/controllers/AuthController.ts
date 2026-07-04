@@ -9,13 +9,13 @@ export class AuthController extends BaseController {
 
   async login(req: Request, res: Response): Promise<void> {
     try {
-      const { password } = req.body;
-      const token = await this.authService.login(password);
+      const { username, password } = req.body;
+      const token = await this.authService.login(username, password);
       
       if (token) {
         this.handleSuccess(res, { token });
       } else {
-        const err = new Error('Incorrect staff password');
+        const err = new Error('Incorrect username or password');
         (err as any).statusCode = 401;
         throw err;
       }

@@ -1,5 +1,7 @@
 import { OrderRepository } from '../repositories/OrderRepository.js';
 import { ParsedOrder } from '../types/index.js';
+import { emitOrderStatusChanged } from '../utils/websocket.js';
+import { orderQueue } from '../queues/orderQueue.js';
 
 export class OrderService {
   constructor(private readonly orderRepository: OrderRepository) {}
@@ -7,35 +9,37 @@ export class OrderService {
   async placeOrder(data: {
     name: string;
     rollNumber: string;
+    canteenId: string;
     items: any[];
     totalPrice: number;
   }): Promise<ParsedOrder> {
-    const totalOrders = await this.orderRepository.countAll();
-    const orderNum = 1001 + totalOrders;
-    const orderNumber = `#${orderNum}`;
-    
-    const pickup_code = Math.floor(1000 + Math.random() * 9000).toString();
+    // Generate order ID synchronously so the client can immediately subscribe to updates
     const id = 'ord_' + Math.random().toString(36).substring(2, 11);
-    
-    await this.orderRepository.create({
+
+    // Push the checkout task to the BullMQ Redis queue
+    await orderQueue.add('checkout', {
       id,
-      order_number: orderNumber,
       student_name: data.name,
       student_roll: data.rollNumber,
+      canteen_id: data.canteenId,
       items: JSON.stringify(data.items),
       total_price: data.totalPrice,
-      status: 'PENDING',
-      pickup_code
     });
 
-    const order = await this.orderRepository.findById(id);
-    if (!order) {
-      throw new Error('Failed to retrieve newly created order');
-    }
+    console.log(`Enqueued checkout job for order ID: ${id}`);
 
+    // Return immediate pending state representation
     return {
-      ...order,
-      items: JSON.parse(order.items)
+      id,
+      order_number: 'Queueing...',
+      student_name: data.name,
+      student_roll: data.rollNumber,
+      canteen_id: data.canteenId,
+      items: data.items,
+      total_price: data.totalPrice,
+      status: 'PENDING',
+      pickup_code: '...',
+      created_at: new Date().toISOString(),
     };
   }
 
@@ -53,8 +57,8 @@ export class OrderService {
     };
   }
 
-  async getAllOrders(): Promise<ParsedOrder[]> {
-    const orders = await this.orderRepository.findAll();
+  async getAllOrders(canteenId?: string): Promise<ParsedOrder[]> {
+    const orders = await this.orderRepository.findAll(canteenId);
     return orders.map(ord => ({
       ...ord,
       items: JSON.parse(ord.items)
@@ -70,5 +74,16 @@ export class OrderService {
     }
 
     await this.orderRepository.updateStatus(id, status);
+
+    const updated = await this.orderRepository.findById(id);
+    if (updated) {
+      const parsedOrder = {
+        ...updated,
+        items: JSON.parse(updated.items)
+      };
+
+      // Emit WebSocket notification to student client and admins
+      emitOrderStatusChanged(parsedOrder);
+    }
   }
 }

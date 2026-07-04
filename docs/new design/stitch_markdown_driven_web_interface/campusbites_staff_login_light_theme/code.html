@@ -1,0 +1,327 @@
+<!DOCTYPE html>
+
+<html class="scroll-smooth" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>CampusBites | Canteen Portal Login</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&amp;family=Inter:wght@400;500;600&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "primary-container": "#4f46e5",
+                        "on-surface-variant": "#475569",
+                        "on-secondary-fixed": "#1a1c1d",
+                        "on-primary-fixed": "#0f0069",
+                        "tertiary-fixed-dim": "#ffb695",
+                        "on-tertiary-fixed": "#351000",
+                        "primary": "#4f46e5",
+                        "tertiary": "#7e3000",
+                        "on-surface": "#1E293B",
+                        "secondary": "#5d5e60",
+                        "on-error": "#ffffff",
+                        "error-container": "#fee2e2",
+                        "hazy-rose": "rgba(244, 143, 177, 0.14)",
+                        "surface-container-high": "#eae6f4",
+                        "secondary-fixed-dim": "#c6c6c8",
+                        "secondary-fixed": "#e3e2e4",
+                        "hazy-mint": "rgba(167, 243, 208, 0.11)",
+                        "on-primary": "#ffffff",
+                        "on-secondary-fixed-variant": "#464749",
+                        "on-tertiary": "#ffffff",
+                        "surface-dim": "#dcd8e5",
+                        "on-tertiary-container": "#ffd2be",
+                        "inverse-on-surface": "#f3effc",
+                        "on-background": "#1E293B",
+                        "on-primary-container": "#dad7ff",
+                        "surface-container-lowest": "#ffffff",
+                        "inverse-surface": "#302f39",
+                        "warning": "#D97706",
+                        "surface-container": "#f0ecf9",
+                        "surface": "#ffffff",
+                        "on-secondary-container": "#626264",
+                        "success": "#059669",
+                        "surface-container-highest": "#e4e1ee",
+                        "on-error-container": "#991b1b",
+                        "hazy-lavender": "rgba(165, 180, 252, 0.18)",
+                        "outline-variant": "#e2e8f0",
+                        "surface-container-low": "#f5f2ff",
+                        "on-secondary": "#ffffff",
+                        "surface-tint": "#4f46e5",
+                        "error": "#ef4444",
+                        "text-secondary": "#64748B",
+                        "primary-fixed-dim": "#c3c0ff",
+                        "tertiary-container": "#a44100",
+                        "tertiary-fixed": "#ffdbcc",
+                        "secondary-container": "#e0dfe1",
+                        "on-tertiary-fixed-variant": "#7b2f00",
+                        "surface-variant": "#f1f5f9",
+                        "text-muted": "#94a3b8",
+                        "inverse-primary": "#c3c0ff",
+                        "primary-fixed": "#e2dfff",
+                        "outline": "#cbd5e1",
+                        "text-primary": "#1E293B",
+                        "on-primary-fixed-variant": "#3323cc",
+                        "background": "#FAF9FB"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "margin-mobile": "1rem",
+                        "container-max": "1280px",
+                        "stack-sm": "0.5rem",
+                        "margin-desktop": "2.5rem",
+                        "stack-lg": "2rem",
+                        "stack-md": "1rem",
+                        "gutter": "1.5rem"
+                    },
+                    "fontFamily": {
+                        "headline-lg": ["Outfit"],
+                        "body-sm": ["Inter"],
+                        "label-sm": ["Inter"],
+                        "headline-sm": ["Outfit"],
+                        "headline-lg-mobile": ["Outfit"],
+                        "body-lg": ["Inter"],
+                        "headline-xl": ["Outfit"],
+                        "label-md": ["Inter"],
+                        "headline-md": ["Outfit"],
+                        "body-md": ["Inter"]
+                    },
+                    "fontSize": {
+                        "headline-lg": ["32px", {"lineHeight": "40px", "fontWeight": "700"}],
+                        "body-sm": ["14px", {"lineHeight": "20px", "fontWeight": "400"}],
+                        "label-sm": ["12px", {"lineHeight": "16px", "fontWeight": "500"}],
+                        "headline-sm": ["20px", {"lineHeight": "28px", "fontWeight": "600"}],
+                        "headline-lg-mobile": ["28px", {"lineHeight": "36px", "fontWeight": "700"}],
+                        "body-lg": ["18px", {"lineHeight": "28px", "fontWeight": "400"}],
+                        "headline-xl": ["48px", {"lineHeight": "56px", "fontWeight": "700"}],
+                        "label-md": ["14px", {"lineHeight": "16px", "letterSpacing": "0.02em", "fontWeight": "600"}],
+                        "headline-md": ["24px", {"lineHeight": "32px", "fontWeight": "600"}],
+                        "body-md": ["16px", {"lineHeight": "24px", "fontWeight": "400"}]
+                    }
+                },
+            },
+        }
+    </script>
+<style>
+        body {
+            background-color: #FAF9FB;
+            background-image: 
+                radial-gradient(at 10% 20%, rgba(165, 180, 252, 0.18) 0px, transparent 50%),
+                radial-gradient(at 90% 10%, rgba(244, 143, 177, 0.14) 0px, transparent 50%),
+                radial-gradient(at 50% 90%, rgba(167, 243, 208, 0.11) 0px, transparent 50%);
+            position: relative;
+        }
+
+        body::before {
+            content: "";
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            opacity: 0.03;
+            background-image: url("https://www.transparenttextures.com/patterns/p6-static.png");
+            z-index: 100;
+        }
+
+        .glass-card {
+            background: rgba(255, 255, 255, 0.35);
+            backdrop-filter: blur(24px);
+            -webkit-backdrop-filter: blur(24px);
+            border-top: 1px solid rgba(255, 255, 255, 0.8);
+            border-left: 1px solid rgba(255, 255, 255, 0.8);
+            border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+            border-right: 1px solid rgba(0, 0, 0, 0.05);
+            box-shadow: 0 32px 32px -16px rgba(0, 0, 0, 0.08);
+        }
+
+        .primary-gloss-btn {
+            background: linear-gradient(135deg, #a5b4fc 0%, #f48fb1 100%);
+            position: relative;
+            overflow: hidden;
+            color: #1e293b;
+            box-shadow: 0 8px 16px -4px rgba(165, 180, 252, 0.4);
+            transition: all 300ms cubic-bezier(0.25, 1, 0.5, 1);
+        }
+
+        .primary-gloss-btn::after {
+            content: "";
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: linear-gradient(165deg, rgba(255, 255, 255, 0.4) 0%, transparent 40%);
+            pointer-events: none;
+        }
+
+        .primary-gloss-btn:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 12px 24px -8px rgba(165, 180, 252, 0.6);
+        }
+
+        .primary-gloss-btn:active {
+            transform: scale(0.98);
+        }
+
+        .shield-glow {
+            box-shadow: 0 0 20px rgba(79, 70, 229, 0.15);
+        }
+
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+
+        .loader {
+            width: 20px;
+            height: 20px;
+            border: 2px solid rgba(30, 41, 59, 0.2);
+            border-radius: 50%;
+            border-top-color: #1e293b;
+            animation: spin 0.8s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body class="min-h-screen text-slate-800 selection:bg-primary-container/20">
+<!-- TopNavBar -->
+<nav class="fixed top-0 w-full h-[64px] z-50 flex items-center justify-between px-margin-mobile md:px-margin-desktop max-w-container-max mx-auto left-0 right-0 backdrop-blur-[16px] border-b border-black/5 bg-white/55">
+<div class="flex items-center gap-stack-sm cursor-pointer" onclick="window.location.href='/'">
+<div class="w-10 h-10 rounded-lg bg-primary-container flex items-center justify-center text-white">
+<span class="material-symbols-outlined" data-icon="restaurant">restaurant</span>
+</div>
+<div class="flex flex-col">
+<span class="font-headline-md text-headline-md font-bold text-primary leading-none">CampusBites</span>
+<span class="text-[10px] font-label-sm text-slate-500 uppercase tracking-widest">College Canteen Hub</span>
+</div>
+</div>
+<a class="flex items-center gap-2 text-slate-600 hover:text-primary transition-colors duration-300 font-label-md" href="/">
+<span class="material-symbols-outlined text-[20px]" data-icon="arrow_back">arrow_back</span>
+            Student Menu
+        </a>
+</nav>
+<!-- Main Content Canvas -->
+<main class="relative flex flex-col items-center justify-center min-h-screen pt-[64px] px-margin-mobile overflow-hidden">
+<!-- Staff Login Card -->
+<div class="glass-card w-full max-w-[448px] p-stack-lg md:p-12 rounded-[2.5rem] z-10 animate-fade-in-up">
+<!-- Branding Header -->
+<div class="flex flex-col items-center text-center mb-stack-lg">
+<div class="w-16 h-16 rounded-2xl bg-primary-container/10 flex items-center justify-center mb-stack-md shield-glow">
+<span class="material-symbols-outlined text-4xl text-primary" data-icon="shield_lock" style="font-variation-settings: 'FILL' 1;">shield_lock</span>
+</div>
+<h1 class="font-headline-lg text-headline-lg text-slate-900 mb-stack-sm">Canteen Portal</h1>
+<p class="font-body-md text-body-md text-slate-500">Enter password to access the staff dashboard</p>
+</div>
+<!-- Login Form -->
+<form class="space-y-stack-lg" id="loginForm">
+<!-- Error Alert -->
+<div class="hidden flex items-start gap-3 p-4 rounded-xl bg-red-50 border border-red-200 text-red-700 text-body-sm mb-4" id="errorAlert">
+<span class="material-symbols-outlined text-[18px]" data-icon="error">error</span>
+<p id="errorText">Invalid credentials. Please try again.</p>
+</div>
+<!-- Password Input -->
+<div class="space-y-2">
+<label class="font-label-md text-label-md text-slate-500 block ml-1" for="password">Security Pin / Password</label>
+<div class="relative group">
+<span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-primary transition-colors" data-icon="lock">lock</span>
+<input class="w-full h-14 pl-12 pr-4 bg-white/60 border border-slate-200 rounded-xl focus:ring-2 focus:ring-primary/20 focus:border-primary text-slate-900 placeholder:text-slate-400 transition-all outline-none backdrop-blur-sm" id="password" name="password" placeholder="••••••••" required="" type="password"/>
+</div>
+</div>
+<!-- Action Button -->
+<button class="primary-gloss-btn w-full h-14 rounded-xl font-bold text-headline-sm flex items-center justify-center gap-3 active:scale-[0.98]" id="submitBtn" type="submit">
+<span id="btnText">Access Dashboard</span>
+<div class="loader hidden" id="loader"></div>
+</button>
+</form>
+<div class="mt-8 pt-8 border-t border-slate-200/60 text-center">
+<p class="text-body-sm text-slate-500">
+                    Trouble logging in? <a class="text-primary font-medium hover:underline transition-all" href="#">Contact IT Support</a>
+</p>
+</div>
+</div>
+<!-- Footer -->
+<footer class="mt-stack-lg pb-stack-lg text-center text-slate-400 font-label-sm max-w-md">
+<p>© 2026 CampusBites. Made for college canteens.</p>
+<div class="flex justify-center gap-4 mt-2">
+<a class="hover:text-slate-600 transition-colors" href="#">Privacy</a>
+<a class="hover:text-slate-600 transition-colors" href="#">Terms</a>
+<a class="hover:text-slate-600 transition-colors" href="#">Security</a>
+</div>
+</footer>
+</main>
+<script>
+        document.getElementById('loginForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const btn = document.getElementById('submitBtn');
+            const btnText = document.getElementById('btnText');
+            const loader = document.getElementById('loader');
+            const errorAlert = document.getElementById('errorAlert');
+            const password = document.getElementById('password').value;
+
+            if (!password) {
+                showError("Please enter your password to continue.");
+                return;
+            }
+
+            btn.disabled = true;
+            btnText.classList.add('hidden');
+            loader.classList.remove('hidden');
+            errorAlert.classList.add('hidden');
+
+            setTimeout(() => {
+                if (password === "staff123" || password === "admin") {
+                    console.log("Login Success");
+                    window.location.href = "/staff"; 
+                } else {
+                    btn.disabled = false;
+                    btnText.classList.remove('hidden');
+                    loader.classList.add('hidden');
+                    showError("Access Denied. Incorrect security pin or password.");
+                }
+            }, 1500);
+        });
+
+        function showError(msg) {
+            const errorAlert = document.getElementById('errorAlert');
+            const errorText = document.getElementById('errorText');
+            errorText.textContent = msg;
+            errorAlert.classList.remove('hidden');
+            
+            const card = document.querySelector('.glass-card');
+            card.classList.add('animate-shake');
+            setTimeout(() => card.classList.remove('animate-shake'), 400);
+        }
+    </script>
+<style>
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .animate-fade-in-up {
+            animation: fadeInUp 0.6s cubic-bezier(0.25, 1, 0.5, 1) forwards;
+        }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-5px); }
+            75% { transform: translateX(5px); }
+        }
+        .animate-shake {
+            animation: shake 0.2s ease-in-out 0s 2;
+        }
+    </style>
+</body></html>

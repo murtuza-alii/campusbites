@@ -5,6 +5,7 @@ export interface MenuItem {
   category: string;
   is_available: number; // 0 or 1 in SQLite
   image?: string;
+  canteen_id: string;
 }
 
 export interface OrderItem {
@@ -24,6 +25,7 @@ export interface Order {
   status: 'PENDING' | 'PREPARING' | 'READY' | 'COMPLETED';
   pickup_code: string;
   created_at: string;
+  canteen_id: string;
 }
 
 export interface ParsedOrder extends Omit<Order, 'items'> {

@@ -1,0 +1,408 @@
+<!DOCTYPE html>
+
+<html class="scroll-smooth" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>CampusBites | Student Menu</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700;800&amp;family=Inter:wght@400;500;600&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+          darkMode: "class",
+          theme: {
+            extend: {
+              "colors": {
+                      "on-primary-fixed-variant": "#3323cc",
+                      "on-secondary-container": "#626264",
+                      "tertiary": "#7e3000",
+                      "success": "#059669",
+                      "surface-container-highest": "#e4e1ee",
+                      "surface-dim": "#dcd8e5",
+                      "on-secondary": "#ffffff",
+                      "surface-tint": "#4d44e3",
+                      "on-tertiary": "#ffffff",
+                      "error-container": "#ffdad6",
+                      "outline-variant": "#c7c4d8",
+                      "secondary-fixed": "#e3e2e4",
+                      "on-tertiary-fixed-variant": "#7b2f00",
+                      "primary-fixed-dim": "#c3c0ff",
+                      "on-background": "#1b1b24",
+                      "on-error": "#ffffff",
+                      "tertiary-fixed": "#ffdbcc",
+                      "secondary-container": "#e0dfe1",
+                      "on-tertiary-fixed": "#351000",
+                      "on-secondary-fixed": "#1a1c1d",
+                      "primary": "#3525cd",
+                      "text-muted": "#64748B",
+                      "on-error-container": "#93000a",
+                      "text-secondary": "#475569",
+                      "outline": "#777587",
+                      "warning": "#D97706",
+                      "inverse-surface": "#302f39",
+                      "on-surface": "#1b1b24",
+                      "primary-fixed": "#e2dfff",
+                      "on-primary-fixed": "#0f0069",
+                      "surface-variant": "#e4e1ee",
+                      "on-primary-container": "#dad7ff",
+                      "tertiary-fixed-dim": "#ffb695",
+                      "secondary-fixed-dim": "#c6c6c8",
+                      "hazy-lavender": "rgba(165, 180, 252, 0.18)",
+                      "hazy-rose": "rgba(244, 143, 177, 0.14)",
+                      "tertiary-container": "#a44100",
+                      "text-primary": "#1E293B",
+                      "on-surface-variant": "#464555",
+                      "surface-container-low": "#f5f2ff",
+                      "surface-bright": "#fcf8ff",
+                      "surface": "#fcf8ff",
+                      "secondary": "#5d5e60",
+                      "surface-container": "#f0ecf9",
+                      "inverse-on-surface": "#f3effc",
+                      "hazy-mint": "rgba(167, 243, 208, 0.11)",
+                      "on-tertiary-container": "#ffd2be",
+                      "surface-bg": "rgba(255, 255, 255, 0.35)",
+                      "surface-container-high": "#eae6f4",
+                      "surface-container-lowest": "#ffffff",
+                      "on-secondary-fixed-variant": "#464749",
+                      "error": "#DC2626",
+                      "background": "#fcf8ff",
+                      "on-primary": "#ffffff",
+                      "inverse-primary": "#c3c0ff",
+                      "primary-container": "#4f46e5"
+              },
+              "borderRadius": {
+                      "DEFAULT": "0.25rem",
+                      "lg": "0.5rem",
+                      "xl": "0.75rem",
+                      "full": "9999px"
+              },
+              "spacing": {
+                      "stack-md": "1rem",
+                      "stack-sm": "0.5rem",
+                      "margin-desktop": "2.5rem",
+                      "stack-lg": "2rem",
+                      "margin-mobile": "1rem",
+                      "gutter": "1.5rem",
+                      "container-max": "1280px"
+              },
+              "fontFamily": {
+                      "headline-lg-mobile": ["Outfit"],
+                      "headline-xl": ["Outfit"],
+                      "headline-sm": ["Outfit"],
+                      "body-md": ["Inter"],
+                      "body-sm": ["Inter"],
+                      "label-md": ["Inter"],
+                      "body-lg": ["Inter"],
+                      "headline-lg": ["Outfit"],
+                      "label-sm": ["Inter"],
+                      "headline-md": ["Outfit"]
+              }
+            },
+          },
+        }
+    </script>
+<style>.material-symbols-outlined {
+    font-variation-settings: "FILL" 0, "wght" 400, "GRAD" 0, "opsz" 24
+    }
+.glass-card {
+    background: rgba(255, 255, 255, 0.35);
+    backdrop-filter: blur(24px);
+    -webkit-backdrop-filter: blur(24px);
+    border-top: 1px solid rgba(255, 255, 255, 0.45);
+    border-left: 1px solid rgba(255, 255, 255, 0.45);
+    border-bottom: 1px solid rgba(15, 23, 42, 0.03);
+    border-right: 1px solid rgba(15, 23, 42, 0.03);
+    box-shadow: 0 32px 32px rgba(31, 38, 135, 0.03)
+    }
+.glossy-primary {
+    background: linear-gradient(135deg, rgba(79, 70, 229, 0.9) 0%, rgba(244, 143, 177, 0.7) 100%);
+    transition: all 0.3s cubic-bezier(0.25, 1, 0.5, 1)
+    }
+.glossy-primary:hover {
+    transform: translatey(-1px);
+    box-shadow: 0 8px 16px rgba(79, 70, 229, 0.2)
+    }
+.glossy-primary:active {
+    transform: scale(0.96)
+    }
+.blob {
+    position: fixed;
+    z-index: -1;
+    filter: blur(80px);
+    opacity: 0.4;
+    border-radius: 50%;
+    pointer-events: none
+    }
+.noise {
+    position: fixed;
+    inset: 0;
+    z-index: -2;
+    opacity: 0.03;
+    background-image: url(https://lh3.googleusercontent.com/aida-public/AB6AXuBJGKyygIPfjfmnfMneGbLZLlirYMcJPELsVoCOyrLge3jxvvdVVSTlg2X2T4YXNjqGEU0S_LwhbkK7wgO-1IdorLVxk8gqplUh3Czmc3I6kI4uDCYf9CfEY9Zfuv55JVzEphio4jVpopX-zrTKZ3yW5MnlIScj9Q-1g9yTk7M6CNU0QqN1xuUihlqLPRtaOCXasFt1j1bFv4pTr5WijECvLyUh46Mgbji9gsDoa9pDVbu3GhXClcjBsLELXjod-tjTFNl9Ej3cCPQ);
+    pointer-events: none
+    }</style>
+</head>
+<body class="bg-[#FAF9FB] text-on-surface font-body-md selection:bg-primary-fixed">
+<div class="noise"></div>
+<!-- Ethereal Blobs -->
+<div class="blob bg-indigo-200 w-[500px] h-[500px] top-[-10%] left-[-5%]"></div>
+<div class="blob bg-pink-100 w-[400px] h-[400px] bottom-[10%] right-[10%]"></div>
+<div class="blob bg-emerald-50 w-[300px] h-[300px] top-[40%] left-[30%]"></div>
+<!-- Navigation Bar -->
+<header class="fixed top-0 w-full h-[64px] z-50 bg-white/55 backdrop-blur-[16px] border-b border-white/45 flex items-center justify-between px-margin-mobile md:px-margin-desktop shadow-[0_32px_32px_rgba(31,38,135,0.03)]">
+<div class="flex items-center gap-3">
+<div class="w-10 h-10 bg-primary-container rounded-xl flex items-center justify-center text-white">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">restaurant</span>
+</div>
+<div>
+<h1 class="font-headline-md text-headline-md font-bold text-primary leading-none">CampusBites</h1>
+<p class="font-label-sm text-label-sm text-on-surface-variant">College Canteen Hub</p>
+</div>
+</div>
+<div class="hidden md:flex items-center gap-8">
+<nav class="flex gap-6">
+<a class="font-label-md text-label-md text-primary border-b-2 border-primary pb-1" href="#">Menu</a>
+<a class="font-label-md text-label-md text-on-surface-variant hover:text-primary transition-colors" href="#">Orders</a>
+<a class="font-label-md text-label-md text-on-surface-variant hover:text-primary transition-colors" href="#">Rewards</a>
+</nav>
+<div class="flex items-center gap-2">
+<button class="flex items-center gap-2 px-4 py-2 border border-primary/20 rounded-full font-label-md text-label-md text-primary bg-white/40 hover:bg-white/60 transition-all">
+<span class="material-symbols-outlined text-[18px]">admin_panel_settings</span>
+                    Staff Dashboard
+                </button>
+<div class="w-10 h-10 rounded-full border border-white bg-white/30 flex items-center justify-center text-on-surface-variant">
+<span class="material-symbols-outlined">account_circle</span>
+</div>
+</div>
+</div>
+</header>
+<main class="pt-[96px] pb-[40px] px-margin-mobile md:px-margin-desktop max-w-container-max mx-auto flex flex-col md:flex-row gap-gutter">
+<!-- Left Content Area -->
+<div class="flex-1 space-y-stack-lg">
+<!-- View Toggle & Header -->
+<div class="flex flex-col md:flex-row md:items-end justify-between gap-4">
+<div class="space-y-1">
+<h2 class="font-headline-lg text-headline-lg text-text-primary">Today's Fresh Menu</h2>
+<p class="font-body-md text-body-md text-text-secondary">Select items to place your instant pickup order</p>
+</div>
+<div class="inline-flex p-1 bg-surface-container rounded-2xl glass-card">
+<button class="px-6 py-2 rounded-xl font-label-md text-label-md bg-white shadow-sm text-primary">Browse Menu</button>
+<button class="px-6 py-2 rounded-xl font-label-md text-label-md text-on-surface-variant hover:text-on-surface transition-all">My Orders</button>
+</div>
+</div>
+<!-- Search & Filter -->
+<div class="space-y-stack-md">
+<div class="relative group">
+<span class="absolute left-4 top-1/2 -translate-y-1/2 material-symbols-outlined text-outline">search</span>
+<input class="w-full pl-12 pr-4 py-4 bg-white/40 backdrop-blur-xl border border-white/60 rounded-2xl font-body-md text-body-md focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all placeholder:text-text-muted" placeholder="Search delicious snacks, drinks, meals..." type="text"/>
+</div>
+<div class="flex gap-2 overflow-x-auto pb-2 no-scrollbar">
+<button class="px-5 py-2.5 rounded-full glossy-primary text-white font-label-md whitespace-nowrap">All</button>
+<button class="px-5 py-2.5 rounded-full glass-card text-on-surface-variant font-label-md whitespace-nowrap hover:bg-white/50 transition-all">Meals</button>
+<button class="px-5 py-2.5 rounded-full glass-card text-on-surface-variant font-label-md whitespace-nowrap hover:bg-white/50 transition-all">Snacks</button>
+<button class="px-5 py-2.5 rounded-full glass-card text-on-surface-variant font-label-md whitespace-nowrap hover:bg-white/50 transition-all">Beverages</button>
+<button class="px-5 py-2.5 rounded-full glass-card text-on-surface-variant font-label-md whitespace-nowrap hover:bg-white/50 transition-all">Desserts</button>
+</div>
+</div>
+<!-- Menu Grid -->
+<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+<!-- Item 1 -->
+<div class="glass-card rounded-3xl overflow-hidden group">
+<div class="relative h-48 overflow-hidden">
+<img class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" data-alt="A gourmet Paneer Tikka Roll with char-grilled paneer, spicy chutney, and fresh onions, presented on a minimalist ceramic plate with soft daylight lighting. The style is modern food photography with a shallow depth of field, following a light and airy aesthetic with pastel undertones." src="https://lh3.googleusercontent.com/aida-public/AB6AXuAdNAZ_e2m0yqXsZvaM9uCWInUbKAubuRRtdg8KN9wxkW5wXsD8k5FRG-a5He3EQCZOZMyvWhADcvcVfx4mVmGq-06TkQAuioN1bndgdzjNWFQEPIbaE4CrAaGrh24VQ1yO7fYsOb9gZd4F9YBYjYTkvADAT6gUog0-IbUIm_TQAakxeWhuqDvyuVSYMRTZBBUZWtV8v_UrpltU--SP3qTdnj-qhn5scMhuv1DKf_58XyvuCMu87N3n13MTRvAcn4RzTs5eo-pYUAA"/>
+<span class="absolute top-3 right-3 px-3 py-1 bg-white/80 backdrop-blur-md rounded-full text-[10px] font-bold uppercase tracking-wider text-primary">Snacks</span>
+</div>
+<div class="p-5 space-y-4">
+<div class="flex justify-between items-start">
+<div>
+<h3 class="font-headline-sm text-headline-sm text-text-primary">Paneer Tikka Roll</h3>
+<p class="text-[20px] font-bold text-primary">₹80</p>
+</div>
+</div>
+<button class="w-full glossy-primary text-white py-3 rounded-2xl font-label-md flex items-center justify-center gap-2">
+<span class="material-symbols-outlined text-[18px]">add_shopping_cart</span>
+                            Add to Cart
+                        </button>
+</div>
+</div>
+<!-- Item 2 -->
+<div class="glass-card rounded-3xl overflow-hidden group">
+<div class="relative h-48 overflow-hidden">
+<img class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" data-alt="A refreshing iced cold coffee in a tall glass with milk swirls and ice cubes, placed on a light wooden table against a hazy, blurred cafe background. Soft lavender and mint lighting accents provide a dreamy, calm atmosphere consistent with the brand's aesthetic." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDX09sqX58p13TXbkqe_JuR7otpbvEO5C1CrwLJqL_ttaEghV-Kc53IdhHE3VvQUdcAnEijChm-djT6JuI9QYTee2iBPA6M3schOmxTIforoczMF5AmHFF-MAMWtsZk_mCSTchFWTwo5YKtN6jKhEXrIOsdIEIcL81u45Knkn1IwKsmh8wNUz2CvAeLiTVIM1_yB0JOXgjrPlP3QgjM1QIU-LN8vYOGhnPavmDANuIaEQrpZA7vmOoMMxPvnDodPFaITLY-m_ZxY5I"/>
+<span class="absolute top-3 right-3 px-3 py-1 bg-white/80 backdrop-blur-md rounded-full text-[10px] font-bold uppercase tracking-wider text-primary">Beverages</span>
+</div>
+<div class="p-5 space-y-4">
+<div class="flex justify-between items-start">
+<div>
+<h3 class="font-headline-sm text-headline-sm text-text-primary">Cold Coffee</h3>
+<p class="text-[20px] font-bold text-primary">₹50</p>
+</div>
+</div>
+<button class="w-full glossy-primary text-white py-3 rounded-2xl font-label-md flex items-center justify-center gap-2">
+<span class="material-symbols-outlined text-[18px]">add_shopping_cart</span>
+                            Add to Cart
+                        </button>
+</div>
+</div>
+<!-- Item 3 -->
+<div class="glass-card rounded-3xl overflow-hidden group">
+<div class="relative h-48 overflow-hidden">
+<img class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" data-alt="A juicy vegetable burger with melted cheese, fresh lettuce, and tomatoes on a toasted brioche bun. The shot is high-contrast yet soft, featuring elegant food styling with subtle hazy lighting effects and a clean, light-mode background." src="https://lh3.googleusercontent.com/aida-public/AB6AXuAFotwugAGXMSfPMNergZSkElO8zPYngS5-dix215gq--vzUlJ13utSjX5h_9wuYgXMLR4pvRgdZz3YhddTdBzLIwzzJeMcKMORDZFx8nzX3-W_cLSUlBuMv8nYWF7Rbp5UYveh52JEiyeTVNmxmKuzesqd6cMwqdvKp6LS1W3HDqP_jF0iVEDYBcG9BxzYvwo9hSAyM6ohxAtkKcVxfhmVCqI7nVf3OXFW2aCgCEKecCtMJBH7i1-uIlQ8ZksofGbbesOTmSuGGa8"/>
+<span class="absolute top-3 right-3 px-3 py-1 bg-white/80 backdrop-blur-md rounded-full text-[10px] font-bold uppercase tracking-wider text-primary">Snacks</span>
+</div>
+<div class="p-5 space-y-4">
+<div class="flex justify-between items-start">
+<div>
+<h3 class="font-headline-sm text-headline-sm text-text-primary">Cheese Veg Burger</h3>
+<p class="text-[20px] font-bold text-primary">₹70</p>
+</div>
+</div>
+<button class="w-full glossy-primary text-white py-3 rounded-2xl font-label-md flex items-center justify-center gap-2">
+<span class="material-symbols-outlined text-[18px]">add_shopping_cart</span>
+                            Add to Cart
+                        </button>
+</div>
+</div>
+<!-- Item 4 -->
+<div class="glass-card rounded-3xl overflow-hidden group">
+<div class="relative h-48 overflow-hidden">
+<img class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" data-alt="A crispy Masala Dosa served with flavorful sambar and various chutneys in small bowls. Traditional South Indian breakfast presented in a contemporary, minimalist style with high-key lighting and a soft focus on the background textures." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDDl7xfKP3AEX9uh0-7Li6Eq4OL1m3-UckfTkzwMX50pmmNaZ5gN43V_mzLBEMaWuj0xm6Q53TqrWOnUzLSzPeGXsPBosAvf2ZLXaKEaHM438teE9jC422ox6CGge36EAicsD3nV8QwErObDNKQDZhorpKf62ohWNiHw2qw_cngVJqLEo4mA5h-QgM8R3VuUhaqxe-YcJKM1-755nznGdQjPMIAyGsq4lubwXaabVPf31h1_j0TMBR6RzJXlmKrPUwAVXX28BagvDo"/>
+<span class="absolute top-3 right-3 px-3 py-1 bg-white/80 backdrop-blur-md rounded-full text-[10px] font-bold uppercase tracking-wider text-primary">Meals</span>
+</div>
+<div class="p-5 space-y-4">
+<div class="flex justify-between items-start">
+<div>
+<h3 class="font-headline-sm text-headline-sm text-text-primary">Masala Dosa</h3>
+<p class="text-[20px] font-bold text-primary">₹60</p>
+</div>
+</div>
+<button class="w-full glossy-primary text-white py-3 rounded-2xl font-label-md flex items-center justify-center gap-2">
+<span class="material-symbols-outlined text-[18px]">add_shopping_cart</span>
+                            Add to Cart
+                        </button>
+</div>
+</div>
+<!-- Item 5 -->
+<div class="glass-card rounded-3xl overflow-hidden group">
+<div class="relative h-48 overflow-hidden">
+<img class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" data-alt="Two golden-brown crispy samosas served on a craft paper plate with green chutney. The lighting is warm and ethereal, highlighting the flaky texture of the crust against a bright, minimalist backdrop with airy pastel blurs." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBlHShZyIr9BX2BZIJzAMzUyNd_Q296o275L3NlA8ClEFUefrot8ycvrUPECUu_4DrazdekwBU_VRlB-y3ufRLv-r8wSPZngd4LgkGFvkxdPmlLhwavugVBBvyP9_hqUTX_WLzz8qWUPRjHUDyImXEoSZQxF1giZ-pHGWTxMJuUscKkGPIq7fPtX2oCTrr7ccwFG7D46TTtDjMtVn1BaJU3cmCQDhU_ZnMxmFKIIgTAg-CWAC3uIGqoB-q8JpCi7R63wfxWP56gnW4"/>
+<span class="absolute top-3 right-3 px-3 py-1 bg-white/80 backdrop-blur-md rounded-full text-[10px] font-bold uppercase tracking-wider text-primary">Snacks</span>
+</div>
+<div class="p-5 space-y-4">
+<div class="flex justify-between items-start">
+<div>
+<h3 class="font-headline-sm text-headline-sm text-text-primary">Samosa (2 pcs)</h3>
+<p class="text-[20px] font-bold text-primary">₹20</p>
+</div>
+</div>
+<button class="w-full glossy-primary text-white py-3 rounded-2xl font-label-md flex items-center justify-center gap-2">
+<span class="material-symbols-outlined text-[18px]">add_shopping_cart</span>
+                            Add to Cart
+                        </button>
+</div>
+</div>
+<!-- Item 6 -->
+<div class="glass-card rounded-3xl overflow-hidden group">
+<div class="relative h-48 overflow-hidden">
+<img class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" data-alt="Hot crispy French Fries seasoned with herbs, served in a wire basket on a marble surface. The lighting is clean and professional, using soft shadows and a bright environment to evoke a fresh, high-end feel." src="https://lh3.googleusercontent.com/aida-public/AB6AXuAB3TTBoiGwnHWphH0hC6HciNZ7AgZ4S2gjD1QfqeTOWHtLa-07S49N818Y2bnhRSo8btHh_V6JaFIgsb45jllGG4xhXpC48Px3yxNKhiaOWn1R1PKIgJizFqw8j-aljJPNPlIZlPjzA2cFaOFTJE0WEKS1FkZWhiWJ-e3iFsp8JAUXPoVElmwYP7AjkDlo06aThkOn0NPXwiMC-cVB9_UqFGPdlsXhxlq930ohMNS79GIvjMKPXt0QuDAkDkOBAMje3r4KEXPjF7M"/>
+<span class="absolute top-3 right-3 px-3 py-1 bg-white/80 backdrop-blur-md rounded-full text-[10px] font-bold uppercase tracking-wider text-primary">Snacks</span>
+</div>
+<div class="p-5 space-y-4">
+<div class="flex justify-between items-start">
+<div>
+<h3 class="font-headline-sm text-headline-sm text-text-primary">French Fries</h3>
+<p class="text-[20px] font-bold text-primary">₹55</p>
+</div>
+</div>
+<button class="w-full glossy-primary text-white py-3 rounded-2xl font-label-md flex items-center justify-center gap-2">
+<span class="material-symbols-outlined text-[18px]">add_shopping_cart</span>
+                            Add to Cart
+                        </button>
+</div>
+</div>
+</div>
+</div>
+<!-- Right Cart Sidebar -->
+<aside class="w-full md:w-[360px] flex flex-col gap-gutter">
+<div class="sticky top-[96px] glass-card rounded-[32px] p-6 space-y-stack-lg max-h-[calc(100vh-140px)] overflow-y-auto no-scrollbar">
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-primary" style="font-variation-settings: 'FILL' 1;">shopping_basket</span>
+<h2 class="font-headline-sm text-headline-sm text-text-primary">Your Cart</h2>
+</div>
+<span class="px-3 py-1 bg-primary/10 text-primary rounded-full font-label-sm text-label-sm">0 Items</span>
+</div>
+<!-- Empty Cart State -->
+<div class="flex flex-col items-center justify-center py-12 text-center space-y-4">
+<div class="w-20 h-20 rounded-full bg-hazy-lavender flex items-center justify-center text-primary/40">
+<span class="material-symbols-outlined text-[40px]">shopping_cart_off</span>
+</div>
+<div>
+<p class="font-headline-sm text-headline-sm text-on-surface-variant">Cart is empty</p>
+<p class="font-body-sm text-body-sm text-text-muted mt-1">Add yummy food from the menu to get started</p>
+</div>
+</div>
+<hr class="border-white/40"/>
+<!-- Checkout Form -->
+<div class="space-y-stack-md">
+<div class="space-y-2">
+<label class="font-label-md text-label-md text-text-secondary ml-1">Your Full Name</label>
+<input class="w-full px-4 py-3 bg-white/50 border border-white/60 rounded-xl font-body-md text-body-md focus:ring-primary/20 focus:border-primary outline-none transition-all" placeholder="e.g. Rahul Sharma" type="text"/>
+</div>
+<div class="space-y-2">
+<label class="font-label-md text-label-md text-text-secondary ml-1">Roll Number / Phone</label>
+<input class="w-full px-4 py-3 bg-white/50 border border-white/60 rounded-xl font-body-md text-body-md focus:ring-primary/20 focus:border-primary outline-none transition-all" placeholder="e.g. CS2201 or 9876..." type="text"/>
+</div>
+</div>
+<div class="pt-2 space-y-3">
+<div class="flex justify-between items-center text-text-secondary">
+<span class="font-body-md text-body-md">Subtotal</span>
+<span class="font-body-md text-body-md">₹0</span>
+</div>
+<div class="flex justify-between items-center text-text-secondary">
+<span class="font-body-md text-body-md">Tax</span>
+<span class="font-body-md text-body-md">₹0</span>
+</div>
+<div class="flex justify-between items-center text-text-primary border-t border-white/40 pt-3">
+<span class="font-headline-sm text-headline-sm">Total</span>
+<span class="font-headline-sm text-headline-sm">₹0</span>
+</div>
+</div>
+<button class="w-full py-4 rounded-2xl glossy-primary text-white font-label-md flex items-center justify-center gap-2 opacity-50 cursor-not-allowed" disabled="">
+<span class="material-symbols-outlined text-[20px]">local_mall</span>
+                    Place Order
+                </button>
+<p class="text-center font-label-sm text-label-sm text-text-muted">
+                    Pick up your order in 15-20 mins
+                </p>
+</div>
+</aside>
+</main>
+<!-- Mobile Floating Cart -->
+<div class="md:hidden fixed bottom-6 right-6 z-50">
+<button class="w-16 h-16 rounded-full glossy-primary text-white shadow-2xl flex items-center justify-center group relative">
+<span class="material-symbols-outlined text-[28px]">shopping_cart</span>
+<span class="absolute -top-1 -right-1 w-6 h-6 bg-error rounded-full text-[10px] flex items-center justify-center font-bold border-2 border-white">0</span>
+</button>
+</div>
+<!-- Footer -->
+<footer class="w-full py-stack-lg border-t border-white/40 bg-white/30 backdrop-blur-md">
+<div class="max-w-container-max mx-auto px-margin-mobile md:px-margin-desktop flex flex-col md:flex-row justify-between items-center gap-4">
+<p class="font-label-sm text-label-sm text-text-muted">© 2026 CampusBites. Made for college canteens.</p>
+<div class="flex gap-6">
+<a class="font-label-sm text-label-sm text-text-muted hover:text-primary transition-colors" href="#">Privacy Policy</a>
+<a class="font-label-sm text-label-sm text-text-muted hover:text-primary transition-colors" href="#">Terms of Service</a>
+<a class="font-label-sm text-label-sm text-text-muted hover:text-primary transition-colors" href="#">Contact Support</a>
+</div>
+</div>
+</footer>
+<script>
+        // Smooth hover sound effects or micro-interactions could be added here
+        document.querySelectorAll('button').forEach(button => {
+            button.addEventListener('mousedown', () => {
+                button.classList.add('scale-95');
+            });
+            button.addEventListener('mouseup', () => {
+                button.classList.remove('scale-95');
+            });</script></body></html>
