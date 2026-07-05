@@ -1,7 +1,6 @@
 import { io } from 'socket.io-client';
+import { API_BASE_URL } from '../config.js';
 
-const SOCKET_URL = 'http://localhost:5000';
-
-export const socket = io(SOCKET_URL, {
+export const socket = io(API_BASE_URL, {
   autoConnect: true,
 });

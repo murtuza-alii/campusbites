@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Plus, RotateCw, HelpCircle } from 'lucide-react';
 import { decodeToken, type DecodedToken } from '../utils/jwt.js';
+import { API_BASE_URL } from '../config.js';
 
 interface MenuItem {
   id: string;
@@ -37,7 +38,7 @@ export function StaffMenu() {
 
   const fetchCanteens = async () => {
     try {
-      const response = await fetch('http://localhost:5000/api/canteens');
+      const response = await fetch(`${API_BASE_URL}/api/canteens`);
       if (response.ok) {
         const data = await response.json();
         setCanteens(data);
@@ -56,7 +57,7 @@ export function StaffMenu() {
 
     try {
       const targetCanteenId = adminCanteenId || selectedAdminCanteenId;
-      let url = 'http://localhost:5000/api/admin/menu';
+      let url = `${API_BASE_URL}/api/admin/menu`;
       if (targetCanteenId) {
         url += `?canteenId=${targetCanteenId}`;
       }
@@ -100,7 +101,7 @@ export function StaffMenu() {
         if (!selectedAdminCanteenId) {
           setSelectedAdminCanteenId(decoded.canteenId);
         }
-        fetch('http://localhost:5000/api/canteens')
+        fetch(`${API_BASE_URL}/api/canteens`)
           .then(res => res.json())
           .then(data => {
             const match = data.find((c: any) => c.id === decoded.canteenId);
@@ -120,7 +121,7 @@ export function StaffMenu() {
     const isAvailableBoolean = item.is_available !== 1;
 
     try {
-      const response = await fetch(`http://localhost:5000/api/admin/menu/${item.id}`, {
+      const response = await fetch(`${API_BASE_URL}/api/admin/menu/${item.id}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -175,7 +176,7 @@ export function StaffMenu() {
     if (!token) return;
 
     try {
-      const response = await fetch(`http://localhost:5000/api/admin/menu/${itemId}`, {
+      const response = await fetch(`${API_BASE_URL}/api/admin/menu/${itemId}`, {
         method: 'DELETE',
         headers: {
           'Authorization': `Bearer ${token}`
@@ -223,7 +224,7 @@ export function StaffMenu() {
       let response;
       if (editingId) {
         // Edit Item
-        response = await fetch(`http://localhost:5000/api/admin/menu/${editingId}`, {
+        response = await fetch(`${API_BASE_URL}/api/admin/menu/${editingId}`, {
           method: 'PUT',
           headers: {
             'Content-Type': 'application/json',
@@ -233,7 +234,7 @@ export function StaffMenu() {
         });
       } else {
         // Add Item
-        response = await fetch('http://localhost:5000/api/admin/menu', {
+        response = await fetch(`${API_BASE_URL}/api/admin/menu`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',

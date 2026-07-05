@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { X, RefreshCw, Coffee, ShieldAlert } from 'lucide-react';
 import { socket } from '../utils/socket.js';
+import { API_BASE_URL } from '../config.js';
 
 interface MenuItem {
   id: string;
@@ -53,7 +54,7 @@ export function StudentView() {
   const fetchCanteens = async () => {
     try {
       setServerError('');
-      const response = await fetch('http://localhost:5000/api/canteens');
+      const response = await fetch(`${API_BASE_URL}/api/canteens`);
       if (response.ok) {
         const data = await response.json();
         setCanteens(data);
@@ -63,8 +64,8 @@ export function StudentView() {
       } else {
         setServerError('Failed to load canteens.');
       }
-    } catch (err) {
-      setServerError('Canteen server is offline. Retrying...');
+    } catch (err: any) {
+      setServerError(`Connection Error: ${err?.message || String(err)}`);
     } finally {
       setIsLoadingCanteens(false);
     }
@@ -77,15 +78,15 @@ export function StudentView() {
     try {
       setServerError('');
       setIsLoadingMenu(true);
-      const response = await fetch(`http://localhost:5000/api/menu?canteenId=${id}`);
+      const response = await fetch(`${API_BASE_URL}/api/menu?canteenId=${id}`);
       if (response.ok) {
         const data = await response.json();
         setMenu(data);
       } else {
         setServerError('Failed to load canteen menu.');
       }
-    } catch (err) {
-      setServerError('Canteen server is offline. Retrying...');
+    } catch (err: any) {
+      setServerError(`Connection Error: ${err?.message || String(err)}`);
     } finally {
       setIsLoadingMenu(false);
     }
@@ -209,7 +210,7 @@ export function StudentView() {
 
     setIsSubmitting(true);
     try {
-      const response = await fetch('http://localhost:5000/api/orders', {
+      const response = await fetch(`${API_BASE_URL}/api/orders`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

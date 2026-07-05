@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { socket } from '../utils/socket.js';
 import { Clock, Coffee, RotateCw, CheckCircle, ShieldAlert, FileText, CheckCheck } from 'lucide-react';
 import { decodeToken, type DecodedToken } from '../utils/jwt.js';
+import { API_BASE_URL } from '../config.js';
 
 interface CartItem {
   id: string;
@@ -41,7 +42,7 @@ export function StaffOrders() {
 
   const fetchCanteens = async () => {
     try {
-      const response = await fetch('http://localhost:5000/api/canteens');
+      const response = await fetch(`${API_BASE_URL}/api/canteens`);
       if (response.ok) {
         const data = await response.json();
         setCanteens(data);
@@ -60,7 +61,7 @@ export function StaffOrders() {
 
     try {
       const targetCanteenId = adminCanteenId || selectedAdminCanteenId;
-      let url = 'http://localhost:5000/api/admin/orders';
+      let url = `${API_BASE_URL}/api/admin/orders`;
       if (targetCanteenId) {
         url += `?canteenId=${targetCanteenId}`;
       }
@@ -119,7 +120,7 @@ export function StaffOrders() {
           setSelectedAdminCanteenId(decoded.canteenId);
         }
         // Fetch specific canteen name
-        fetch('http://localhost:5000/api/canteens')
+        fetch(`${API_BASE_URL}/api/canteens`)
           .then(res => res.json())
           .then(data => {
             const match = data.find((c: any) => c.id === decoded.canteenId);
@@ -158,7 +159,7 @@ export function StaffOrders() {
     if (!token) return;
 
     try {
-      const response = await fetch(`http://localhost:5000/api/admin/orders/${orderId}/status`, {
+      const response = await fetch(`${API_BASE_URL}/api/admin/orders/${orderId}/status`, {
         method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',
