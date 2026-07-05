@@ -2,6 +2,7 @@ import pg from 'pg';
 import dotenv from 'dotenv';
 import path from 'path';
 import fs from 'fs';
+import { Redis } from 'ioredis';
 
 // Load env variables
 dotenv.config({ path: path.resolve(process.cwd(), '.env') });
@@ -96,6 +97,35 @@ async function run() {
     // Commit transaction
     await client.query('COMMIT');
     console.log(`\nSuccessfully seeded ${insertedCount} menu items for Canteen A in Supabase!`);
+
+    // Invalidate Redis cache for Canteen A
+    const rawRedisUrl = process.env.REDIS_URL;
+    if (rawRedisUrl) {
+      console.log('Invalidating Redis menu cache...');
+      const cleanedRedisUrl = rawRedisUrl.replace(/^["']|["']$/g, '');
+      const parsedRedis = new URL(cleanedRedisUrl);
+      const redisOptions: any = {
+        host: parsedRedis.hostname,
+        port: parsedRedis.port ? parseInt(parsedRedis.port, 10) : 6379,
+        username: parsedRedis.username || undefined,
+        password: parsedRedis.password ? decodeURIComponent(parsedRedis.password) : undefined,
+      };
+      if (cleanedRedisUrl.startsWith('rediss://')) {
+        redisOptions.tls = { rejectUnauthorized: false };
+      }
+      const redis = new Redis(redisOptions);
+      try {
+        const keys = await redis.keys('canteen:menu:*');
+        if (keys.length > 0) {
+          await redis.del(...keys);
+        }
+        console.log('Redis cache successfully invalidated.');
+      } catch (redisErr) {
+        console.error('Failed to invalidate Redis cache:', redisErr);
+      } finally {
+        redis.disconnect();
+      }
+    }
 
     client.release();
   } catch (err) {
