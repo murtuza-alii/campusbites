@@ -125,12 +125,44 @@ export function StudentView() {
     };
   }, [selectedCanteenId]);
 
-  // Restore active orders from localStorage on mount
+  // Restore active orders from localStorage on mount and sync their latest statuses from the server
   useEffect(() => {
     const savedOrders = localStorage.getItem('myOrdersList');
     if (savedOrders) {
       try {
-        setMyOrders(JSON.parse(savedOrders));
+        const parsedOrders: Order[] = JSON.parse(savedOrders);
+        setMyOrders(parsedOrders);
+
+        // Fetch latest statuses for non-completed orders to keep them in sync
+        const activeOrders = parsedOrders.filter(o => o.status !== 'COMPLETED');
+        if (activeOrders.length > 0) {
+          Promise.all(
+            activeOrders.map(async (order) => {
+              try {
+                const res = await fetch(`${API_BASE_URL}/api/orders/${order.id}`);
+                if (res.ok) {
+                  const data = await res.json();
+                  return data;
+                }
+              } catch (e) {
+                console.error(`Failed to sync order ${order.id}`, e);
+              }
+              return null;
+            })
+          ).then((syncedOrders) => {
+            const validSynced = syncedOrders.filter((o): o is Order => o !== null && o !== undefined);
+            if (validSynced.length > 0) {
+              setMyOrders(prevOrders => {
+                const nextOrders = prevOrders.map(prev => {
+                  const match = validSynced.find(s => s.id === prev.id);
+                  return match ? match : prev;
+                });
+                localStorage.setItem('myOrdersList', JSON.stringify(nextOrders));
+                return nextOrders;
+              });
+            }
+          });
+        }
       } catch (e) {
         localStorage.removeItem('myOrdersList');
       }
