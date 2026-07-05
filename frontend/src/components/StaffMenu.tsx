@@ -19,6 +19,8 @@ export function StaffMenu() {
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [error, setError] = useState<string>('');
   const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
+  const [searchQuery, setSearchQuery] = useState<string>('');
+  const [selectedCategory, setSelectedCategory] = useState<string>('');
   const navigate = useNavigate();
 
   // User profile and canteen info
@@ -255,6 +257,13 @@ export function StaffMenu() {
     }
   };
 
+  // Filter menu items based on search query and category selections
+  const filteredMenuItems = menuItems.filter(item => {
+    const matchesSearch = item.name.toLowerCase().includes(searchQuery.toLowerCase());
+    const matchesCategory = selectedCategory ? item.category === selectedCategory : true;
+    return matchesSearch && matchesCategory;
+  });
+
   if (userProfile?.role === 'cook') {
     return (
       <div className="flex-1 flex flex-col items-center justify-center py-20 text-center glass-card p-6">
@@ -329,73 +338,113 @@ export function StaffMenu() {
           <span className="text-xs text-text-muted mt-1">Click the "Add Item" button to create your first food item</span>
         </div>
       ) : (
-        /* Menu Table Grid */
-        <div className="glass-card rounded-2xl overflow-hidden mb-12">
-          <div className="overflow-x-auto">
-            <table className="w-full text-left border-collapse">
-              <thead className="bg-white/10 border-b border-white/20">
-                <tr>
-                  <th className="px-6 py-4 font-label-md text-text-muted uppercase tracking-wider">Image</th>
-                  <th className="px-6 py-4 font-label-md text-text-muted uppercase tracking-wider">Dish Name</th>
-                  <th className="px-6 py-4 font-label-md text-text-muted uppercase tracking-wider">Category</th>
-                  <th className="px-6 py-4 font-label-md text-text-muted uppercase tracking-wider">Price</th>
-                  <th className="px-6 py-4 font-label-md text-text-muted uppercase tracking-wider text-center">Stock Status</th>
-                  <th className="px-6 py-4 font-label-md text-text-muted uppercase tracking-wider text-right">Actions</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-white/10">
-                {menuItems.map((item) => (
-                  <tr key={item.id} className={`hover:bg-white/10 transition-colors ${item.is_available === 0 ? 'opacity-65' : ''}`}>
-                    <td className="px-6 py-4">
-                      <div className="w-12 h-12 rounded-lg overflow-hidden bg-cover bg-center border border-white/20">
-                        <img src={item.image} alt={item.name} className="w-full h-full object-cover" />
-                      </div>
-                    </td>
-                    <td className="px-6 py-4 font-label-md text-text-primary">{item.name}</td>
-                    <td className="px-6 py-4">
-                      <span className="bg-hazy-mint text-success px-3 py-1 rounded-full text-label-sm">
-                        {item.category}
-                      </span>
-                    </td>
-                    <td className="px-6 py-4 font-body-md">₹{item.price}</td>
-                    <td className="px-6 py-4">
-                      <div className="flex items-center justify-center">
-                        <label className="relative inline-flex items-center cursor-pointer select-none">
-                          <input
-                            type="checkbox"
-                            checked={item.is_available === 1}
-                            onChange={() => handleToggleAvailability(item)}
-                            className="sr-only"
-                          />
-                          <div className={`w-12 h-6 rounded-full transition-colors duration-300 ease-in-out relative ${item.is_available === 1 ? 'bg-primary' : 'bg-slate-300'}`}>
-                            <div className={`absolute top-1 bg-white w-4 h-4 rounded-full transition-transform duration-300 ease-in-out ${item.is_available === 1 ? 'translate-x-7' : 'translate-x-1'}`}></div>
-                          </div>
-                        </label>
-                      </div>
-                    </td>
-                    <td className="px-6 py-4 text-right">
-                      <div className="flex gap-2 justify-end">
-                        <button
-                          onClick={() => handleOpenEditModal(item)}
-                          className="p-2 rounded-lg hover:bg-primary/10 text-primary transition-colors"
-                          title="Edit Item"
-                        >
-                          <span className="material-symbols-outlined">edit</span>
-                        </button>
-                        <button
-                          onClick={() => handleDeleteItem(item.id)}
-                          className="p-2 rounded-lg hover:bg-error/10 text-error transition-colors"
-                          title="Delete Item"
-                        >
-                          <span className="material-symbols-outlined">delete</span>
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
+        <div className="space-y-6">
+          {/* Search & Category Filter Bar */}
+          <div className="flex flex-col md:flex-row gap-4 bg-white/30 border border-white/40 p-4 rounded-2xl backdrop-blur-md shadow-sm">
+            {/* Search Input */}
+            <div className="flex-1 flex items-center gap-2 bg-white/50 border border-white/60 px-4 py-2.5 rounded-xl shadow-inner focus-within:ring-2 focus-within:ring-primary focus-within:border-transparent transition-all">
+              <span className="material-symbols-outlined text-slate-400 text-[20px]">search</span>
+              <input
+                type="text"
+                placeholder="Search dish name..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="w-full bg-transparent border-none outline-none font-body-md text-slate-900 placeholder:text-slate-400"
+              />
+            </div>
+
+            {/* Category Dropdown */}
+            <div className="flex items-center gap-2 bg-white/50 border border-white/60 px-4 py-2.5 rounded-xl shadow-inner focus-within:ring-2 focus-within:ring-primary focus-within:border-transparent transition-all">
+              <span className="material-symbols-outlined text-slate-400 text-[20px]">filter_alt</span>
+              <select
+                value={selectedCategory}
+                onChange={(e) => setSelectedCategory(e.target.value)}
+                className="bg-transparent border-none outline-none font-body-md text-slate-900 cursor-pointer w-full text-ellipsis overflow-hidden"
+              >
+                <option value="">All Categories</option>
+                {Array.from(new Set(menuItems.map(item => item.category))).map(cat => (
+                  <option key={cat} value={cat}>{cat}</option>
                 ))}
-              </tbody>
-            </table>
+              </select>
+            </div>
           </div>
+
+          {filteredMenuItems.length === 0 ? (
+            <div className="py-20 flex flex-col items-center justify-center text-text-muted text-center glass-card p-6">
+              <HelpCircle className="w-12 h-12 opacity-25 mb-3" />
+              <span className="text-sm font-semibold">No matching menu items found</span>
+              <span className="text-xs text-text-muted mt-1">Try adjusting your search query or category filter</span>
+            </div>
+          ) : (
+            /* Menu Table Grid */
+            <div className="glass-card rounded-2xl overflow-hidden mb-12">
+              <div className="overflow-x-auto">
+                <table className="w-full text-left border-collapse">
+                  <thead className="bg-white/10 border-b border-white/20">
+                    <tr>
+                      <th className="px-6 py-4 font-label-md text-text-muted uppercase tracking-wider">Image</th>
+                      <th className="px-6 py-4 font-label-md text-text-muted uppercase tracking-wider">Dish Name</th>
+                      <th className="px-6 py-4 font-label-md text-text-muted uppercase tracking-wider">Category</th>
+                      <th className="px-6 py-4 font-label-md text-text-muted uppercase tracking-wider">Price</th>
+                      <th className="px-6 py-4 font-label-md text-text-muted uppercase tracking-wider text-center">Stock Status</th>
+                      <th className="px-6 py-4 font-label-md text-text-muted uppercase tracking-wider text-right">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-white/10">
+                    {filteredMenuItems.map((item) => (
+                      <tr key={item.id} className={`hover:bg-white/10 transition-colors ${item.is_available === 0 ? 'opacity-65' : ''}`}>
+                        <td className="px-6 py-4">
+                          <div className="w-12 h-12 rounded-lg overflow-hidden bg-cover bg-center border border-white/20">
+                            <img src={item.image} alt={item.name} className="w-full h-full object-cover" />
+                          </div>
+                        </td>
+                        <td className="px-6 py-4 font-label-md text-text-primary">{item.name}</td>
+                        <td className="px-6 py-4">
+                          <span className="bg-hazy-mint text-success px-3 py-1 rounded-full text-label-sm">
+                            {item.category}
+                          </span>
+                        </td>
+                        <td className="px-6 py-4 font-body-md">₹{item.price}</td>
+                        <td className="px-6 py-4">
+                          <div className="flex items-center justify-center">
+                            <label className="relative inline-flex items-center cursor-pointer select-none">
+                              <input
+                                type="checkbox"
+                                checked={item.is_available === 1}
+                                onChange={() => handleToggleAvailability(item)}
+                                className="sr-only"
+                              />
+                              <div className={`w-12 h-6 rounded-full transition-colors duration-300 ease-in-out relative ${item.is_available === 1 ? 'bg-primary' : 'bg-slate-300'}`}>
+                                <div className={`absolute top-1 bg-white w-4 h-4 rounded-full transition-transform duration-300 ease-in-out ${item.is_available === 1 ? 'translate-x-7' : 'translate-x-1'}`}></div>
+                              </div>
+                            </label>
+                          </div>
+                        </td>
+                        <td className="px-6 py-4 text-right">
+                          <div className="flex gap-2 justify-end">
+                            <button
+                              onClick={() => handleOpenEditModal(item)}
+                              className="p-2 rounded-lg hover:bg-primary/10 text-primary transition-colors"
+                              title="Edit Item"
+                            >
+                              <span className="material-symbols-outlined">edit</span>
+                            </button>
+                            <button
+                              onClick={() => handleDeleteItem(item.id)}
+                              className="p-2 rounded-lg hover:bg-error/10 text-error transition-colors"
+                              title="Delete Item"
+                            >
+                              <span className="material-symbols-outlined">delete</span>
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          )}
         </div>
       )}
 
