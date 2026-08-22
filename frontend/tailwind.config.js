@@ -4,17 +4,18 @@ export default {
   theme: {
     extend: {
       fontFamily: {
-        sans: ['Outfit', 'Inter', 'Segoe UI', 'system-ui', 'sans-serif'],
-        'headline-xl': ['Outfit', 'sans-serif'],
-        'headline-lg': ['Outfit', 'sans-serif'],
-        'headline-md': ['Outfit', 'sans-serif'],
-        'headline-sm': ['Outfit', 'sans-serif'],
-        'body-lg': ['Inter', 'sans-serif'],
-        'body-md': ['Inter', 'sans-serif'],
-        'body-sm': ['Inter', 'sans-serif'],
-        'label-md': ['Inter', 'sans-serif'],
-        'label-sm': ['Inter', 'sans-serif'],
-        'headline-lg-mobile': ['Outfit', 'sans-serif'],
+        sans: ['Plus Jakarta Sans', '-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'Roboto', 'sans-serif'],
+        mono: ['JetBrains Mono', 'Menlo', 'Monaco', 'Courier New', 'monospace'],
+        'headline-xl': ['Plus Jakarta Sans', 'sans-serif'],
+        'headline-lg': ['Plus Jakarta Sans', 'sans-serif'],
+        'headline-md': ['Plus Jakarta Sans', 'sans-serif'],
+        'headline-sm': ['Plus Jakarta Sans', 'sans-serif'],
+        'body-lg': ['Plus Jakarta Sans', 'sans-serif'],
+        'body-md': ['Plus Jakarta Sans', 'sans-serif'],
+        'body-sm': ['Plus Jakarta Sans', 'sans-serif'],
+        'label-md': ['Plus Jakarta Sans', 'sans-serif'],
+        'label-sm': ['Plus Jakarta Sans', 'sans-serif'],
+        'headline-lg-mobile': ['Plus Jakarta Sans', 'sans-serif'],
       },
       colors: {
         brand: {

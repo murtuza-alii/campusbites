@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600;700&display=swap');
 
 @tailwind base;
 @tailwind components;
@@ -21,8 +21,8 @@
   --color-bg-6: rgba(15, 23, 42, 0.08);    /* inactive toggle bg */
 
   /* Text colors L11-L13 */
-  --color-text-primary: #1E293B;            /* Slate 800 */
-  --color-text-secondary: #475569;          /* Slate 600 */
+  --color-text-primary: #0F172A;            /* Deep Obsidian Slate */
+  --color-text-secondary: #334155;          /* Slate 700 */
   --color-text-muted: #64748B;              /* Slate 500 */
 
   /* Border colors L9-L10 */
@@ -57,7 +57,6 @@
 }
 
 /* Base styles */
-/* Base styles */
 html {
   color-scheme: light;
 }
@@ -65,10 +64,11 @@ html {
 body {
   background-color: #F8FAFC;
   color: #0F172A;
-  font-family: 'Outfit', 'Inter', sans-serif;
+  font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   min-height: 100vh;
   position: relative;
   overflow-x: hidden;
+  letter-spacing: -0.015em;
 }
 
 /* Crisp Clean Ambient Grounding */
@@ -79,20 +79,20 @@ body::before {
   z-index: -2;
   background-color: #F8FAFC;
   background-image: 
-    radial-gradient(at 100% 0%, rgba(249, 115, 22, 0.05) 0px, transparent 50%),
-    radial-gradient(at 0% 100%, rgba(99, 102, 241, 0.05) 0px, transparent 50%);
+    radial-gradient(at 100% 0%, rgba(249, 115, 22, 0.04) 0px, transparent 50%),
+    radial-gradient(at 0% 100%, rgba(79, 70, 229, 0.04) 0px, transparent 50%);
   pointer-events: none;
 }
 
-/* Subtle Architectural Grid */
+/* Darker, Well-Defined Architectural Grid */
 body::after {
   content: "";
   position: fixed;
   inset: 0;
   z-index: -1;
   background-image: 
-    linear-gradient(to right, rgba(15, 23, 42, 0.02) 1px, transparent 1px),
-    linear-gradient(to bottom, rgba(15, 23, 42, 0.02) 1px, transparent 1px);
+    linear-gradient(to right, rgba(15, 23, 42, 0.065) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(15, 23, 42, 0.065) 1px, transparent 1px);
   background-size: 32px 32px;
   pointer-events: none;
 }

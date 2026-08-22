@@ -8,9 +8,9 @@ interface InteractiveBackgroundProps {
 }
 
 export function InteractiveBackground({
-  dotColor = 'rgba(15, 23, 42, 0.05)',
-  activeColor = 'rgba(234, 88, 12, 0.25)',
-  dotSize = 1.2,
+  dotColor = 'rgba(15, 23, 42, 0.09)',
+  activeColor = 'rgba(234, 88, 12, 0.45)',
+  dotSize = 1.4,
   spacing = 28,
 }: InteractiveBackgroundProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -95,7 +95,7 @@ export function InteractiveBackground({
   return (
     <canvas
       ref={canvasRef}
-      className="pointer-events-none fixed inset-0 z-0 h-full w-full opacity-60"
+      className="pointer-events-none fixed inset-0 z-0 h-full w-full opacity-85"
     />
   );
 }
