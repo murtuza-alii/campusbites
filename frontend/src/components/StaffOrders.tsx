@@ -3,6 +3,8 @@ import { useNavigate } from 'react-router-dom';
 import jsQR from 'jsqr';
 import { socket } from '../utils/socket.js';
 import { Clock, Coffee, RotateCw, CheckCircle, ShieldAlert, FileText, CheckCheck, Camera, Keyboard } from 'lucide-react';
+import { SpotlightCard } from './ui/SpotlightCard';
+import { HeroChip } from './ui/HeroUIComponents';
 import { decodeToken, type DecodedToken } from '../utils/jwt.js';
 import { API_BASE_URL } from '../config.js';
 
@@ -551,52 +553,53 @@ export function StaffOrders() {
             <div className="flex flex-col gap-4">
               <div className="flex items-center justify-between px-2 mb-2">
                 <div className="flex items-center gap-2">
-                  <span className="w-3 h-3 rounded-full bg-warning"></span>
-                  <h3 className="font-headline-sm text-headline-sm">New / Pending</h3>
+                  <span className="w-2.5 h-2.5 rounded-full bg-amber-500 animate-pulse"></span>
+                  <h3 className="font-black text-sm text-slate-900 uppercase tracking-wider">New / Pending</h3>
                 </div>
-                <span className="bg-surface-container text-text-muted px-2 py-0.5 rounded-lg text-label-sm">
+                <HeroChip variant="warning" size="sm">
                   {getFilteredOrders('PENDING').length}
-                </span>
+                </HeroChip>
               </div>
               
-              <div className="max-h-[716px] overflow-y-auto space-y-4 pr-2 custom-scrollbar">
+              <div className="max-h-[716px] overflow-y-auto space-y-4 pr-1 custom-scrollbar">
                 {getFilteredOrders('PENDING').length === 0 ? (
-                  <div className="glass-card p-stack-md rounded-xl flex flex-col items-center justify-center text-text-muted text-center py-12">
-                    <Coffee className="w-8 h-8 opacity-20 mb-2 text-primary" />
-                    <span className="text-xs">No pending orders</span>
+                  <div className="bg-white border border-slate-200/80 p-6 rounded-3xl flex flex-col items-center justify-center text-slate-400 text-center py-12">
+                    <Coffee className="w-8 h-8 opacity-30 mb-2 text-indigo-600" />
+                    <span className="text-xs font-semibold">No pending orders</span>
                   </div>
                 ) : (
                   getFilteredOrders('PENDING').map(order => (
-                    <div key={order.id} className="glass-card p-stack-md rounded-xl flex flex-col gap-3 group hover:shadow-2xl transition-shadow duration-300">
+                    <SpotlightCard key={order.id} className="p-5 flex flex-col gap-3.5 border-l-4 border-l-amber-500 shadow-md">
                       <div className="flex justify-between items-start">
-                        <span className="font-bold text-primary font-label-md">{order.order_number}</span>
-                        <span className="text-label-sm text-text-muted">{formatTime(order.created_at)}</span>
+                        <span className="font-black text-base text-indigo-600 font-mono">{order.order_number}</span>
+                        <span className="text-[11px] font-mono text-slate-400">{formatTime(order.created_at)}</span>
                       </div>
                       <div>
-                        <p className="font-bold text-text-primary">{order.student_name}</p>
-                        <p className="text-label-sm text-text-muted font-mono">{order.student_roll}</p>
+                        <p className="font-black text-sm text-slate-900">{order.student_name}</p>
+                        <p className="text-xs font-mono text-slate-500">{order.student_roll}</p>
                       </div>
-                      <div className="border-t border-dashed border-outline-variant/30 pt-3">
-                        <ul className="space-y-1 text-body-sm text-text-secondary">
+                      <div className="border-t border-dashed border-slate-200 pt-2.5">
+                        <ul className="space-y-1 text-xs text-slate-700 font-medium">
                           {order.items.map((item, idx) => (
                             <li key={idx} className="flex justify-between">
-                              <span>{item.name} <span className="text-primary font-bold">x{item.quantity}</span></span>
-                              <span>₹{item.price * item.quantity}</span>
+                              <span>{item.name} <span className="text-indigo-600 font-black">×{item.quantity}</span></span>
+                              <span className="font-bold text-slate-900">₹{item.price * item.quantity}</span>
                             </li>
                           ))}
                         </ul>
                       </div>
-                      <div className="flex justify-between items-center mt-1 border-t border-dashed border-outline-variant/30 pt-3">
-                        <span className="font-label-md">Total</span>
-                        <span className="font-bold text-lg text-primary">₹{order.total_price}</span>
+                      <div className="flex justify-between items-center mt-1 border-t border-slate-100 pt-2.5">
+                        <span className="text-xs font-bold text-slate-500">Total</span>
+                        <span className="font-black text-base text-indigo-600">₹{order.total_price}</span>
                       </div>
                       <button
                         onClick={() => updateOrderStatus(order.id, 'PREPARING')}
-                        className="glossy-amber text-white w-full py-3 rounded-xl font-label-md mt-2 shadow-lg shadow-warning/20 hover:brightness-110 active:scale-[0.98] transition-all"
+                        className="w-full py-2.5 rounded-xl font-bold text-xs bg-amber-500 hover:bg-amber-600 text-white shadow-md shadow-amber-500/20 active:scale-95 transition-all flex items-center justify-center gap-1.5"
                       >
-                        Accept & Cook
+                        <span className="material-symbols-outlined text-[16px]">restaurant</span>
+                        <span>Accept & Cook</span>
                       </button>
-                    </div>
+                    </SpotlightCard>
                   ))
                 )}
               </div>
@@ -606,52 +609,53 @@ export function StaffOrders() {
             <div className="flex flex-col gap-4">
               <div className="flex items-center justify-between px-2 mb-2">
                 <div className="flex items-center gap-2">
-                  <span className="w-3 h-3 rounded-full bg-primary animate-pulse"></span>
-                  <h3 className="font-headline-sm text-headline-sm">In Kitchen</h3>
+                  <span className="w-2.5 h-2.5 rounded-full bg-indigo-600 animate-pulse"></span>
+                  <h3 className="font-black text-sm text-slate-900 uppercase tracking-wider">In Kitchen</h3>
                 </div>
-                <span className="bg-primary/10 text-primary px-2 py-0.5 rounded-lg text-label-sm">
+                <HeroChip variant="primary" size="sm">
                   {getFilteredOrders('PREPARING').length}
-                </span>
+                </HeroChip>
               </div>
 
-              <div className="max-h-[716px] overflow-y-auto space-y-4 pr-2 custom-scrollbar">
+              <div className="max-h-[716px] overflow-y-auto space-y-4 pr-1 custom-scrollbar">
                 {getFilteredOrders('PREPARING').length === 0 ? (
-                  <div className="glass-card p-stack-md rounded-xl flex flex-col items-center justify-center text-text-muted text-center py-12">
-                    <Clock className="w-8 h-8 opacity-20 mb-2 text-primary" />
-                    <span className="text-xs">No active orders in kitchen</span>
+                  <div className="bg-white border border-slate-200/80 p-6 rounded-3xl flex flex-col items-center justify-center text-slate-400 text-center py-12">
+                    <Clock className="w-8 h-8 opacity-30 mb-2 text-indigo-600" />
+                    <span className="text-xs font-semibold">No active orders in kitchen</span>
                   </div>
                 ) : (
                   getFilteredOrders('PREPARING').map(order => (
-                    <div key={order.id} className="glass-card p-stack-md rounded-xl flex flex-col gap-3 border-l-4 border-l-primary group hover:shadow-2xl transition-shadow duration-300">
+                    <SpotlightCard key={order.id} className="p-5 flex flex-col gap-3.5 border-l-4 border-l-indigo-600 shadow-md">
                       <div className="flex justify-between items-start">
-                        <span className="font-bold text-primary font-label-md">{order.order_number}</span>
-                        <span className="text-label-sm text-primary font-bold">{formatTime(order.created_at)}</span>
+                        <span className="font-black text-base text-indigo-600 font-mono">{order.order_number}</span>
+                        <span className="text-[11px] font-mono text-indigo-600 font-bold">{formatTime(order.created_at)}</span>
                       </div>
                       <div>
-                        <p className="font-bold text-text-primary">{order.student_name}</p>
-                        <p className="text-label-sm text-text-muted font-mono">{order.student_roll}</p>
+                        <p className="font-black text-sm text-slate-900">{order.student_name}</p>
+                        <p className="text-xs font-mono text-slate-500">{order.student_roll}</p>
                       </div>
-                      <div className="border-t border-dashed border-outline-variant/30 pt-3">
-                        <ul className="space-y-1 text-body-sm text-text-secondary">
+                      <div className="border-t border-dashed border-slate-200 pt-2.5">
+                        <ul className="space-y-1 text-xs text-slate-700 font-medium">
                           {order.items.map((item, idx) => (
                             <li key={idx} className="flex justify-between">
-                              <span>{item.name} <span className="text-primary font-bold">x{item.quantity}</span></span>
-                              <span>₹{item.price * item.quantity}</span>
+                              <span>{item.name} <span className="text-indigo-600 font-black">×{item.quantity}</span></span>
+                              <span className="font-bold text-slate-900">₹{item.price * item.quantity}</span>
                             </li>
                           ))}
                         </ul>
                       </div>
-                      <div className="flex justify-between items-center mt-1 border-t border-dashed border-outline-variant/30 pt-3">
-                        <span className="font-label-md">Total</span>
-                        <span className="font-bold text-lg text-primary">₹{order.total_price}</span>
+                      <div className="flex justify-between items-center mt-1 border-t border-slate-100 pt-2.5">
+                        <span className="text-xs font-bold text-slate-500">Total</span>
+                        <span className="font-black text-base text-indigo-600">₹{order.total_price}</span>
                       </div>
                       <button
                         onClick={() => updateOrderStatus(order.id, 'READY')}
-                        className="glossy-primary text-white w-full py-3 rounded-xl font-label-md mt-2 shadow-lg shadow-indigo-500/20 hover:brightness-110 active:scale-[0.98] transition-all"
+                        className="w-full py-2.5 rounded-xl font-bold text-xs bg-indigo-600 hover:bg-indigo-700 text-white shadow-md shadow-indigo-600/20 active:scale-95 transition-all flex items-center justify-center gap-1.5"
                       >
-                        Mark Ready for Pickup
+                        <span className="material-symbols-outlined text-[16px]">check_circle</span>
+                        <span>Mark Ready for Pickup</span>
                       </button>
-                    </div>
+                    </SpotlightCard>
                   ))
                 )}
               </div>
@@ -661,59 +665,56 @@ export function StaffOrders() {
             <div className="flex flex-col gap-4">
               <div className="flex items-center justify-between px-2 mb-2">
                 <div className="flex items-center gap-2">
-                  <span className="w-3 h-3 rounded-full bg-success"></span>
-                  <h3 className="font-headline-sm text-headline-sm">Ready for Collection</h3>
+                  <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse"></span>
+                  <h3 className="font-black text-sm text-slate-900 uppercase tracking-wider">Ready for Collection</h3>
                 </div>
-                <span className="bg-success/10 text-success px-2 py-0.5 rounded-lg text-label-sm">
+                <HeroChip variant="success" size="sm">
                   {getFilteredOrders('READY').length}
-                </span>
+                </HeroChip>
               </div>
 
-              <div className="max-h-[716px] overflow-y-auto space-y-4 pr-2 custom-scrollbar">
+              <div className="max-h-[716px] overflow-y-auto space-y-4 pr-1 custom-scrollbar">
                 {getFilteredOrders('READY').length === 0 ? (
-                  <div className="glass-card p-stack-md rounded-xl flex flex-col items-center justify-center text-text-muted text-center py-12">
-                    <CheckCircle className="w-8 h-8 opacity-20 mb-2 text-success" />
-                    <span className="text-xs">No orders waiting for pickup</span>
+                  <div className="bg-white border border-slate-200/80 p-6 rounded-3xl flex flex-col items-center justify-center text-slate-400 text-center py-12">
+                    <CheckCircle className="w-8 h-8 opacity-30 mb-2 text-emerald-600" />
+                    <span className="text-xs font-semibold">No orders waiting for pickup</span>
                   </div>
                 ) : (
                   getFilteredOrders('READY').map(order => (
-                    <div key={order.id} className="glass-card p-stack-md rounded-xl flex flex-col gap-3 group hover:shadow-2xl transition-shadow duration-300">
+                    <SpotlightCard key={order.id} className="p-5 flex flex-col gap-3.5 border-l-4 border-l-emerald-500 shadow-md">
                       <div className="flex justify-between items-start">
-                        <span className="font-bold text-primary font-label-md">{order.order_number}</span>
-                        <span className="text-label-sm text-text-muted">{formatTime(order.created_at)}</span>
+                        <span className="font-black text-base text-indigo-600 font-mono">{order.order_number}</span>
+                        <span className="text-[11px] font-mono text-slate-400">{formatTime(order.created_at)}</span>
                       </div>
                       
                       {/* Bold verification code */}
-                      <div className="bg-white/45 border border-outline-variant/30 py-2 px-3 rounded-lg text-center flex flex-col items-center shadow-inner">
-                        <span className="text-[10px] text-text-secondary font-semibold tracking-wide uppercase">Pickup Code</span>
-                        <span className="text-xl font-bold tracking-widest text-primary mt-0.5 font-mono">{order.pickup_code}</span>
+                      <div className="bg-emerald-50 border border-emerald-200 py-2 px-3 rounded-xl text-center flex flex-col items-center shadow-inner">
+                        <span className="text-[10px] text-emerald-700 font-extrabold tracking-wider uppercase">Counter Pickup Code</span>
+                        <span className="text-lg font-black tracking-widest text-emerald-700 font-mono">{order.pickup_code}</span>
                       </div>
 
                       <div>
-                        <p className="font-bold text-text-primary">{order.student_name}</p>
-                        <p className="text-label-sm text-text-muted font-mono">{order.student_roll}</p>
+                        <p className="font-black text-sm text-slate-900">{order.student_name}</p>
+                        <p className="text-xs font-mono text-slate-500">{order.student_roll}</p>
                       </div>
-                      <div className="border-t border-dashed border-outline-variant/30 pt-3">
-                        <ul className="space-y-1 text-body-sm text-text-secondary">
+                      <div className="border-t border-dashed border-slate-200 pt-2.5">
+                        <ul className="space-y-1 text-xs text-slate-700 font-medium">
                           {order.items.map((item, idx) => (
                             <li key={idx} className="flex justify-between">
-                              <span>{item.name} <span className="text-primary font-bold">x{item.quantity}</span></span>
-                              <span>₹{item.price * item.quantity}</span>
+                              <span>{item.name} <span className="text-indigo-600 font-black">×{item.quantity}</span></span>
+                              <span className="font-bold text-slate-900">₹{item.price * item.quantity}</span>
                             </li>
                           ))}
                         </ul>
                       </div>
-                      <div className="flex justify-between items-center mt-1 border-t border-dashed border-outline-variant/30 pt-3">
-                        <span className="font-label-md">Total</span>
-                        <span className="font-bold text-lg text-primary">₹{order.total_price}</span>
-                      </div>
                       <button
                         onClick={() => updateOrderStatus(order.id, 'COMPLETED')}
-                        className="glossy-emerald text-white w-full py-3 rounded-xl font-label-md mt-2 shadow-lg shadow-success/20 hover:brightness-110 active:scale-[0.98] transition-all"
+                        className="w-full py-2.5 rounded-xl font-bold text-xs bg-emerald-600 hover:bg-emerald-700 text-white shadow-md shadow-emerald-600/20 active:scale-95 transition-all flex items-center justify-center gap-1.5"
                       >
-                        Paid & Collected
+                        <span className="material-symbols-outlined text-[16px]">done_all</span>
+                        <span>Complete & Handover</span>
                       </button>
-                    </div>
+                    </SpotlightCard>
                   ))
                 )}
               </div>

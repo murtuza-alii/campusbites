@@ -6,6 +6,8 @@ import { StaffView } from './components/StaffView';
 import { StaffLogin } from './components/StaffLogin';
 import { StaffOrders } from './components/StaffOrders';
 import { StaffMenu } from './components/StaffMenu';
+import { SmoothCursor } from './components/ui/SmoothCursor';
+import { InteractiveBackground } from './components/ui/InteractiveBackground';
 import { decodeToken } from './utils/jwt';
 
 export default function App() {
@@ -37,8 +39,14 @@ export default function App() {
 
   return (
     <div className="min-h-screen flex flex-col antialiased relative bg-[#F8FAFC]">
+      {/* MagicUI Fluid Smooth Cursor (Desktop/Fine-Pointer aware) */}
+      <SmoothCursor />
+
+      {/* ReactBits Dynamic Dot Matrix Canvas */}
+      <InteractiveBackground />
+
       {/* Navigation Bar */}
-      <header className="fixed top-0 w-full h-[70px] z-50 bg-white/80 backdrop-blur-xl border-b border-slate-200/80 flex items-center justify-between px-4 sm:px-8 shadow-sm">
+      <header className="fixed top-0 w-full h-[70px] z-40 bg-white/85 backdrop-blur-xl border-b border-slate-200/80 flex items-center justify-between px-4 sm:px-8 shadow-sm">
         <Link to="/" className="flex items-center gap-3 group">
           <div className="w-10 h-10 bg-indigo-600 group-hover:bg-indigo-700 rounded-2xl flex items-center justify-center text-white shadow-md shadow-indigo-600/20 transition-all">
             <span className="material-symbols-outlined text-[22px]">restaurant</span>

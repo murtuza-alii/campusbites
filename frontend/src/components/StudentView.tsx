@@ -1,6 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { X, RefreshCw, Coffee, ShieldAlert, Store, Building2, ArrowLeft } from 'lucide-react';
+import { SpotlightCard } from './ui/SpotlightCard';
+import { ShinyText } from './ui/ShinyText';
+import { HeroChip } from './ui/HeroUIComponents';
 import { socket } from '../utils/socket.js';
 import { API_BASE_URL } from '../config.js';
 
@@ -496,74 +499,76 @@ export function StudentView() {
                   const qty = getItemQuantity(item.id);
                   const isAvailable = item.is_available !== 0;
                   return (
-                    <div 
+                    <SpotlightCard 
                       key={item.id} 
-                      className={`glass-card rounded-3xl overflow-hidden flex flex-col group transition-all duration-300 ${
+                      className={`rounded-3xl overflow-hidden flex flex-col group transition-all duration-300 ${
                         isAvailable 
-                          ? 'hover:scale-[1.01]' 
+                          ? 'hover:scale-[1.01] hover:border-indigo-500/40 hover:shadow-xl' 
                           : 'opacity-60'
                       }`}
                     >
                       {item.image && (
-                        <div className="h-48 overflow-hidden relative bg-neutral-bg5">
+                        <div className="h-48 overflow-hidden relative bg-slate-100">
                           <img 
                             src={item.image} 
                             alt={item.name} 
                             className={`w-full h-full object-cover transition-transform duration-500 ${
-                              isAvailable ? 'group-hover:scale-110 ease-out' : 'grayscale-[40%]'
+                              isAvailable ? 'group-hover:scale-105 ease-out' : 'grayscale-[40%]'
                             }`}
                           />
-                          <span className="absolute top-3 right-3 px-3 py-1 bg-white/80 backdrop-blur-md rounded-full text-[10px] font-bold uppercase tracking-wider text-primary">
-                            {item.category}
-                          </span>
+                          <div className="absolute top-3 right-3">
+                            <HeroChip variant="primary" size="sm">
+                              {item.category}
+                            </HeroChip>
+                          </div>
                         </div>
                       )}
                       <div className="p-5 flex-1 flex flex-col justify-between space-y-4">
                         <div>
                           <div className="flex justify-between items-start gap-2">
-                            <h3 className="font-headline-sm text-headline-sm text-text-primary">{item.name}</h3>
+                            <h3 className="font-black text-base text-slate-900 leading-snug">{item.name}</h3>
                             {!item.image && (
-                              <span className="px-2.5 py-0.5 bg-primary/10 text-primary border border-primary/20 rounded-full text-[9px] font-bold uppercase tracking-wider whitespace-nowrap">
+                              <HeroChip variant="primary" size="sm">
                                 {item.category}
-                              </span>
+                              </HeroChip>
                             )}
                           </div>
-                          <p className="text-[20px] font-bold text-primary mt-1">₹{item.price}</p>
+                          <p className="text-xl font-black text-indigo-600 mt-1">₹{item.price}</p>
                         </div>
 
                         <div>
                           {!isAvailable ? (
-                            <div className="w-full py-3 bg-white/10 border border-white/20 rounded-2xl text-sm font-semibold text-text-muted text-center select-none">
+                            <div className="w-full py-3 bg-slate-100 border border-slate-200 rounded-2xl text-xs font-bold text-slate-500 text-center select-none uppercase tracking-wider">
                               Out of Stock
                             </div>
                           ) : qty > 0 ? (
-                            <div className="flex items-center justify-between bg-white/35 backdrop-blur-md border border-white/45 p-1 select-none rounded-2xl">
+                            <div className="flex items-center justify-between bg-slate-50 border border-slate-200/90 p-1.5 select-none rounded-2xl shadow-inner">
                               <button
                                 onClick={() => removeFromCart(item.id)}
-                                className="w-10 h-10 rounded-xl bg-white/40 hover:bg-white/60 flex items-center justify-center text-primary transition-all"
+                                className="w-9 h-9 rounded-xl bg-white border border-slate-200 hover:bg-slate-100 flex items-center justify-center text-slate-700 font-bold active:scale-95 transition-all"
                               >
-                                <span className="material-symbols-outlined text-[20px]">remove</span>
+                                <span className="material-symbols-outlined text-[18px]">remove</span>
                               </button>
-                              <span className="font-bold text-sm text-text-primary w-8 text-center">{qty}</span>
+                              <span className="font-black text-sm text-slate-900 w-8 text-center">{qty}</span>
                               <button
                                 onClick={() => addToCart(item)}
-                                className="w-10 h-10 rounded-xl bg-white/40 hover:bg-white/60 flex items-center justify-center text-primary transition-all"
+                                className="w-9 h-9 rounded-xl bg-indigo-600 text-white hover:bg-indigo-700 flex items-center justify-center font-bold active:scale-95 transition-all shadow-sm"
                               >
-                                <span className="material-symbols-outlined text-[20px]">add</span>
+                                <span className="material-symbols-outlined text-[18px]">add</span>
                               </button>
                             </div>
                           ) : (
                             <button
                               onClick={() => addToCart(item)}
-                              className="w-full glossy-primary text-white py-3 rounded-2xl font-label-md flex items-center justify-center gap-2"
+                              className="w-full py-3 rounded-2xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs flex items-center justify-center gap-2 shadow-md shadow-indigo-600/20 active:scale-[0.98] transition-all"
                             >
                               <span className="material-symbols-outlined text-[18px]">add_shopping_cart</span>
-                              Add to Cart
+                              Add to Order
                             </button>
                           )}
                         </div>
                       </div>
-                    </div>
+                    </SpotlightCard>
                   );
                 })}
               </div>
@@ -701,73 +706,81 @@ export function StudentView() {
               <span className="text-xs text-text-muted mt-1 max-w-xs font-body-sm">Once you select foods from the menu and checkout, they will appear here.</span>
             </div>
           ) : (
-            <div className="space-y-gutter">
+            <div className="space-y-6">
               {myOrders.map((order) => {
                 const isCompleted = order.status === 'COMPLETED';
                 return (
-                  <div 
+                  <SpotlightCard 
                     key={order.id} 
-                    className={`glass-card rounded-2xl p-stack-lg flex flex-col md:flex-row gap-gutter relative overflow-hidden group border border-white/40 ${isCompleted ? 'opacity-70' : ''}`}
+                    className={`p-7 flex flex-col md:flex-row gap-8 relative overflow-hidden group border border-slate-200/90 shadow-lg shadow-slate-200/30 ${isCompleted ? 'opacity-70' : ''}`}
                   >
                     <div className="flex-1">
-                      <div className="flex items-center justify-between mb-8">
-                        <div className="flex items-center gap-4">
-                          <span className="font-headline-sm text-headline-sm text-text-primary">{order.order_number}</span>
-                          <span className="font-body-sm text-body-sm text-text-muted">
+                      <div className="flex items-center justify-between mb-6">
+                        <div className="flex items-center gap-3">
+                          <span className="font-black text-xl text-slate-900 tracking-tight">{order.order_number}</span>
+                          <span className="text-xs font-mono text-slate-400">
                             {new Date(order.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                           </span>
                         </div>
 
                         <div className="flex items-center gap-3">
-                          <span 
-                            className={`px-4 py-1.5 rounded-full font-label-sm border flex items-center gap-1.5 ${
-                              order.status === 'PENDING' ? 'bg-warning/10 text-warning border-warning/20' :
-                              order.status === 'PREPARING' ? 'bg-primary/10 text-primary border-primary/20' :
-                              'bg-success/10 text-success border-success/20'
-                            }`}
-                          >
-                            <span className={`w-2 h-2 rounded-full ${
-                              order.status === 'PENDING' ? 'bg-warning animate-pulse' :
-                              order.status === 'PREPARING' ? 'bg-primary animate-pulse' :
-                              'bg-success'
-                            }`}></span>
-                            {order.status}
-                          </span>
+                          {order.status === 'PENDING' && (
+                            <HeroChip variant="warning" size="sm" dot>
+                              Pending
+                            </HeroChip>
+                          )}
+                          {order.status === 'PREPARING' && (
+                            <HeroChip variant="primary" size="sm" dot>
+                              Preparing
+                            </HeroChip>
+                          )}
+                          {order.status === 'READY' && (
+                            <HeroChip variant="success" size="sm" dot>
+                              Ready for Pickup
+                            </HeroChip>
+                          )}
+                          {order.status === 'COMPLETED' && (
+                            <HeroChip variant="default" size="sm">
+                              Completed
+                            </HeroChip>
+                          )}
                           
                           {/* Delete from history button */}
                           {isCompleted && (
                             <button
                               onClick={() => removeOrderFromHistory(order.id)}
-                              className="primary-gloss p-2 rounded-xl text-white flex items-center justify-center shadow-lg hover:shadow-primary/20 bg-primary-container"
+                              className="p-1.5 rounded-xl text-slate-400 hover:text-rose-600 hover:bg-rose-50 transition-colors"
                               title="Clear history"
                             >
-                              <span className="material-symbols-outlined text-[18px]">delete_sweep</span>
+                              <span className="material-symbols-outlined text-[18px]">delete</span>
                             </button>
                           )}
                         </div>
                       </div>
 
-                      <div className="space-y-4 mb-8">
-                        <div className="flex flex-col gap-1">
-                          <span className="font-label-sm text-text-muted uppercase tracking-wider">ORDERED DISHES</span>
+                      <div className="space-y-4 mb-6">
+                        <div className="flex flex-col gap-1.5">
+                          <span className="text-[11px] font-mono font-bold text-slate-400 uppercase tracking-wider">Ordered Dishes</span>
                           {order.items.map((item) => (
-                            <div key={item.id} className="flex justify-between items-center">
-                              <span className="font-body-md text-text-primary">{item.name} <span className="text-primary font-bold">x{item.quantity}</span></span>
-                              <span className="font-headline-sm text-headline-sm text-text-primary">₹{item.price * item.quantity}</span>
+                            <div key={item.id} className="flex justify-between items-center py-0.5">
+                              <span className="text-sm font-semibold text-slate-800">
+                                {item.name} <span className="text-indigo-600 font-bold">× {item.quantity}</span>
+                              </span>
+                              <span className="text-sm font-bold text-slate-900">₹{item.price * item.quantity}</span>
                             </div>
                           ))}
                         </div>
 
-                        <hr className="border-outline-variant/30" />
+                        <hr className="border-slate-100" />
 
                         <div className="flex justify-between items-end">
-                          <div className="flex flex-col gap-1">
-                            <span className="font-label-sm text-text-muted uppercase tracking-wider">ORDERED BY</span>
-                            <span className="font-body-md text-text-primary font-semibold">{order.student_name} ({order.student_roll})</span>
+                          <div className="flex flex-col gap-0.5">
+                            <span className="text-[11px] font-mono font-bold text-slate-400 uppercase tracking-wider">Student Details</span>
+                            <span className="text-xs font-bold text-slate-700">{order.student_name} ({order.student_roll})</span>
                           </div>
                           <div className="flex flex-col items-end">
-                            <span className="font-label-sm text-text-muted uppercase tracking-wider">TOTAL PAID</span>
-                            <span className="font-headline-md text-headline-md text-primary">₹{order.total_price}</span>
+                            <span className="text-[11px] font-mono font-bold text-slate-400 uppercase tracking-wider">Total</span>
+                            <span className="text-2xl font-black text-indigo-600">₹{order.total_price}</span>
                           </div>
                         </div>
                       </div>
@@ -775,19 +788,19 @@ export function StudentView() {
 
                     {/* OTP & Signed Verification QR Code Section */}
                     {!isCompleted ? (
-                      <div className="md:w-1/3 bg-surface-container/50 rounded-2xl p-6 flex flex-col items-center justify-center border border-white/20 gap-3 relative">
+                      <div className="md:w-1/3 bg-slate-50 border border-slate-200/90 rounded-2xl p-6 flex flex-col items-center justify-center gap-3 relative">
                         <div className="text-center w-full">
-                          <span className="font-label-sm text-text-muted uppercase tracking-wider block mb-1">VISUAL QUEUE TOKEN</span>
-                          <div className="font-headline-lg text-2xl font-black text-primary tracking-tight leading-tight">
-                            {order.order_number}
+                          <span className="text-[10px] font-mono font-bold text-slate-400 uppercase tracking-wider block mb-1">Visual Queue Token</span>
+                          <div className="text-3xl font-black text-indigo-600 tracking-tight leading-tight">
+                            <ShinyText>{order.order_number}</ShinyText>
                           </div>
-                          <div className="font-mono text-sm font-bold text-slate-500 mt-0.5">
-                            OTP: {order.pickup_code}
+                          <div className="font-mono text-xs font-bold text-slate-600 mt-1">
+                            Counter OTP: <span className="text-orange-600">{order.pickup_code}</span>
                           </div>
                         </div>
 
                         {/* Scannable HMAC-Signed Verification QR */}
-                        <div className="p-3 bg-white rounded-2xl shadow-md border border-outline-variant/20 group-hover:scale-105 transition-transform duration-500 flex flex-col items-center">
+                        <div className="p-3 bg-white rounded-2xl shadow-sm border border-slate-200 group-hover:scale-105 transition-transform duration-300 flex flex-col items-center">
                           <img 
                             className="w-28 h-28 object-contain rounded-lg" 
                             src={`https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=${encodeURIComponent(
@@ -801,22 +814,22 @@ export function StudentView() {
                             alt="Order Verification QR"
                           />
                         </div>
-                        <p className="text-[10px] text-center leading-tight text-text-muted px-2">
+                        <p className="text-[11px] text-center leading-tight text-slate-500 px-2">
                           {order.status === 'READY' ? (
-                            <span className="text-emerald-600 font-bold animate-pulse">✓ Ready for pickup! Show QR to staff</span>
+                            <span className="text-emerald-700 font-extrabold animate-pulse">✓ Ready for pickup! Show QR at counter</span>
                           ) : (
                             <span>Show this QR code or OTP to staff at counter</span>
                           )}
                         </p>
                       </div>
                     ) : (
-                      <div className="md:w-1/3 bg-success/5 border border-success/15 p-6 rounded-2xl text-center flex flex-col items-center justify-center min-h-[160px] self-stretch justify-self-stretch">
-                        <span className="material-symbols-outlined text-success text-[40px] mb-2" style={{ fontVariationSettings: "'FILL' 1" }}>check_circle</span>
-                        <span className="text-success text-sm font-bold">Order Completed!</span>
-                        <span className="text-xs text-text-muted mt-1 max-w-[180px]">Verified & collected. Thank you!</span>
+                      <div className="md:w-1/3 bg-emerald-50/60 border border-emerald-200 p-6 rounded-2xl text-center flex flex-col items-center justify-center min-h-[160px] self-stretch justify-self-stretch">
+                        <span className="material-symbols-outlined text-emerald-600 text-[40px] mb-2" style={{ fontVariationSettings: "'FILL' 1" }}>check_circle</span>
+                        <span className="text-emerald-800 text-sm font-bold">Order Completed!</span>
+                        <span className="text-xs text-slate-500 mt-1 max-w-[180px]">Verified & collected. Thank you!</span>
                       </div>
                     )}
-                  </div>
+                  </SpotlightCard>
                 );
               })}
             </div>

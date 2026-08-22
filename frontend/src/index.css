@@ -98,6 +98,24 @@ body::after {
 }
 
 /* Focus styles */
+@keyframes shiny-text {
+  0%, 100% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+}
+
+@keyframes shimmer {
+  100% {
+    transform: translateX(100%);
+  }
+}
+
+.animate-shiny-text {
+  animation: shiny-text 4s ease-in-out infinite;
+}
 *:focus-visible {
   @apply outline-none ring-2 ring-brand ring-offset-2 ring-offset-neutral-bg1;
 }

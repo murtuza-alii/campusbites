@@ -13,14 +13,17 @@ import {
   CheckCircle2, 
   ChefHat, 
   Send, 
-  RotateCw,
-  UtensilsCrossed,
-  Copy,
-  Check,
-  Smartphone,
-  Flame,
-  CheckCheck
+  RotateCw, 
+  UtensilsCrossed, 
+  Copy, 
+  Check, 
+  Smartphone, 
+  Flame, 
+  CheckCheck 
 } from 'lucide-react';
+import { SpotlightCard } from './ui/SpotlightCard';
+import { ShinyBadge, ShinyText } from './ui/ShinyText';
+import { HeroChip } from './ui/HeroUIComponents';
 import { API_BASE_URL } from '../config.js';
 
 // Register GSAP plugins
@@ -134,18 +137,20 @@ export function LandingPage() {
       {/* 1. HERO SECTION (Attention) */}
       <section className="relative pt-6 sm:pt-12 text-center max-w-5xl mx-auto flex flex-col items-center">
         
-        {/* Eyebrow badge */}
-        <div className="gsap-hero-pill inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-orange-50 border border-orange-200/80 text-orange-800 text-xs font-mono font-bold tracking-wide shadow-sm mb-6">
-          <Sparkles className="w-3.5 h-3.5 text-orange-600" />
-          <span>CAMPUS FOOD TECH PLATFORM</span>
+        {/* ReactBits / MagicUI Eyebrow badge */}
+        <div className="gsap-hero-pill mb-6">
+          <ShinyBadge>
+            <Sparkles className="w-3.5 h-3.5 text-orange-600" />
+            <span>CAMPUS FOOD TECH PLATFORM</span>
+          </ShinyBadge>
         </div>
 
         {/* 2-Line Iron Rule Headline */}
         <h1 className="gsap-hero-h1 font-black text-4xl sm:text-5xl md:text-6xl lg:text-7xl text-slate-950 tracking-tight leading-[1.08] mb-6 max-w-4xl">
           Empower Your Campus Food Outlet.{' '}
-          <span className="bg-gradient-to-r from-orange-600 via-amber-600 to-indigo-600 bg-clip-text text-transparent">
+          <ShinyText className="font-black">
             Zero Queue Rush.
-          </span>
+          </ShinyText>
         </h1>
 
         {/* Subtext */}
@@ -172,16 +177,17 @@ export function LandingPage() {
           </Link>
         </div>
 
-        {/* Floating Live Verification Token Teaser Card */}
-        <div className="gsap-floating-token w-full max-w-md bg-white border border-slate-200/90 rounded-3xl p-5 shadow-xl shadow-slate-200/50 flex items-center justify-between gap-4">
+        {/* Floating Live Verification Token Teaser Card with Spotlight Physics */}
+        <SpotlightCard className="gsap-floating-token w-full max-w-md p-5 shadow-xl shadow-slate-200/50 flex items-center justify-between gap-4">
           <div className="flex items-center gap-3.5">
             <div className="w-12 h-12 rounded-2xl bg-emerald-50 text-emerald-700 flex items-center justify-center font-mono font-black text-lg border border-emerald-200">
               #042
             </div>
             <div className="text-left">
-              <div className="flex items-center gap-1.5">
-                <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
-                <span className="text-[11px] font-extrabold uppercase tracking-wider text-emerald-700">Ready For Pickup</span>
+              <div className="flex items-center gap-1.5 mb-0.5">
+                <HeroChip variant="success" size="sm" dot>
+                  Ready For Pickup
+                </HeroChip>
               </div>
               <p className="font-bold text-sm text-slate-900 leading-tight">Paneer Tikka Roll × 2</p>
               <p className="text-[11px] text-slate-500">Mithibai South Wing · Token Verified</p>
@@ -190,7 +196,7 @@ export function LandingPage() {
           <div className="w-10 h-10 rounded-xl bg-slate-100 flex items-center justify-center text-slate-700">
             <QrCode className="w-5 h-5" />
           </div>
-        </div>
+        </SpotlightCard>
       </section>
 
       {/* 2. FEATURED CAMPUS DINING HUBS (Desire / Live Showcase) */}
@@ -206,7 +212,7 @@ export function LandingPage() {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           
           {/* Card 1: Mithibai Main Campus Hub */}
-          <div className="bg-white border border-slate-200/90 rounded-[2rem] p-7 shadow-lg shadow-slate-200/40 flex flex-col justify-between group hover:border-indigo-600/40 hover:shadow-xl transition-all duration-300">
+          <SpotlightCard className="p-7 shadow-lg shadow-slate-200/40 flex flex-col justify-between group hover:border-indigo-600/40 hover:shadow-xl transition-all duration-300">
             <div className="space-y-4">
               <div className="flex items-start justify-between">
                 <div className="flex items-center gap-3.5">
@@ -218,9 +224,9 @@ export function LandingPage() {
                     <p className="text-xs text-slate-500">Vile Parle West, Mumbai · 4 Canteens</p>
                   </div>
                 </div>
-                <span className="px-3 py-1 rounded-full text-[10px] font-extrabold uppercase tracking-wider bg-emerald-50 text-emerald-700 border border-emerald-200">
+                <HeroChip variant="success" size="sm">
                   Campus Hub
-                </span>
+                </HeroChip>
               </div>
 
               <p className="text-xs text-slate-600 leading-relaxed">
@@ -265,10 +271,10 @@ export function LandingPage() {
                 <ArrowRight className="w-3.5 h-3.5" />
               </Link>
             </div>
-          </div>
+          </SpotlightCard>
 
           {/* Card 2: Standalone Gourmet Diner */}
-          <div className="bg-white border border-slate-200/90 rounded-[2rem] p-7 shadow-lg shadow-slate-200/40 flex flex-col justify-between group hover:border-orange-500/40 hover:shadow-xl transition-all duration-300">
+          <SpotlightCard className="p-7 shadow-lg shadow-slate-200/40 flex flex-col justify-between group hover:border-orange-500/40 hover:shadow-xl transition-all duration-300">
             <div className="space-y-4">
               <div className="flex items-start justify-between">
                 <div className="flex items-center gap-3.5">
@@ -280,9 +286,9 @@ export function LandingPage() {
                     <p className="text-xs text-slate-500">Standalone Restaurant · Custom Kitchen</p>
                   </div>
                 </div>
-                <span className="px-3 py-1 rounded-full text-[10px] font-extrabold uppercase tracking-wider bg-indigo-50 text-indigo-700 border border-indigo-200">
+                <HeroChip variant="primary" size="sm">
                   Single Diner
-                </span>
+                </HeroChip>
               </div>
 
               <p className="text-xs text-slate-600 leading-relaxed">
@@ -327,7 +333,7 @@ export function LandingPage() {
                 <ArrowRight className="w-3.5 h-3.5" />
               </Link>
             </div>
-          </div>
+          </SpotlightCard>
         </div>
       </section>
 
@@ -343,7 +349,7 @@ export function LandingPage() {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 grid-flow-dense">
           
           {/* Bento Cell 1: 3-Digit Token Engine (col-span-2) */}
-          <div className="md:col-span-2 bg-gradient-to-br from-white to-orange-50/30 border border-slate-200/90 rounded-[2rem] p-8 shadow-lg shadow-slate-200/40 flex flex-col justify-between">
+          <SpotlightCard className="md:col-span-2 bg-gradient-to-br from-white to-orange-50/30 p-8 shadow-lg shadow-slate-200/40 flex flex-col justify-between">
             <div className="space-y-3">
               <div className="w-12 h-12 rounded-2xl bg-orange-600 text-white flex items-center justify-center shadow-md shadow-orange-600/20">
                 <Clock className="w-6 h-6" />
@@ -362,10 +368,10 @@ export function LandingPage() {
                 ✓ No SMS Gateway Delays
               </span>
             </div>
-          </div>
+          </SpotlightCard>
 
           {/* Bento Cell 2: Live In-Browser Camera Scanner (col-span-1) */}
-          <div className="md:col-span-1 bg-white border border-slate-200/90 rounded-[2rem] p-8 shadow-lg shadow-slate-200/40 flex flex-col justify-between">
+          <SpotlightCard className="md:col-span-1 p-8 shadow-lg shadow-slate-200/40 flex flex-col justify-between">
             <div className="space-y-3">
               <div className="w-12 h-12 rounded-2xl bg-emerald-50 text-emerald-700 flex items-center justify-center font-bold border border-emerald-100">
                 <QrCode className="w-6 h-6" />
@@ -377,15 +383,15 @@ export function LandingPage() {
             </div>
 
             <div className="pt-4">
-              <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[11px] font-bold bg-emerald-50 text-emerald-800 border border-emerald-200">
-                <Smartphone className="w-3.5 h-3.5 text-emerald-600" />
-                <span>Works On Any Phone / Laptop</span>
-              </span>
+              <HeroChip variant="success" size="sm">
+                <Smartphone className="w-3 h-3 text-emerald-600" />
+                <span>Any Phone / Laptop</span>
+              </HeroChip>
             </div>
-          </div>
+          </SpotlightCard>
 
           {/* Bento Cell 3: HMAC Security (col-span-1) */}
-          <div className="md:col-span-1 bg-white border border-slate-200/90 rounded-[2rem] p-8 shadow-lg shadow-slate-200/40 flex flex-col justify-between">
+          <SpotlightCard className="md:col-span-1 p-8 shadow-lg shadow-slate-200/40 flex flex-col justify-between">
             <div className="space-y-3">
               <div className="w-12 h-12 rounded-2xl bg-indigo-50 text-indigo-700 flex items-center justify-center font-bold border border-indigo-100">
                 <ShieldCheck className="w-6 h-6" />
@@ -397,15 +403,15 @@ export function LandingPage() {
             </div>
 
             <div className="pt-4">
-              <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-[11px] font-mono text-indigo-800 bg-indigo-50 font-bold border border-indigo-100">
+              <HeroChip variant="primary" size="sm">
                 <CheckCheck className="w-3 h-3 text-indigo-600" />
                 <span>100% Tamper Proof</span>
-              </span>
+              </HeroChip>
             </div>
-          </div>
+          </SpotlightCard>
 
           {/* Bento Cell 4: Custom Clean Slug URLs (col-span-2) */}
-          <div className="md:col-span-2 bg-gradient-to-br from-white to-indigo-50/30 border border-slate-200/90 rounded-[2rem] p-8 shadow-lg shadow-slate-200/40 flex flex-col justify-between">
+          <SpotlightCard className="md:col-span-2 bg-gradient-to-br from-white to-indigo-50/30 p-8 shadow-lg shadow-slate-200/40 flex flex-col justify-between">
             <div className="space-y-3">
               <div className="w-12 h-12 rounded-2xl bg-indigo-600 text-white flex items-center justify-center shadow-md shadow-indigo-600/20">
                 <Flame className="w-6 h-6" />
@@ -421,7 +427,7 @@ export function LandingPage() {
                 Zero App Downloads Required
               </span>
             </div>
-          </div>
+          </SpotlightCard>
 
         </div>
       </section>
