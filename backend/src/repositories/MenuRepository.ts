@@ -16,16 +16,24 @@ export class MenuRepository {
     }
   }
 
-  async findAllAdmin(canteenIdOrSlug?: string): Promise<MenuItem[]> {
+  async findAllAdmin(canteenIdOrSlug?: string | string[]): Promise<MenuItem[]> {
     const db = await getDb();
-    if (canteenIdOrSlug) {
+    if (Array.isArray(canteenIdOrSlug)) {
+      if (canteenIdOrSlug.length === 0) return [];
+      const placeholders = canteenIdOrSlug.map((_, i) => `$${i + 1}`).join(',');
       const result = await db.query<MenuItem>(
-        'SELECT * FROM menu WHERE (canteen_id = $1 OR canteen_id = (SELECT id FROM canteen WHERE slug = $1 LIMIT 1))',
+        `SELECT * FROM menu WHERE canteen_id IN (${placeholders}) ORDER BY category ASC, name ASC`,
+        canteenIdOrSlug
+      );
+      return result.rows;
+    } else if (canteenIdOrSlug) {
+      const result = await db.query<MenuItem>(
+        'SELECT * FROM menu WHERE (canteen_id = $1 OR canteen_id = (SELECT id FROM canteen WHERE slug = $1 LIMIT 1)) ORDER BY category ASC, name ASC',
         [canteenIdOrSlug]
       );
       return result.rows;
     } else {
-      const result = await db.query<MenuItem>('SELECT * FROM menu');
+      const result = await db.query<MenuItem>('SELECT * FROM menu ORDER BY category ASC, name ASC');
       return result.rows;
     }
   }

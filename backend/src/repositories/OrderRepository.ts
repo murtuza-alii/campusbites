@@ -43,9 +43,17 @@ export class OrderRepository {
     return result.rows[0] || undefined;
   }
 
-  async findAll(canteenId?: string): Promise<Order[]> {
+  async findAll(canteenId?: string | string[]): Promise<Order[]> {
     const db = await getDb();
-    if (canteenId) {
+    if (Array.isArray(canteenId)) {
+      if (canteenId.length === 0) return [];
+      const placeholders = canteenId.map((_, i) => `$${i + 1}`).join(',');
+      const result = await db.query<Order>(
+        `SELECT * FROM orders WHERE canteen_id IN (${placeholders}) ORDER BY created_at DESC`,
+        canteenId
+      );
+      return result.rows;
+    } else if (canteenId) {
       const result = await db.query<Order>('SELECT * FROM orders WHERE canteen_id = $1 ORDER BY created_at DESC', [canteenId]);
       return result.rows;
     } else {

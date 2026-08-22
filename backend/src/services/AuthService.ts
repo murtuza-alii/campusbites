@@ -59,13 +59,25 @@ export class AuthService {
     }
 
     if (user && secretAttempt && await bcrypt.compare(secretAttempt, user.password_hash)) {
+      let canteenInfo: any = null;
+      if (user.canteen_id) {
+        const cRes = await db.query('SELECT * FROM canteen WHERE id = $1', [user.canteen_id]);
+        if (cRes.rows.length > 0) {
+          canteenInfo = cRes.rows[0];
+        }
+      }
+
       // Sign token, valid for 12 hours
       const token = jwt.sign(
         { 
           id: user.id, 
           username: user.username, 
           role: user.role, 
-          canteenId: user.canteen_id 
+          canteenId: user.canteen_id,
+          canteenName: canteenInfo?.name || null,
+          canteenSlug: canteenInfo?.slug || null,
+          groupName: canteenInfo?.group_name || null,
+          groupSlug: canteenInfo?.group_slug || null,
         },
         config.auth.jwtSecret,
         { expiresIn: '12h' }

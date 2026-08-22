@@ -3,6 +3,10 @@ export interface DecodedToken {
   username: string;
   role: 'cook' | 'manager' | 'admin';
   canteenId: string | null;
+  canteenName?: string | null;
+  canteenSlug?: string | null;
+  groupName?: string | null;
+  groupSlug?: string | null;
   exp: number;
 }
 

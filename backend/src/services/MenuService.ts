@@ -32,13 +32,14 @@ export class MenuService {
     return menu;
   }
 
-  async getAdminMenu(canteenId?: string): Promise<MenuItem[]> {
-    const cacheKey = `canteen:menu:admin:${canteenId || 'all'}`;
+  async getAdminMenu(canteenId?: string | string[]): Promise<MenuItem[]> {
+    const keySuffix = Array.isArray(canteenId) ? canteenId.sort().join('_') : (canteenId || 'all');
+    const cacheKey = `canteen:menu:admin:${keySuffix}`;
     try {
       const redis = getRedis();
       const cached = await redis.get(cacheKey);
       if (cached) {
-        console.log(`Serving admin menu for canteen ${canteenId || 'all'} from Redis cache.`);
+        console.log(`Serving admin menu for canteen ${keySuffix} from Redis cache.`);
         return JSON.parse(cached);
       }
     } catch (err) {
@@ -50,7 +51,7 @@ export class MenuService {
     try {
       const redis = getRedis();
       await redis.set(cacheKey, JSON.stringify(menu));
-      console.log(`Cached admin menu for canteen ${canteenId || 'all'} in Redis.`);
+      console.log(`Cached admin menu for canteen ${keySuffix} in Redis.`);
     } catch (err) {
       console.error('Failed to write admin menu to Redis cache:', err);
     }

@@ -30,6 +30,21 @@ export function StaffMenu() {
   const [selectedFormCanteenId, setSelectedFormCanteenId] = useState<string>('');
   const [canteenName, setCanteenName] = useState<string>('');
 
+  // Determine campus scope and valid canteens to prevent cross-contamination
+  const userCanteen = canteens.find((c: any) => c.id === userProfile?.canteenId);
+  const userGroupName = userProfile?.groupName || userCanteen?.group_name;
+  
+  let scopedCanteens = canteens;
+  if (userProfile && userProfile.role !== 'admin') {
+    if (userGroupName) {
+      scopedCanteens = canteens.filter((c: any) => c.group_name === userGroupName);
+    } else if (userProfile.canteenId) {
+      scopedCanteens = canteens.filter((c: any) => c.id === userProfile.canteenId);
+    }
+  }
+
+  const currentCanteenObj = canteens.find((c: any) => c.id === selectedAdminCanteenId) || userCanteen;
+
   // Form State
   const [editingId, setEditingId] = useState<string | null>(null);
   const [name, setName] = useState<string>('');
@@ -156,7 +171,7 @@ export function StaffMenu() {
     setCategory('Snacks');
     setImageUrl('');
     setIsAvailable(true);
-    setSelectedFormCanteenId(selectedAdminCanteenId || (canteens[0]?.id || ''));
+    setSelectedFormCanteenId(selectedAdminCanteenId || (scopedCanteens[0]?.id || ''));
     setIsModalOpen(true);
   };
 
@@ -219,7 +234,7 @@ export function StaffMenu() {
     if (userProfile?.role === 'admin') {
       payload.canteen_id = selectedFormCanteenId || selectedAdminCanteenId || (canteens[0]?.id || '');
     } else {
-      payload.canteen_id = userProfile?.canteenId;
+      payload.canteen_id = selectedFormCanteenId || userProfile?.canteenId || (scopedCanteens[0]?.id || '');
     }
 
     try {
@@ -250,23 +265,24 @@ export function StaffMenu() {
         fetchAdminMenu(); // Reload full menu
         setIsModalOpen(false);
       } else {
-        alert('Failed to save menu item.');
+        const errorData = await response.json();
+        alert(`Error: ${errorData.error || 'Failed to save menu item'}`);
       }
     } catch (e) {
-      alert('Network error saving menu item.');
+      alert('Network error while saving menu item');
     }
   };
 
   // Filter menu items based on search query and category selections
   const filteredMenuItems = menuItems.filter(item => {
     const matchesSearch = item.name.toLowerCase().includes(searchQuery.toLowerCase());
-    const matchesCategory = selectedCategory ? item.category === selectedCategory : true;
+    const matchesCategory = selectedCategory === '' || item.category === selectedCategory;
     return matchesSearch && matchesCategory;
   });
 
   if (userProfile?.role === 'cook') {
     return (
-      <div className="flex-1 flex flex-col items-center justify-center py-20 text-center glass-card p-6">
+      <div className="py-20 flex flex-col items-center justify-center text-center glass-card p-6">
         <HelpCircle className="w-12 h-12 text-error mb-3" />
         <h2 className="text-lg font-bold text-slate-800">Access Denied</h2>
         <p className="text-xs text-text-muted mt-1">Cooks are not authorized to view or edit menu items. Please use the Orders Board.</p>
@@ -279,41 +295,111 @@ export function StaffMenu() {
       
       {/* Page Header */}
       <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-stack-lg mb-stack-lg border-b border-outline-variant/20 pb-6">
-        <div>
-          <h1 className="font-headline-lg text-headline-lg text-text-primary">
+        <div className="space-y-2">
+          {/* Prominent Campus & Venue Badge */}
+          <div className="flex flex-wrap items-center gap-2">
+            {userProfile?.role === 'admin' ? (
+              <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-emerald-50 border border-emerald-200 text-emerald-800 rounded-full text-xs font-bold shadow-sm">
+                <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+                👑 Global Multi-Campus Network Admin
+              </span>
+            ) : userGroupName ? (
+              <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-indigo-50 border border-indigo-200 text-indigo-800 rounded-full text-xs font-bold shadow-sm">
+                <span className="material-symbols-outlined text-[14px]">school</span>
+                {userGroupName}
+              </span>
+            ) : (
+              <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-amber-50 border border-amber-200 text-amber-800 rounded-full text-xs font-bold shadow-sm">
+                <span className="material-symbols-outlined text-[14px]">restaurant</span>
+                Standalone Gourmet Eatery
+              </span>
+            )}
+
+            {userProfile?.role && (
+              <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-black uppercase tracking-wider bg-purple-100 text-purple-800 border border-purple-200">
+                👔 {userProfile.role === 'manager' ? 'Menu Manager' : 'Admin'}
+              </span>
+            )}
+          </div>
+
+          <h1 className="font-headline-lg text-headline-lg text-text-primary font-black">
             {userProfile?.role === 'admin' 
               ? 'Campus Menu Management' 
-              : `${canteens.find(c => c.id === selectedAdminCanteenId)?.name || canteenName || 'Canteen'} Menu Editor`}
+              : `${currentCanteenObj?.name || canteenName || 'Canteen'} Menu Editor`}
           </h1>
-          <p className="text-text-secondary mt-2">
+          <p className="text-text-secondary text-sm">
             {userProfile?.role === 'admin' 
               ? 'Configure available dishes and pricing across all campus food outlets' 
-              : `Logged in as ${userProfile?.role?.toUpperCase()} | Manage canteen offerings`}
+              : userGroupName
+              ? `Configuring menu items for ${userGroupName} › ${currentCanteenObj?.name || 'All Outlets'}`
+              : `Configuring menu items for ${currentCanteenObj?.name || 'Downtown Diner'}`}
           </p>
         </div>
 
-        <div className="flex items-center gap-4 self-stretch md:self-auto justify-between">
+        <div className="flex flex-wrap items-center gap-4 self-stretch md:self-auto justify-between">
           {/* Canteen Switcher for all roles */}
           {userProfile && (
-            <div className="flex items-center gap-3">
-              <div className="flex items-center gap-3 bg-white/40 border border-white/60 p-2 rounded-2xl backdrop-blur-md shadow-sm">
-                <span className="material-symbols-outlined text-slate-400 text-[20px] ml-1">storefront</span>
-                <select
-                  value={selectedAdminCanteenId}
-                  onChange={(e) => setSelectedAdminCanteenId(e.target.value)}
-                  className="bg-transparent border-none rounded-xl px-2 py-1 font-label-md text-slate-900 focus:outline-none cursor-pointer"
-                >
-                  <option value="">All Canteens</option>
-                  {canteens.map(c => (
-                    <option key={c.id} value={c.id}>{c.name}</option>
-                  ))}
-                </select>
-              </div>
+            <div className="flex flex-wrap items-center gap-3">
+              {userProfile.role === 'admin' ? (
+                <div className="flex items-center gap-2 bg-white/60 border border-slate-200/90 p-2 rounded-2xl backdrop-blur-md shadow-sm">
+                  <span className="material-symbols-outlined text-slate-400 text-[20px] ml-1">storefront</span>
+                  <select
+                    value={selectedAdminCanteenId}
+                    onChange={(e) => setSelectedAdminCanteenId(e.target.value)}
+                    className="bg-transparent border-none rounded-xl px-2 py-1 font-label-md text-slate-900 font-semibold focus:outline-none cursor-pointer text-xs"
+                  >
+                    <option value="">🌐 All Outlets (Global View)</option>
+                    <optgroup label="🏫 Mithibai Main Campus">
+                      {canteens.filter(c => c.group_name === 'Mithibai Main Campus').map(c => (
+                        <option key={c.id} value={c.id}>{c.name}</option>
+                      ))}
+                    </optgroup>
+                    {Array.from(new Set(canteens.map(c => c.group_name).filter(g => g && g !== 'Mithibai Main Campus'))).map(group => (
+                      <optgroup key={group} label={`🏫 ${group}`}>
+                        {canteens.filter(c => c.group_name === group).map(c => (
+                          <option key={c.id} value={c.id}>{c.name}</option>
+                        ))}
+                      </optgroup>
+                    ))}
+                    <optgroup label="🍽️ Standalone Diners & Food Courts">
+                      {canteens.filter(c => !c.group_name).map(c => (
+                        <option key={c.id} value={c.id}>{c.name}</option>
+                      ))}
+                    </optgroup>
+                  </select>
+                </div>
+              ) : scopedCanteens.length > 1 ? (
+                <div className="flex items-center gap-2 bg-white/60 border border-slate-200/90 p-2 rounded-2xl backdrop-blur-md shadow-sm">
+                  <span className="material-symbols-outlined text-slate-400 text-[20px] ml-1">storefront</span>
+                  <select
+                    value={selectedAdminCanteenId}
+                    onChange={(e) => setSelectedAdminCanteenId(e.target.value)}
+                    className="bg-transparent border-none rounded-xl px-2 py-1 font-label-md text-slate-900 font-semibold focus:outline-none cursor-pointer text-xs"
+                  >
+                    <option value="">All {userGroupName || 'Campus'} Outlets</option>
+                    {scopedCanteens.map(c => (
+                      <option key={c.id} value={c.id}>{c.name}</option>
+                    ))}
+                  </select>
+                </div>
+              ) : (
+                <div className="flex items-center gap-2 px-3.5 py-2 bg-indigo-50 border border-indigo-200 rounded-2xl text-xs font-bold text-indigo-900 shadow-sm">
+                  <span className="material-symbols-outlined text-indigo-600 text-[18px]">storefront</span>
+                  <span>{scopedCanteens[0]?.name || currentCanteenObj?.name || 'Assigned Outlet'}</span>
+                </div>
+              )}
+
               <button
                 onClick={() => {
-                  const current = canteens.find(c => c.id === selectedAdminCanteenId);
-                  const slug = current?.slug || selectedAdminCanteenId || 'canteen-a';
-                  const url = `${window.location.origin}/c/${slug}`;
+                  const current = canteens.find(c => c.id === (selectedAdminCanteenId || userProfile?.canteenId));
+                  let url = window.location.origin;
+                  if (current?.group_slug) {
+                    url += `/c/${current.group_slug}?canteen=${current.slug || current.id}`;
+                  } else if (current?.slug) {
+                    url += `/c/${current.slug}`;
+                  } else {
+                    url += `/c/mithibai-main-campus`;
+                  }
                   navigator.clipboard.writeText(url);
                   alert(`Direct Student Link copied to clipboard:\n${url}`);
                 }}
@@ -328,7 +414,7 @@ export function StaffMenu() {
 
           <button
             onClick={handleOpenAddModal}
-            className="glossy-primary px-6 py-3 rounded-xl text-white font-label-md flex items-center gap-2 shadow-lg active:scale-95 transition-all"
+            className="glossy-primary px-6 py-3 rounded-xl text-white font-label-md flex items-center gap-2 shadow-lg active:scale-95 transition-all font-bold text-xs"
           >
             <Plus className="w-5 h-5" />
             Add Item
@@ -491,17 +577,47 @@ export function StaffMenu() {
                 {/* Target Canteen Selection */}
                 {userProfile && (
                   <div className="space-y-2">
-                    <label className="font-label-md text-text-secondary block">Target Canteen</label>
+                    <label className="font-label-md text-text-secondary block">Target Outlet / Canteen</label>
                     <div className="relative">
-                      <select
-                        value={selectedFormCanteenId}
-                        onChange={(e) => setSelectedFormCanteenId(e.target.value)}
-                        className="w-full appearance-none bg-white/40 border border-white/50 rounded-xl px-4 py-3 focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all pr-10"
-                      >
-                        {canteens.map(c => (
-                          <option key={c.id} value={c.id}>{c.name}</option>
-                        ))}
-                      </select>
+                      {userProfile.role === 'admin' ? (
+                        <select
+                          value={selectedFormCanteenId}
+                          onChange={(e) => setSelectedFormCanteenId(e.target.value)}
+                          className="w-full appearance-none bg-white/60 border border-slate-200 rounded-xl px-4 py-3 focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all pr-10 text-xs font-bold"
+                        >
+                          <optgroup label="🏫 Mithibai Main Campus">
+                            {canteens.filter(c => c.group_name === 'Mithibai Main Campus').map(c => (
+                              <option key={c.id} value={c.id}>{c.name}</option>
+                            ))}
+                          </optgroup>
+                          {Array.from(new Set(canteens.map(c => c.group_name).filter(g => g && g !== 'Mithibai Main Campus'))).map(group => (
+                            <optgroup key={group} label={`🏫 ${group}`}>
+                              {canteens.filter(c => c.group_name === group).map(c => (
+                                <option key={c.id} value={c.id}>{c.name}</option>
+                              ))}
+                            </optgroup>
+                          ))}
+                          <optgroup label="🍽️ Standalone Diners & Food Courts">
+                            {canteens.filter(c => !c.group_name).map(c => (
+                              <option key={c.id} value={c.id}>{c.name}</option>
+                            ))}
+                          </optgroup>
+                        </select>
+                      ) : scopedCanteens.length > 1 ? (
+                        <select
+                          value={selectedFormCanteenId}
+                          onChange={(e) => setSelectedFormCanteenId(e.target.value)}
+                          className="w-full appearance-none bg-white/60 border border-slate-200 rounded-xl px-4 py-3 focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all pr-10 text-xs font-bold"
+                        >
+                          {scopedCanteens.map(c => (
+                            <option key={c.id} value={c.id}>{c.name}</option>
+                          ))}
+                        </select>
+                      ) : (
+                        <div className="w-full bg-slate-100 border border-slate-200 rounded-xl px-4 py-3 text-xs font-bold text-slate-800">
+                          {scopedCanteens[0]?.name || currentCanteenObj?.name || 'Assigned Outlet'}
+                        </div>
+                      )}
                       <span className="material-symbols-outlined absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-text-muted">expand_more</span>
                     </div>
                   </div>

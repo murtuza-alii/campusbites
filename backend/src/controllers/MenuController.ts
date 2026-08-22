@@ -1,6 +1,7 @@
 import { Request, Response } from 'express';
 import { BaseController } from './BaseController.js';
 import { MenuService } from '../services/MenuService.js';
+import { getDb } from '../db.js';
 
 export class MenuController extends BaseController {
   constructor(private readonly menuService: MenuService) {
@@ -20,13 +21,47 @@ export class MenuController extends BaseController {
   async getAdminMenu(req: Request, res: Response): Promise<void> {
     try {
       const authUser = (req as any).user;
-      let canteenId: string | undefined = req.query.canteenId as string | undefined;
+      const db = await getDb();
+      const requestedCanteenId = req.query.canteenId as string | undefined;
 
-      if (!canteenId && authUser && authUser.role !== 'admin') {
-        canteenId = authUser.canteenId;
+      // For non-admin staff, restrict menu items to their campus group or assigned outlet
+      if (authUser && authUser.role !== 'admin') {
+        let allowedCanteenIds: string[] = [];
+
+        if (authUser.canteenId) {
+          const userCanteenRes = await db.query('SELECT * FROM canteen WHERE id = $1', [authUser.canteenId]);
+          if (userCanteenRes.rows.length > 0) {
+            const userCanteen = userCanteenRes.rows[0];
+            if (userCanteen.group_name) {
+              const sistersRes = await db.query('SELECT id FROM canteen WHERE group_name = $1', [userCanteen.group_name]);
+              allowedCanteenIds = sistersRes.rows.map((r: any) => r.id);
+            } else {
+              allowedCanteenIds = [userCanteen.id];
+            }
+          }
+        }
+
+        if (allowedCanteenIds.length === 0 && authUser.canteenId) {
+          allowedCanteenIds = [authUser.canteenId];
+        }
+
+        if (requestedCanteenId) {
+          if (!allowedCanteenIds.includes(requestedCanteenId)) {
+            res.status(403).json({ error: 'Unauthorized: Cross-campus menu access is strictly prohibited' });
+            return;
+          }
+          const items = await this.menuService.getAdminMenu(requestedCanteenId);
+          this.handleSuccess(res, items);
+          return;
+        } else {
+          const items = await this.menuService.getAdminMenu(allowedCanteenIds);
+          this.handleSuccess(res, items);
+          return;
+        }
       }
 
-      const items = await this.menuService.getAdminMenu(canteenId);
+      // Admin has global multi-campus visibility
+      const items = await this.menuService.getAdminMenu(requestedCanteenId);
       this.handleSuccess(res, items);
     } catch (error) {
       this.handleError(error, res, 'getAdminMenu');
@@ -73,7 +108,8 @@ export class MenuController extends BaseController {
         }
       }
 
-      const updatedItem = await this.menuService.editMenuItem(id, body, undefined);
+      const restrictCanteenId = authUser && authUser.role !== 'admin' ? authUser.canteenId : undefined;
+      const updatedItem = await this.menuService.editMenuItem(id, body, restrictCanteenId);
       this.handleSuccess(res, updatedItem);
     } catch (error) {
       this.handleError(error, res, 'editMenuItem');
@@ -93,7 +129,8 @@ export class MenuController extends BaseController {
         }
       }
 
-      await this.menuService.deleteMenuItem(id, undefined);
+      const restrictCanteenId = authUser && authUser.role !== 'admin' ? authUser.canteenId : undefined;
+      await this.menuService.deleteMenuItem(id, restrictCanteenId);
       this.handleSuccess(res, { success: true, message: 'Item deleted' });
     } catch (error) {
       this.handleError(error, res, 'deleteMenuItem');

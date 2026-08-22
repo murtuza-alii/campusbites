@@ -104,7 +104,7 @@ export class OrderService {
     };
   }
 
-  async getAllOrders(canteenId?: string): Promise<ParsedOrder[]> {
+  async getAllOrders(canteenId?: string | string[]): Promise<ParsedOrder[]> {
     const orders = await this.orderRepository.findAll(canteenId);
     return orders.map(ord => ({
       ...ord,
