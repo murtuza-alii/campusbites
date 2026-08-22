@@ -243,7 +243,7 @@ export function LandingPage() {
               </div>
             </div>
 
-            <div className="pt-6 border-t border-slate-100 flex items-center justify-between mt-6">
+            <div className="pt-6 border-t border-slate-100 flex flex-wrap items-center justify-between gap-3 mt-6">
               <button
                 type="button"
                 onClick={() => handleCopyLink('mithibai-main-campus')}
@@ -263,13 +263,23 @@ export function LandingPage() {
                 )}
               </button>
 
-              <Link
-                to="/c/mithibai-main-campus"
-                className="px-5 py-2.5 rounded-full bg-indigo-600 text-white text-xs font-bold flex items-center gap-1.5 shadow-md hover:bg-indigo-700 transition-all"
-              >
-                <span>Open Campus Hub</span>
-                <ArrowRight className="w-3.5 h-3.5" />
-              </Link>
+              <div className="flex items-center gap-2">
+                <Link
+                  to="/c/mithibai-main-campus/staff/login"
+                  className="px-3.5 py-2.5 rounded-full border border-indigo-200 text-indigo-700 bg-indigo-50/50 hover:bg-indigo-100 text-xs font-bold flex items-center gap-1.5 transition-all active:scale-95"
+                  title="Staff & Kitchen Terminal for Mithibai Campus"
+                >
+                  <ChefHat className="w-3.5 h-3.5" />
+                  <span>Staff Login</span>
+                </Link>
+                <Link
+                  to="/c/mithibai-main-campus"
+                  className="px-4 py-2.5 rounded-full bg-indigo-600 text-white text-xs font-bold flex items-center gap-1.5 shadow-md hover:bg-indigo-700 transition-all active:scale-95"
+                >
+                  <span>Student Menu</span>
+                  <ArrowRight className="w-3.5 h-3.5" />
+                </Link>
+              </div>
             </div>
           </SpotlightCard>
 
@@ -305,7 +315,7 @@ export function LandingPage() {
               </div>
             </div>
 
-            <div className="pt-6 border-t border-slate-100 flex items-center justify-between mt-6">
+            <div className="pt-6 border-t border-slate-100 flex flex-wrap items-center justify-between gap-3 mt-6">
               <button
                 type="button"
                 onClick={() => handleCopyLink('downtown-diner')}
@@ -325,13 +335,23 @@ export function LandingPage() {
                 )}
               </button>
 
-              <Link
-                to="/c/downtown-diner"
-                className="px-5 py-2.5 rounded-full bg-slate-900 text-white text-xs font-bold flex items-center gap-1.5 shadow-md hover:bg-black transition-all"
-              >
-                <span>Open Diner Menu</span>
-                <ArrowRight className="w-3.5 h-3.5" />
-              </Link>
+              <div className="flex items-center gap-2">
+                <Link
+                  to="/c/downtown-diner/staff/login"
+                  className="px-3.5 py-2.5 rounded-full border border-amber-200 text-amber-800 bg-amber-50/50 hover:bg-amber-100 text-xs font-bold flex items-center gap-1.5 transition-all active:scale-95"
+                  title="Staff & Kitchen Terminal for Downtown Diner"
+                >
+                  <ChefHat className="w-3.5 h-3.5" />
+                  <span>Staff Login</span>
+                </Link>
+                <Link
+                  to="/c/downtown-diner"
+                  className="px-4 py-2.5 rounded-full bg-slate-900 text-white text-xs font-bold flex items-center gap-1.5 shadow-md hover:bg-black transition-all active:scale-95"
+                >
+                  <span>Student Menu</span>
+                  <ArrowRight className="w-3.5 h-3.5" />
+                </Link>
+              </div>
             </div>
           </SpotlightCard>
         </div>

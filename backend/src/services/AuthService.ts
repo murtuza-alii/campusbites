@@ -3,13 +3,62 @@ import bcrypt from 'bcryptjs';
 import { config } from '../config/unifiedConfig.js';
 import { getDb } from '../db.js';
 
-export class AuthService {
-  async login(username: string, password: string): Promise<string | null> {
-    const db = await getDb();
-    const result = await db.query('SELECT * FROM users WHERE username = $1', [username]);
-    const user = result.rows[0];
+export interface AuthLoginPayload {
+  username?: string;
+  password?: string;
+  canteen_id?: string;
+  canteen_slug?: string;
+  role?: string;
+  pin?: string;
+}
 
-    if (user && await bcrypt.compare(password, user.password_hash)) {
+export class AuthService {
+  async login(
+    input: string | AuthLoginPayload,
+    optionalPassword?: string
+  ): Promise<string | null> {
+    const db = await getDb();
+    let user: any = null;
+
+    let payload: AuthLoginPayload = {};
+    if (typeof input === 'string') {
+      payload = { username: input, password: optionalPassword };
+    } else {
+      payload = input;
+    }
+
+    const secretAttempt = payload.password || payload.pin || '';
+
+    // Strategy 1: Look up by Canteen ID / Canteen Slug and Role
+    if ((payload.canteen_id || payload.canteen_slug) && payload.role) {
+      let canteenId = payload.canteen_id;
+      if (!canteenId && payload.canteen_slug) {
+        const cRes = await db.query('SELECT id FROM canteen WHERE slug = $1 OR id = $1', [payload.canteen_slug]);
+        if (cRes.rows.length > 0) {
+          canteenId = cRes.rows[0].id;
+        }
+      }
+
+      if (canteenId) {
+        const uRes = await db.query(
+          'SELECT * FROM users WHERE canteen_id = $1 AND role = $2',
+          [canteenId, payload.role.toLowerCase()]
+        );
+        if (uRes.rows.length > 0) {
+          user = uRes.rows[0];
+        }
+      }
+    }
+
+    // Strategy 2: Look up by Username
+    if (!user && payload.username) {
+      const uRes = await db.query('SELECT * FROM users WHERE username = $1', [payload.username]);
+      if (uRes.rows.length > 0) {
+        user = uRes.rows[0];
+      }
+    }
+
+    if (user && secretAttempt && await bcrypt.compare(secretAttempt, user.password_hash)) {
       // Sign token, valid for 12 hours
       const token = jwt.sign(
         { 
@@ -27,3 +76,4 @@ export class AuthService {
     return null;
   }
 }
+

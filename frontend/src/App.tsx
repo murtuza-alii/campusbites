@@ -139,6 +139,9 @@ export default function App() {
             <Route path="menu" element={<StaffMenu />} />
           </Route>
           <Route path="/staff/login" element={<StaffLogin />} />
+          <Route path="/staff/login/:slug" element={<StaffLogin />} />
+          <Route path="/c/:slug/staff/login" element={<StaffLogin />} />
+          <Route path="/canteen/:slug/staff/login" element={<StaffLogin />} />
         </Routes>
       </main>
 

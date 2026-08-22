@@ -197,7 +197,9 @@ export async function initDb(): Promise<void> {
     { id: 'u6', username: 'canteen_c_mgr', password: '1234', role: 'manager', canteen_id: 'c3' },
     { id: 'u7', username: 'canteen_c_cook', password: '1234', role: 'cook', canteen_id: 'c3' },
     { id: 'u8', username: 'canteen_d_mgr', password: '1234', role: 'manager', canteen_id: 'c4' },
-    { id: 'u9', username: 'canteen_d_cook', password: '1234', role: 'cook', canteen_id: 'c4' }
+    { id: 'u9', username: 'canteen_d_cook', password: '1234', role: 'cook', canteen_id: 'c4' },
+    { id: 'u10', username: 'downtown_diner_mgr', password: '1234', role: 'manager', canteen_id: 'c5' },
+    { id: 'u11', username: 'downtown_diner_cook', password: '1234', role: 'cook', canteen_id: 'c5' }
   ];
   for (const u of users) {
     const passwordHash = bcrypt.hashSync(u.password, 10);
