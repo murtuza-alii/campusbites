@@ -9,6 +9,7 @@ import { StaffMenu } from './components/StaffMenu';
 import { SmoothCursor } from './components/ui/SmoothCursor';
 import { InteractiveBackground } from './components/ui/InteractiveBackground';
 import { decodeToken } from './utils/jwt';
+import { UtensilsCrossed, ArrowLeft, LogOut, ShieldCheck, Utensils } from 'lucide-react';
 
 export default function App() {
   const navigate = useNavigate();
@@ -46,28 +47,30 @@ export default function App() {
       <InteractiveBackground />
 
       {/* Navigation Bar */}
-      <header className="fixed top-0 w-full h-[70px] z-40 bg-white/85 backdrop-blur-xl border-b border-slate-200/80 flex items-center justify-between px-4 sm:px-8 shadow-sm">
-        <Link to="/" className="flex items-center gap-3 group">
-          <div className="w-10 h-10 bg-indigo-600 group-hover:bg-indigo-700 rounded-2xl flex items-center justify-center text-white shadow-md shadow-indigo-600/20 transition-all">
-            <span className="material-symbols-outlined text-[22px]">restaurant</span>
+      <header className="fixed top-0 w-full h-[68px] z-40 bg-white/90 backdrop-blur-xl border-b border-slate-200/90 flex items-center justify-between px-3.5 sm:px-8 shadow-sm">
+        {/* Brand Logo */}
+        <Link to="/" className="flex items-center gap-2.5 sm:gap-3 group shrink-0">
+          <div className="w-9 h-9 sm:w-10 sm:h-10 bg-indigo-600 group-hover:bg-indigo-700 rounded-2xl flex items-center justify-center text-white shadow-md shadow-indigo-600/25 transition-all shrink-0">
+            <UtensilsCrossed className="w-4 h-4 sm:w-5 sm:h-5" />
           </div>
-          <div>
-            <h1 className="font-headline-md text-lg font-black text-slate-900 leading-none tracking-tight">CampusBites</h1>
-            <p className="font-label-sm text-[11px] font-semibold text-slate-500 mt-0.5">College Dining & Canteen Hub</p>
+          <div className="min-w-0">
+            <h1 className="font-black text-base sm:text-lg text-slate-900 leading-none tracking-tight">CampusBites</h1>
+            <p className="hidden sm:block text-[11px] font-semibold text-slate-500 mt-0.5">College Dining & Canteen Hub</p>
           </div>
         </Link>
 
-        <div className="flex items-center gap-3 sm:gap-4">
+        {/* Header Right Actions */}
+        <div className="flex items-center gap-2 sm:gap-4 shrink-0">
           {isStaffPath ? (
             <>
               {isStaffLoggedIn && (
-                <nav className="hidden md:flex items-center gap-6">
+                <nav className="hidden md:flex items-center gap-5 mr-2">
                   <Link 
                     to="/staff" 
-                    className={`font-label-md text-label-md transition-all ${
+                    className={`text-xs font-bold transition-all ${
                       location.pathname === '/staff' 
-                        ? 'text-primary border-b-2 border-primary pb-1 font-bold' 
-                        : 'text-on-surface-variant hover:text-primary'
+                        ? 'text-indigo-600 border-b-2 border-indigo-600 pb-1' 
+                        : 'text-slate-600 hover:text-indigo-600'
                     }`}
                   >
                     Orders
@@ -75,10 +78,10 @@ export default function App() {
                   {userRole !== 'cook' && (
                     <Link 
                       to="/staff/menu" 
-                      className={`font-label-md text-label-md transition-all ${
+                      className={`text-xs font-bold transition-all ${
                         location.pathname === '/staff/menu' 
-                          ? 'text-primary border-b-2 border-primary pb-1 font-bold' 
-                          : 'text-on-surface-variant hover:text-primary'
+                          ? 'text-indigo-600 border-b-2 border-indigo-600 pb-1' 
+                          : 'text-slate-600 hover:text-indigo-600'
                       }`}
                     >
                       Edit Menu
@@ -86,40 +89,43 @@ export default function App() {
                   )}
                 </nav>
               )}
-              <div className="h-8 w-px bg-outline-variant/30 hidden md:block"></div>
-              <div className="flex items-center gap-3">
+
+              <div className="flex items-center gap-2 shrink-0">
                 <Link 
                   to="/c/mithibai-main-campus" 
-                  className="flex items-center gap-2 px-4 py-2 border border-primary/20 rounded-full font-label-md text-label-md text-primary bg-white/40 hover:bg-white/60 transition-all active:scale-[0.98]"
+                  className="flex items-center gap-1.5 px-3 py-1.5 sm:px-4 sm:py-2 border border-slate-200/90 rounded-full text-xs font-bold text-slate-700 bg-white hover:bg-slate-50 hover:border-slate-300 shadow-sm transition-all active:scale-95 shrink-0"
                 >
-                  <span className="material-symbols-outlined text-[18px]">arrow_back</span>
-                  <span>Student Menu</span>
+                  <ArrowLeft className="w-3.5 h-3.5 text-indigo-600 shrink-0" />
+                  <span className="hidden xs:inline">Student </span>
+                  <span>Menu</span>
                 </Link>
+
                 {isStaffLoggedIn && (
                   <button
                     onClick={handleLogout}
-                    className="flex items-center gap-2 px-4 py-2 border border-error/20 rounded-full font-label-md text-label-md text-error bg-white/40 hover:bg-white/60 transition-all active:scale-[0.98]"
+                    className="flex items-center gap-1.5 px-3 py-1.5 sm:px-4 sm:py-2 border border-rose-200 rounded-full text-xs font-bold text-rose-700 bg-rose-50 hover:bg-rose-100 transition-all active:scale-95 shadow-sm shrink-0"
+                    title="Sign out of staff dashboard"
                   >
-                    <span className="material-symbols-outlined text-[18px]">logout</span>
+                    <LogOut className="w-3.5 h-3.5 text-rose-600 shrink-0" />
                     <span>Logout</span>
                   </button>
                 )}
               </div>
             </>
           ) : (
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-2 sm:gap-3 shrink-0">
               <Link
                 to="/c/mithibai-main-campus"
-                className="hidden sm:flex items-center gap-2 px-4 py-2 border border-primary/20 rounded-full font-label-md text-xs font-bold text-primary bg-primary/5 hover:bg-primary/10 transition-all active:scale-[0.98]"
+                className="hidden sm:flex items-center gap-1.5 px-4 py-2 border border-indigo-200 rounded-full text-xs font-bold text-indigo-700 bg-indigo-50/80 hover:bg-indigo-100 transition-all active:scale-95 shadow-sm shrink-0"
               >
-                <span className="material-symbols-outlined text-[16px]">school</span>
+                <Utensils className="w-3.5 h-3.5 text-indigo-600" />
                 <span>Mithibai Campus Menu</span>
               </Link>
               <Link
                 to="/staff"
-                className="flex items-center gap-2 px-4 py-2 border border-slate-300 rounded-full font-label-md text-xs font-bold text-slate-700 bg-white/50 hover:bg-white transition-all active:scale-[0.98]"
+                className="flex items-center gap-1.5 px-3 py-1.5 sm:px-4 sm:py-2 bg-slate-900 hover:bg-black text-white rounded-full text-xs font-bold transition-all active:scale-95 shadow-sm shrink-0"
               >
-                <span className="material-symbols-outlined text-[16px]">admin_panel_settings</span>
+                <ShieldCheck className="w-3.5 h-3.5 text-indigo-400" />
                 <span>Staff Portal</span>
               </Link>
             </div>

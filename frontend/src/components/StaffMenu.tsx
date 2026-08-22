@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Plus, RotateCw, HelpCircle } from 'lucide-react';
+import { Plus, RotateCw, HelpCircle, Search, Filter } from 'lucide-react';
 import { decodeToken, type DecodedToken } from '../utils/jwt.js';
 import { API_BASE_URL } from '../config.js';
 
@@ -356,26 +356,26 @@ export function StaffMenu() {
       ) : (
         <div className="space-y-6">
           {/* Search & Category Filter Bar */}
-          <div className="flex flex-col md:flex-row gap-4 bg-white/30 border border-white/40 p-4 rounded-2xl backdrop-blur-md shadow-sm">
+          <div className="flex flex-col md:flex-row gap-4 bg-white border border-slate-200/80 p-4 rounded-2xl shadow-sm">
             {/* Search Input */}
-            <div className="flex-1 flex items-center gap-2 bg-white/50 border border-white/60 px-4 py-2.5 rounded-xl shadow-inner focus-within:ring-2 focus-within:ring-primary focus-within:border-transparent transition-all">
-              <span className="material-symbols-outlined text-slate-400 text-[20px]">search</span>
+            <div className="flex-1 flex items-center gap-2.5 bg-slate-50 border border-slate-200 px-4 py-2.5 rounded-xl shadow-inner focus-within:ring-2 focus-within:ring-indigo-500/20 focus-within:border-indigo-500 transition-all">
+              <Search className="w-4 h-4 text-indigo-600 shrink-0" />
               <input
                 type="text"
                 placeholder="Search dish name..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full bg-transparent border-none outline-none font-body-md text-slate-900 placeholder:text-slate-400"
+                className="w-full bg-transparent border-none outline-none text-sm font-semibold text-slate-900 placeholder:text-slate-400"
               />
             </div>
 
             {/* Category Dropdown */}
-            <div className="flex items-center gap-2 bg-white/50 border border-white/60 px-4 py-2.5 rounded-xl shadow-inner focus-within:ring-2 focus-within:ring-primary focus-within:border-transparent transition-all">
-              <span className="material-symbols-outlined text-slate-400 text-[20px]">filter_alt</span>
+            <div className="flex items-center gap-2.5 bg-slate-50 border border-slate-200 px-4 py-2.5 rounded-xl shadow-inner focus-within:ring-2 focus-within:ring-indigo-500/20 focus-within:border-indigo-500 transition-all">
+              <Filter className="w-4 h-4 text-indigo-600 shrink-0" />
               <select
                 value={selectedCategory}
                 onChange={(e) => setSelectedCategory(e.target.value)}
-                className="bg-transparent border-none outline-none font-body-md text-slate-900 cursor-pointer w-full text-ellipsis overflow-hidden"
+                className="bg-transparent border-none outline-none text-sm font-semibold text-slate-900 cursor-pointer w-full text-ellipsis overflow-hidden"
               >
                 <option value="">All Categories</option>
                 {Array.from(new Set(menuItems.map(item => item.category))).map(cat => (

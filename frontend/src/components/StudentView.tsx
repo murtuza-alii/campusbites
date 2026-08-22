@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
-import { X, RefreshCw, Coffee, ShieldAlert, Store, Building2, ArrowLeft } from 'lucide-react';
+import { X, RefreshCw, Coffee, ShieldAlert, Store, Building2, ArrowLeft, Search, ChevronDown } from 'lucide-react';
 import { SpotlightCard } from './ui/SpotlightCard';
 import { ShinyText } from './ui/ShinyText';
 import { HeroChip } from './ui/HeroUIComponents';
@@ -454,30 +454,42 @@ export function StudentView() {
 
             {/* Search Bar */}
             <div className="relative group">
-              <span className="absolute left-4 top-1/2 -translate-y-1/2 material-symbols-outlined text-outline">search</span>
+              <div className="absolute left-4 top-1/2 -translate-y-1/2 flex items-center justify-center pointer-events-none">
+                <Search className="w-4 h-4 sm:w-5 sm:h-5 text-indigo-600 group-focus-within:text-orange-600 transition-colors" />
+              </div>
               <input
                 type="text"
                 placeholder="Search delicious snacks, drinks, meals..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full pl-12 pr-4 py-4 bg-white/40 backdrop-blur-xl border border-white/60 rounded-2xl font-body-md text-body-md focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all placeholder:text-text-muted outline-none"
+                className="w-full pl-11 sm:pl-12 pr-10 py-3.5 sm:py-4 bg-white border border-slate-200/90 rounded-2xl font-bold text-sm text-slate-900 shadow-sm focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/10 placeholder:text-slate-400 placeholder:font-normal outline-none transition-all"
               />
+              {searchQuery && (
+                <button
+                  type="button"
+                  onClick={() => setSearchQuery('')}
+                  className="absolute right-3.5 top-1/2 -translate-y-1/2 p-1.5 rounded-full text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-colors"
+                  title="Clear search"
+                >
+                  <X className="w-4 h-4" />
+                </button>
+              )}
             </div>
 
             {/* Category Filter Dropdown */}
-            <div className="space-y-2">
-              <label className="font-label-md text-label-md text-text-secondary block">Filter by Category</label>
+            <div className="space-y-1.5">
+              <label className="text-xs font-bold text-slate-600 uppercase tracking-wider block">Filter by Category</label>
               <div className="relative">
                 <select
                   value={selectedCategory}
                   onChange={(e) => setSelectedCategory(e.target.value)}
-                  className="w-full appearance-none bg-white/40 backdrop-blur-xl border border-white/60 rounded-2xl px-5 py-4 font-body-md focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all pr-10 outline-none text-text-primary"
+                  className="w-full appearance-none bg-white border border-slate-200/90 rounded-2xl px-5 py-3.5 sm:py-4 font-bold text-sm text-slate-900 shadow-sm focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/10 transition-all pr-10 outline-none cursor-pointer"
                 >
                   {categories.map((category) => (
-                    <option key={category} value={category} className="text-text-primary bg-white">{category}</option>
+                    <option key={category} value={category} className="text-slate-900 bg-white font-semibold">{category}</option>
                   ))}
                 </select>
-                <span className="material-symbols-outlined absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-text-muted">expand_more</span>
+                <ChevronDown className="w-4 h-4 absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-slate-400" />
               </div>
             </div>
 
