@@ -1,8 +1,8 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import jsQR from 'jsqr';
 import { socket } from '../utils/socket.js';
-import { Clock, Coffee, RotateCw, CheckCircle, ShieldAlert, FileText, CheckCheck, Camera, Keyboard } from 'lucide-react';
+import { Clock, Coffee, RotateCw, CheckCircle, ShieldAlert, FileText, CheckCheck, Camera, Keyboard, QrCode, KeyRound, Check } from 'lucide-react';
 import { SpotlightCard } from './ui/SpotlightCard';
 import { HeroChip } from './ui/HeroUIComponents';
 import { decodeToken, type DecodedToken } from '../utils/jwt.js';
@@ -40,17 +40,47 @@ export function StaffOrders() {
   const [selectedAdminCanteenId, setSelectedAdminCanteenId] = useState<string>('');
   const [canteenName, setCanteenName] = useState<string>('');
 
+  // Per-Order inline PIN verification state
+  const [pinInputs, setPinInputs] = useState<Record<string, string>>({});
+  const [verifyingOrders, setVerifyingOrders] = useState<Record<string, boolean>>({});
+  const [orderErrors, setOrderErrors] = useState<Record<string, string>>({});
+  const [orderSuccess, setOrderSuccess] = useState<Record<string, string>>({});
+
   // QR Pickup Verification State & Camera Scanner
   const [isVerifyModalOpen, setIsVerifyModalOpen] = useState<boolean>(false);
+  const [targetOrder, setTargetOrder] = useState<Order | null>(null);
   const [verifyMode, setVerifyMode] = useState<'camera' | 'manual'>('camera');
   const [verifyInput, setVerifyInput] = useState<string>('');
   const [verifyResult, setVerifyResult] = useState<{ success: boolean; message: string } | null>(null);
   const [isVerifying, setIsVerifying] = useState<boolean>(false);
+  const [scannerDetected, setScannerDetected] = useState<boolean>(false);
 
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const animFrameRef = useRef<number | null>(null);
   const mediaStreamRef = useRef<MediaStream | null>(null);
+  const isScanningPaused = useRef<boolean>(false);
+
+  // Audio tone feedback on successful verification / QR scan
+  const playSuccessTone = useCallback(() => {
+    try {
+      const AudioCtx = window.AudioContext || (window as any).webkitAudioContext;
+      if (!AudioCtx) return;
+      const ctx = new AudioCtx();
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(880, ctx.currentTime);
+      gain.gain.setValueAtTime(0.3, ctx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.25);
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      osc.start();
+      osc.stop(ctx.currentTime + 0.25);
+    } catch (e) {
+      console.log('Audio tone not supported or blocked', e);
+    }
+  }, []);
 
   // Keep track of previous orders length to play sound on new orders
   const prevPendingCount = useRef<number>(0);
@@ -198,19 +228,69 @@ export function StaffOrders() {
     }
   };
 
+  // Per-Order PIN verification handler from Card
+  const handleVerifyOrderPin = async (order: Order, pinOverride?: string) => {
+    const pin = (pinOverride !== undefined ? pinOverride : pinInputs[order.id] || '').trim();
+    if (!pin) {
+      setOrderErrors(prev => ({ ...prev, [order.id]: 'Enter 4-digit PIN' }));
+      return;
+    }
+
+    try {
+      setVerifyingOrders(prev => ({ ...prev, [order.id]: true }));
+      setOrderErrors(prev => ({ ...prev, [order.id]: '' }));
+      setOrderSuccess(prev => ({ ...prev, [order.id]: '' }));
+
+      const res = await fetch(`${API_BASE_URL}/api/orders/verify-pickup`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          order_id: order.id,
+          pickup_code: pin,
+          canteen_id: selectedAdminCanteenId
+        })
+      });
+
+      const data = await res.json();
+      if (res.ok && data.success) {
+        playSuccessTone();
+        setOrderSuccess(prev => ({ ...prev, [order.id]: `✓ Verified! Order ${order.order_number} completed.` }));
+        // Optimistically mark completed
+        setOrders(prev => prev.map(o => o.id === order.id ? { ...o, status: 'COMPLETED' } : o));
+        setPinInputs(prev => ({ ...prev, [order.id]: '' }));
+        setTimeout(() => {
+          fetchOrders(selectedAdminCanteenId);
+        }, 600);
+      } else {
+        setOrderErrors(prev => ({ ...prev, [order.id]: data.error || 'Incorrect PIN' }));
+      }
+    } catch (err: any) {
+      setOrderErrors(prev => ({ ...prev, [order.id]: err.message || 'Connection failed' }));
+    } finally {
+      setVerifyingOrders(prev => ({ ...prev, [order.id]: false }));
+    }
+  };
+
+  // Universal / Modal verification handler
   const handleVerifyPickup = async (inputVal?: string) => {
     const val = inputVal !== undefined ? inputVal : verifyInput;
-    if (!val.trim()) return;
+    if (!val || !val.trim()) return;
+    
     try {
       setIsVerifying(true);
       setVerifyResult(null);
 
       let bodyData: any = {};
       const trimmed = val.trim();
+
       if (trimmed.startsWith('{')) {
-        bodyData = { qr_data: trimmed };
+        bodyData = { qr_data: trimmed, canteen_id: selectedAdminCanteenId };
       } else {
-        bodyData = { order_id: trimmed, pickup_code: trimmed };
+        if (targetOrder) {
+          bodyData = { order_id: targetOrder.id, pickup_code: trimmed, canteen_id: selectedAdminCanteenId };
+        } else {
+          bodyData = { qr_data: trimmed, canteen_id: selectedAdminCanteenId };
+        }
       }
 
       const res = await fetch(`${API_BASE_URL}/api/orders/verify-pickup`, {
@@ -221,8 +301,17 @@ export function StaffOrders() {
 
       const data = await res.json();
       if (res.ok && data.success) {
+        playSuccessTone();
         setVerifyResult({ success: true, message: data.message || 'Pickup verified & completed!' });
         fetchOrders(selectedAdminCanteenId);
+
+        // Auto-close modal after successful verification
+        setTimeout(() => {
+          setIsVerifyModalOpen(false);
+          setTargetOrder(null);
+          setVerifyResult(null);
+          setScannerDetected(false);
+        }, 1600);
       } else {
         setVerifyResult({ success: false, message: data.error || 'Verification failed.' });
       }
@@ -233,6 +322,7 @@ export function StaffOrders() {
     }
   };
 
+  // Camera Scanner Lifecycle with BarcodeDetector + jsQR fallback
   useEffect(() => {
     if (!isVerifyModalOpen || verifyMode !== 'camera') {
       if (mediaStreamRef.current) {
@@ -243,60 +333,111 @@ export function StaffOrders() {
         cancelAnimationFrame(animFrameRef.current);
         animFrameRef.current = null;
       }
+      isScanningPaused.current = false;
       return;
     }
 
     let active = true;
+    isScanningPaused.current = false;
+
+    // Check for native BarcodeDetector API support
+    const hasBarcodeDetector = typeof window !== 'undefined' && 'BarcodeDetector' in window;
+    let barcodeDetector: any = null;
+    if (hasBarcodeDetector) {
+      try {
+        barcodeDetector = new (window as any).BarcodeDetector({ formats: ['qr_code'] });
+      } catch (e) {
+        console.warn('BarcodeDetector fallback to jsQR', e);
+      }
+    }
 
     const startCamera = async () => {
       try {
         const stream = await navigator.mediaDevices.getUserMedia({
-          video: { facingMode: 'environment', width: { ideal: 640 }, height: { ideal: 480 } }
+          video: {
+            facingMode: { ideal: 'environment' },
+            width: { ideal: 1280 },
+            height: { ideal: 720 }
+          },
+          audio: false
         });
+
         if (!active) {
           stream.getTracks().forEach(t => t.stop());
           return;
         }
+
         mediaStreamRef.current = stream;
         if (videoRef.current) {
           videoRef.current.srcObject = stream;
           videoRef.current.setAttribute('playsinline', 'true');
+          videoRef.current.muted = true;
           await videoRef.current.play();
         }
 
-        const scanFrame = () => {
+        const scanFrame = async () => {
           if (!active) return;
+
           const video = videoRef.current;
           const canvas = canvasRef.current;
-          if (video && canvas && video.readyState === video.HAVE_ENOUGH_DATA) {
-            const ctx = canvas.getContext('2d');
-            if (ctx) {
-              canvas.width = video.videoWidth;
-              canvas.height = video.videoHeight;
-              ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-              const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-              const code = jsQR(imageData.data, imageData.width, imageData.height, {
-                inversionAttempts: 'dontInvert'
-              });
 
-              if (code && code.data) {
-                setVerifyInput(code.data);
-                handleVerifyPickup(code.data);
-                setTimeout(() => {
-                  if (active) {
-                    animFrameRef.current = requestAnimationFrame(scanFrame);
-                  }
-                }, 2500);
-                return;
+          if (video && video.readyState >= HTMLMediaElement.HAVE_CURRENT_DATA && !isScanningPaused.current) {
+            let detectedData: string | null = null;
+
+            // 1. Native BarcodeDetector (High performance, instant auto-detection)
+            if (barcodeDetector) {
+              try {
+                const barcodes = await barcodeDetector.detect(video);
+                if (barcodes && barcodes.length > 0 && barcodes[0].rawValue) {
+                  detectedData = barcodes[0].rawValue;
+                }
+              } catch (err) {
+                // Fallback to canvas jsQR
               }
             }
+
+            // 2. Canvas jsQR Fallback with dual contrast
+            if (!detectedData && canvas && video.videoWidth > 0 && video.videoHeight > 0) {
+              const ctx = canvas.getContext('2d', { willReadFrequently: true });
+              if (ctx) {
+                canvas.width = video.videoWidth;
+                canvas.height = video.videoHeight;
+                ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+                const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+                const code = jsQR(imageData.data, imageData.width, imageData.height, {
+                  inversionAttempts: 'attemptBoth'
+                });
+                if (code && code.data) {
+                  detectedData = code.data;
+                }
+              }
+            }
+
+            // If QR code is detected automatically:
+            if (detectedData) {
+              isScanningPaused.current = true;
+              setScannerDetected(true);
+              setVerifyInput(detectedData);
+              handleVerifyPickup(detectedData);
+
+              setTimeout(() => {
+                if (active) {
+                  setScannerDetected(false);
+                  isScanningPaused.current = false;
+                  animFrameRef.current = requestAnimationFrame(scanFrame);
+                }
+              }, 3000);
+              return;
+            }
           }
+
           animFrameRef.current = requestAnimationFrame(scanFrame);
         };
 
         animFrameRef.current = requestAnimationFrame(scanFrame);
       } catch (err: any) {
         console.error('Camera access error:', err);
+        setVerifyResult({ success: false, message: 'Camera access denied or unavailable. Please enter PIN manually.' });
       }
     };
 
@@ -313,7 +454,7 @@ export function StaffOrders() {
         animFrameRef.current = null;
       }
     };
-  }, [isVerifyModalOpen, verifyMode]);
+  }, [isVerifyModalOpen, verifyMode, targetOrder]);
 
   const getFilteredOrders = (status: 'PENDING' | 'PREPARING' | 'READY' | 'COMPLETED') => {
     return orders.filter(o => o.status === status);
@@ -352,8 +493,8 @@ export function StaffOrders() {
 
         {/* Canteen Switcher & Direct Link */}
         {userProfile && (
-          <div className="flex items-center gap-3">
-            <div className="flex items-center gap-3 bg-white/40 border border-white/60 p-2 rounded-2xl backdrop-blur-md shadow-sm self-start md:self-auto">
+          <div className="flex flex-wrap items-center gap-3">
+            <div className="flex items-center gap-2 bg-white/40 border border-white/60 p-2 rounded-2xl backdrop-blur-md shadow-sm self-start md:self-auto">
               <span className="material-symbols-outlined text-slate-400 text-[20px] ml-1">storefront</span>
               <select
                 value={selectedAdminCanteenId}
@@ -382,15 +523,17 @@ export function StaffOrders() {
             </button>
             <button
               onClick={() => {
-                setIsVerifyModalOpen(true);
+                setTargetOrder(null);
                 setVerifyInput('');
                 setVerifyResult(null);
+                setVerifyMode('camera');
+                setIsVerifyModalOpen(true);
               }}
-              className="flex items-center gap-1.5 px-4 py-2 rounded-2xl font-label-md text-xs font-bold text-white bg-emerald-600 hover:bg-emerald-700 transition-all shadow-md active:scale-95"
-              title="Scan or enter QR verification code"
+              className="flex items-center gap-2 px-4 py-2 rounded-2xl font-label-md text-xs font-bold text-white bg-emerald-600 hover:bg-emerald-700 transition-all shadow-md active:scale-95"
+              title="Universal QR code or PIN scanner"
             >
-              <span className="material-symbols-outlined text-[16px]">qr_code_scanner</span>
-              <span>Verify Pickup QR</span>
+              <QrCode className="w-4 h-4" />
+              <span>Universal QR Scanner</span>
             </button>
           </div>
         )}
@@ -463,6 +606,7 @@ export function StaffOrders() {
                       </div>
                       <div>
                         <p className="font-bold text-text-primary text-lg">{order.student_name}</p>
+                        <p className="text-xs text-text-muted font-mono">{order.student_roll}</p>
                       </div>
                       <div className="border-t border-dashed border-outline-variant/30 pt-3">
                         <ul className="space-y-2 text-body-lg text-text-secondary font-medium">
@@ -496,7 +640,7 @@ export function StaffOrders() {
               </div>
             </div>
 
-            {/* COLUMN 2: Servicing Queue (Ready for Pickup) */}
+            {/* COLUMN 2: Servicing Queue (Ready for Pickup with per-order PIN & QR verification) */}
             <div className="flex flex-col gap-4">
               <div className="flex items-center justify-between px-2 mb-2">
                 <div className="flex items-center gap-2">
@@ -518,25 +662,119 @@ export function StaffOrders() {
                   getFilteredOrders('READY').map(order => (
                     <div key={order.id} className="glass-card p-5 rounded-3xl flex flex-col gap-3 group transition-all duration-300 border-l-4 border-l-success">
                       <div className="flex justify-between items-start">
-                        <span className="font-bold text-primary font-label-md text-base">{order.order_number}</span>
+                        <div className="flex items-center gap-2">
+                          <span className="font-bold text-primary font-label-md text-base">{order.order_number}</span>
+                          <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-700 border border-emerald-500/20">
+                            READY
+                          </span>
+                        </div>
                         <span className="text-xs text-text-muted font-semibold">{formatTime(order.created_at)}</span>
                       </div>
                       
-                      {/* Bold verification code */}
-                      <div className="bg-success/5 border border-success/20 py-2.5 px-4 rounded-2xl text-center flex flex-col items-center shadow-inner my-1">
-                        <span className="text-[10px] text-success font-bold tracking-wider uppercase">Pickup Code</span>
-                        <span className="text-2xl font-black tracking-widest text-success mt-0.5 font-mono">{order.pickup_code}</span>
-                      </div>
-
                       <div>
                         <p className="font-bold text-text-primary text-lg">{order.student_name}</p>
+                        <p className="text-xs text-text-muted font-mono">{order.student_roll}</p>
                       </div>
+
+                      <div className="border-t border-dashed border-outline-variant/30 pt-2">
+                        <ul className="space-y-1 text-sm text-text-secondary font-medium">
+                          {order.items.map((item, idx) => (
+                            <li key={idx} className="flex justify-between">
+                              <span>{item.name} <span className="text-primary font-bold">x{item.quantity}</span></span>
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+
+                      {/* Per-Order Verification Box */}
+                      <div className="bg-emerald-500/5 border border-emerald-500/20 p-4 rounded-2xl flex flex-col gap-3 my-1">
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-1.5 text-emerald-800">
+                            <KeyRound className="w-4 h-4" />
+                            <span className="text-xs font-bold uppercase tracking-wider">Pickup PIN:</span>
+                          </div>
+                          <span className="text-2xl font-black tracking-widest text-emerald-700 font-mono bg-white px-3 py-0.5 rounded-lg border border-emerald-200 shadow-xs">
+                            {order.pickup_code}
+                          </span>
+                        </div>
+
+                        {/* Inline PIN Input + Verification Buttons */}
+                        <div className="flex flex-col sm:flex-row gap-2">
+                          <div className="relative flex-1">
+                            <input
+                              type="text"
+                              maxLength={4}
+                              placeholder="Enter PIN"
+                              value={pinInputs[order.id] || ''}
+                              onChange={(e) => {
+                                const val = e.target.value.replace(/\D/g, '');
+                                setPinInputs(prev => ({ ...prev, [order.id]: val }));
+                                if (val.length === 4) {
+                                  handleVerifyOrderPin(order, val);
+                                }
+                              }}
+                              onKeyDown={(e) => {
+                                if (e.key === 'Enter') {
+                                  handleVerifyOrderPin(order);
+                                }
+                              }}
+                              className="w-full px-3 py-2.5 text-center font-mono font-black text-base tracking-widest bg-white border border-emerald-300 rounded-xl focus:ring-2 focus:ring-emerald-500 outline-none shadow-inner text-emerald-950 placeholder:tracking-normal placeholder:font-sans placeholder:text-xs placeholder:text-slate-400"
+                            />
+                          </div>
+
+                          <button
+                            type="button"
+                            onClick={() => handleVerifyOrderPin(order)}
+                            disabled={verifyingOrders[order.id]}
+                            className="px-4 py-2.5 rounded-xl font-bold text-xs bg-emerald-600 hover:bg-emerald-700 active:scale-95 text-white transition-all shadow-md flex items-center justify-center gap-1.5 shrink-0 disabled:opacity-50"
+                          >
+                            {verifyingOrders[order.id] ? (
+                              <RotateCw className="w-4 h-4 animate-spin" />
+                            ) : (
+                              <Check className="w-4 h-4" />
+                            )}
+                            <span>Verify PIN</span>
+                          </button>
+
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setTargetOrder(order);
+                              setVerifyInput('');
+                              setVerifyResult(null);
+                              setVerifyMode('camera');
+                              setIsVerifyModalOpen(true);
+                            }}
+                            className="px-3.5 py-2.5 rounded-xl font-bold text-xs bg-indigo-600 hover:bg-indigo-700 active:scale-95 text-white transition-all shadow-md flex items-center justify-center gap-1.5 shrink-0"
+                            title={`Scan QR code for ${order.order_number}`}
+                          >
+                            <Camera className="w-4 h-4" />
+                            <span>Scan QR</span>
+                          </button>
+                        </div>
+
+                        {orderErrors[order.id] && (
+                          <div className="flex items-center gap-1.5 text-rose-600 text-xs font-bold animate-shake bg-rose-50 p-2 rounded-xl border border-rose-200">
+                            <ShieldAlert className="w-3.5 h-3.5 shrink-0" />
+                            <span>{orderErrors[order.id]}</span>
+                          </div>
+                        )}
+
+                        {orderSuccess[order.id] && (
+                          <div className="flex items-center gap-1.5 text-emerald-800 text-xs font-bold bg-emerald-100/70 p-2 rounded-xl border border-emerald-300">
+                            <Check className="w-3.5 h-3.5 shrink-0" />
+                            <span>{orderSuccess[order.id]}</span>
+                          </div>
+                        )}
+                      </div>
+
+                      {/* Optional Direct Complete Override */}
                       <button
                         onClick={() => updateOrderStatus(order.id, 'COMPLETED')}
-                        className="glossy-emerald text-white w-full py-4 rounded-2xl font-bold text-headline-sm mt-2 shadow-lg shadow-success/10 hover:brightness-110 active:scale-[0.98] transition-all flex items-center justify-center gap-2"
+                        className="text-slate-500 hover:text-slate-800 text-xs font-bold py-2 rounded-xl transition-all flex items-center justify-center gap-1 hover:bg-slate-100/60"
+                        title="Manual complete without PIN verification"
                       >
-                        <span className="material-symbols-outlined">done_all</span>
-                        <span>Deliver & Complete</span>
+                        <span>Direct Handover (Skip PIN)</span>
                       </button>
                     </div>
                   ))
@@ -661,7 +899,7 @@ export function StaffOrders() {
               </div>
             </div>
 
-            {/* COLUMN 3: Ready for Collection */}
+            {/* COLUMN 3: Ready for Collection (Per-Order Verification on each card) */}
             <div className="flex flex-col gap-4">
               <div className="flex items-center justify-between px-2 mb-2">
                 <div className="flex items-center gap-2">
@@ -687,16 +925,11 @@ export function StaffOrders() {
                         <span className="text-[11px] font-mono text-slate-400">{formatTime(order.created_at)}</span>
                       </div>
                       
-                      {/* Bold verification code */}
-                      <div className="bg-emerald-50 border border-emerald-200 py-2 px-3 rounded-xl text-center flex flex-col items-center shadow-inner">
-                        <span className="text-[10px] text-emerald-700 font-extrabold tracking-wider uppercase">Counter Pickup Code</span>
-                        <span className="text-lg font-black tracking-widest text-emerald-700 font-mono">{order.pickup_code}</span>
-                      </div>
-
                       <div>
                         <p className="font-black text-sm text-slate-900">{order.student_name}</p>
                         <p className="text-xs font-mono text-slate-500">{order.student_roll}</p>
                       </div>
+                      
                       <div className="border-t border-dashed border-slate-200 pt-2.5">
                         <ul className="space-y-1 text-xs text-slate-700 font-medium">
                           {order.items.map((item, idx) => (
@@ -707,12 +940,81 @@ export function StaffOrders() {
                           ))}
                         </ul>
                       </div>
+
+                      {/* Per-Order Verification Widget */}
+                      <div className="bg-emerald-50/80 border border-emerald-200 py-3 px-3.5 rounded-2xl flex flex-col gap-2.5 shadow-inner">
+                        <div className="flex items-center justify-between">
+                          <span className="text-[10px] text-emerald-800 font-extrabold tracking-wider uppercase">Pickup PIN:</span>
+                          <span className="text-lg font-black tracking-widest text-emerald-700 font-mono bg-white px-2 py-0.5 rounded-md border border-emerald-300">
+                            {order.pickup_code}
+                          </span>
+                        </div>
+
+                        {/* PIN input + verify + QR buttons */}
+                        <div className="flex items-center gap-1.5">
+                          <input
+                            type="text"
+                            maxLength={4}
+                            placeholder="PIN"
+                            value={pinInputs[order.id] || ''}
+                            onChange={(e) => {
+                              const val = e.target.value.replace(/\D/g, '');
+                              setPinInputs(prev => ({ ...prev, [order.id]: val }));
+                              if (val.length === 4) {
+                                handleVerifyOrderPin(order, val);
+                              }
+                            }}
+                            onKeyDown={(e) => {
+                              if (e.key === 'Enter') {
+                                handleVerifyOrderPin(order);
+                              }
+                            }}
+                            className="w-16 px-2 py-2 text-center font-mono font-black text-sm tracking-wider bg-white border border-emerald-300 rounded-xl focus:ring-2 focus:ring-emerald-500 outline-none text-emerald-950 placeholder:font-sans placeholder:text-xs placeholder:text-slate-400"
+                          />
+                          <button
+                            type="button"
+                            onClick={() => handleVerifyOrderPin(order)}
+                            disabled={verifyingOrders[order.id]}
+                            className="flex-1 py-2 px-2 rounded-xl font-bold text-xs bg-emerald-600 hover:bg-emerald-700 text-white shadow-xs active:scale-95 transition-all flex items-center justify-center gap-1 disabled:opacity-50"
+                          >
+                            {verifyingOrders[order.id] ? (
+                              <RotateCw className="w-3.5 h-3.5 animate-spin" />
+                            ) : (
+                              <Check className="w-3.5 h-3.5" />
+                            )}
+                            <span>Verify</span>
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setTargetOrder(order);
+                              setVerifyInput('');
+                              setVerifyResult(null);
+                              setVerifyMode('camera');
+                              setIsVerifyModalOpen(true);
+                            }}
+                            className="py-2 px-2.5 rounded-xl font-bold text-xs bg-indigo-600 hover:bg-indigo-700 text-white shadow-xs active:scale-95 transition-all flex items-center justify-center gap-1 shrink-0"
+                            title={`Scan QR code for ${order.order_number}`}
+                          >
+                            <Camera className="w-3.5 h-3.5" />
+                            <span>Scan</span>
+                          </button>
+                        </div>
+
+                        {orderErrors[order.id] && (
+                          <p className="text-[11px] font-bold text-rose-600 animate-pulse">{orderErrors[order.id]}</p>
+                        )}
+                        {orderSuccess[order.id] && (
+                          <p className="text-[11px] font-bold text-emerald-700">{orderSuccess[order.id]}</p>
+                        )}
+                      </div>
+
                       <button
                         onClick={() => updateOrderStatus(order.id, 'COMPLETED')}
-                        className="w-full py-2.5 rounded-xl font-bold text-xs bg-emerald-600 hover:bg-emerald-700 text-white shadow-md shadow-emerald-600/20 active:scale-95 transition-all flex items-center justify-center gap-1.5"
+                        className="text-slate-400 hover:text-slate-700 text-[11px] font-bold py-1.5 rounded-xl transition-all flex items-center justify-center gap-1 hover:bg-slate-100/60"
+                        title="Manual complete without verification"
                       >
-                        <span className="material-symbols-outlined text-[16px]">done_all</span>
-                        <span>Complete & Handover</span>
+                        <span>Direct Handover (Skip PIN)</span>
                       </button>
                     </SpotlightCard>
                   ))
@@ -781,7 +1083,7 @@ export function StaffOrders() {
         </section>
       )}
 
-      {/* QR Pickup Verification Modal with Live Camera Scanner */}
+      {/* QR Pickup Verification Modal with Live Camera Scanner & Auto-Detection */}
       {isVerifyModalOpen && (
         <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-md flex items-center justify-center p-4">
           <div className="bg-white/95 backdrop-blur-2xl border border-white rounded-3xl p-6 max-w-lg w-full shadow-2xl space-y-5 animate-in">
@@ -791,12 +1093,21 @@ export function StaffOrders() {
                   <span className="material-symbols-outlined text-[22px]">qr_code_scanner</span>
                 </div>
                 <div>
-                  <h3 className="font-bold text-lg text-primary leading-none">Order QR Scanner & Verification</h3>
-                  <p className="text-xs text-text-muted mt-1">Scan student device QR code or enter OTP</p>
+                  <h3 className="font-bold text-lg text-primary leading-none">
+                    {targetOrder ? `Verify Order ${targetOrder.order_number}` : 'Order QR Scanner & Verification'}
+                  </h3>
+                  <p className="text-xs text-text-muted mt-1">
+                    {targetOrder 
+                      ? `Student: ${targetOrder.student_name} (${targetOrder.student_roll})`
+                      : 'Scan student QR code or enter 4-digit PIN'}
+                  </p>
                 </div>
               </div>
               <button 
-                onClick={() => setIsVerifyModalOpen(false)}
+                onClick={() => {
+                  setIsVerifyModalOpen(false);
+                  setTargetOrder(null);
+                }}
                 className="p-2 rounded-full text-slate-400 hover:bg-slate-100 hover:text-slate-700 transition-colors"
               >
                 <span className="material-symbols-outlined text-[20px]">close</span>
@@ -808,30 +1119,30 @@ export function StaffOrders() {
               <button
                 type="button"
                 onClick={() => setVerifyMode('camera')}
-                className={`py-2 rounded-xl font-label-md text-xs font-bold flex items-center justify-center gap-2 transition-all ${
+                className={`py-2.5 rounded-xl font-label-md text-xs font-bold flex items-center justify-center gap-2 transition-all ${
                   verifyMode === 'camera'
                     ? 'bg-white text-emerald-700 shadow-sm'
                     : 'text-slate-600 hover:text-slate-900'
                 }`}
               >
                 <Camera className="w-4 h-4" />
-                <span>Camera Scanner</span>
+                <span>Live Camera Scanner</span>
               </button>
               <button
                 type="button"
                 onClick={() => setVerifyMode('manual')}
-                className={`py-2 rounded-xl font-label-md text-xs font-bold flex items-center justify-center gap-2 transition-all ${
+                className={`py-2.5 rounded-xl font-label-md text-xs font-bold flex items-center justify-center gap-2 transition-all ${
                   verifyMode === 'manual'
                     ? 'bg-white text-emerald-700 shadow-sm'
                     : 'text-slate-600 hover:text-slate-900'
                 }`}
               >
                 <Keyboard className="w-4 h-4" />
-                <span>Manual OTP / Code</span>
+                <span>Manual PIN / Code</span>
               </button>
             </div>
 
-            {/* Mode 1: Live Camera Scan View */}
+            {/* Mode 1: Live Camera Scan View with Continuous Auto-Detection */}
             {verifyMode === 'camera' ? (
               <div className="space-y-3">
                 <div className="relative rounded-2xl overflow-hidden bg-slate-950 aspect-video flex items-center justify-center border border-slate-800 shadow-inner">
@@ -840,41 +1151,54 @@ export function StaffOrders() {
                     className="w-full h-full object-cover" 
                     playsInline 
                     muted 
+                    autoPlay
                   />
                   <canvas ref={canvasRef} className="hidden" />
 
                   {/* Scanning Viewfinder Frame */}
                   <div className="absolute inset-0 pointer-events-none flex items-center justify-center">
-                    <div className="w-48 h-48 border-2 border-emerald-400 rounded-2xl relative shadow-[0_0_20px_rgba(52,211,153,0.3)] animate-pulse">
+                    <div className={`w-52 h-52 border-2 rounded-2xl relative transition-all duration-300 ${
+                      scannerDetected 
+                        ? 'border-emerald-400 bg-emerald-500/20 shadow-[0_0_30px_rgba(52,211,153,0.8)] scale-105' 
+                        : 'border-emerald-400/80 shadow-[0_0_20px_rgba(52,211,153,0.3)] animate-pulse'
+                    }`}>
                       <div className="absolute top-0 left-0 w-6 h-6 border-t-4 border-l-4 border-emerald-500 rounded-tl-xl"></div>
                       <div className="absolute top-0 right-0 w-6 h-6 border-t-4 border-r-4 border-emerald-500 rounded-tr-xl"></div>
                       <div className="absolute bottom-0 left-0 w-6 h-6 border-b-4 border-l-4 border-emerald-500 rounded-bl-xl"></div>
                       <div className="absolute bottom-0 right-0 w-6 h-6 border-b-4 border-r-4 border-emerald-500 rounded-br-xl"></div>
-                      <div className="absolute inset-0 bg-emerald-500/5 rounded-2xl"></div>
+                      
+                      {/* Laser scanning line */}
+                      <div className="absolute inset-x-0 top-0 h-0.5 bg-gradient-to-r from-transparent via-emerald-400 to-transparent shadow-[0_0_8px_#34d399] animate-bounce"></div>
                     </div>
                   </div>
 
                   <div className="absolute bottom-2 inset-x-0 text-center">
-                    <span className="px-3 py-1 bg-black/60 backdrop-blur-md rounded-full text-[10px] text-emerald-300 font-semibold border border-emerald-500/20">
-                      Align student QR inside frame
+                    <span className="px-3.5 py-1 bg-black/70 backdrop-blur-md rounded-full text-[11px] text-emerald-300 font-bold border border-emerald-500/30">
+                      {scannerDetected ? '✓ QR Code Detected! Verifying...' : 'Point camera at student QR code'}
                     </span>
                   </div>
                 </div>
               </div>
             ) : (
-              /* Mode 2: Manual Code Input */
+              /* Mode 2: Manual PIN / Code Input */
               <div className="space-y-3">
-                <label className="font-label-md text-xs text-text-secondary block">
-                  Paste Scanned QR JSON Payload or Enter Pickup OTP / Order ID
+                <label className="font-label-md text-xs font-bold text-slate-700 block">
+                  {targetOrder ? `Enter 4-Digit PIN for Order ${targetOrder.order_number}` : 'Enter 4-Digit Pickup PIN, Order Number, or Scanned Payload'}
                 </label>
-                <textarea
-                  rows={4}
+                <input
+                  type="text"
                   value={verifyInput}
                   onChange={(e) => setVerifyInput(e.target.value)}
-                  placeholder='e.g. {"order_id": "ord_...", "pickup_code": "1234", "signature": "..."} or 1234'
-                  className="w-full px-4 py-3 bg-white border border-outline-variant/40 rounded-2xl text-xs font-mono focus:ring-2 focus:ring-emerald-500/30 focus:border-emerald-500 outline-none resize-none shadow-sm"
+                  placeholder={targetOrder ? `e.g. ${targetOrder.pickup_code}` : 'e.g. 4821 or #1005 or {"order_id": "..."}'}
+                  className="w-full px-4 py-3.5 bg-white border border-slate-300 rounded-2xl text-base font-mono focus:ring-2 focus:ring-emerald-500/30 focus:border-emerald-500 outline-none shadow-sm"
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') {
+                      handleVerifyPickup();
+                    }
+                  }}
                 />
-                <div className="flex gap-2">
+                <div className="flex items-center justify-between text-xs text-slate-500">
+                  <span>Press Enter or click Verify below</span>
                   <button
                     type="button"
                     onClick={async () => {
@@ -883,13 +1207,13 @@ export function StaffOrders() {
                         setVerifyInput(text);
                         handleVerifyPickup(text);
                       } catch (e) {
-                        alert('Could not read clipboard');
+                        alert('Could not access clipboard');
                       }
                     }}
-                    className="px-3 py-1.5 rounded-xl text-xs font-bold bg-slate-100 text-slate-700 hover:bg-slate-200 transition-all flex items-center gap-1"
+                    className="text-primary hover:underline font-bold flex items-center gap-1"
                   >
                     <span className="material-symbols-outlined text-[14px]">content_paste</span>
-                    <span>Paste Clipboard & Verify</span>
+                    <span>Paste Clipboard</span>
                   </button>
                 </div>
               </div>
@@ -915,8 +1239,11 @@ export function StaffOrders() {
             <div className="flex justify-end gap-3 pt-2">
               <button
                 type="button"
-                onClick={() => setIsVerifyModalOpen(false)}
-                className="px-5 py-2.5 rounded-2xl font-label-md text-xs text-text-secondary bg-slate-100 hover:bg-slate-200 transition-all"
+                onClick={() => {
+                  setIsVerifyModalOpen(false);
+                  setTargetOrder(null);
+                }}
+                className="px-5 py-2.5 rounded-2xl font-label-md text-xs text-text-secondary bg-slate-100 hover:bg-slate-200 transition-all font-bold"
               >
                 Close
               </button>

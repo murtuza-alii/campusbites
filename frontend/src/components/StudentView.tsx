@@ -802,23 +802,27 @@ export function StudentView() {
                         {/* Scannable HMAC-Signed Verification QR */}
                         <div className="p-3 bg-white rounded-2xl shadow-sm border border-slate-200 group-hover:scale-105 transition-transform duration-300 flex flex-col items-center">
                           <img 
-                            className="w-28 h-28 object-contain rounded-lg" 
-                            src={`https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=${encodeURIComponent(
+                            className="w-32 h-32 object-contain rounded-lg shadow-xs" 
+                            src={`https://api.qrserver.com/v1/create-qr-code/?size=240x240&margin=2&ecc=M&data=${encodeURIComponent(
                               JSON.stringify((order as any).qr_payload || {
                                 order_id: order.id,
                                 order_number: order.order_number,
                                 canteen_id: (order as any).canteen_id,
                                 pickup_code: order.pickup_code
                               })
-                            )}&color=0f172a`} 
-                            alt="Order Verification QR"
+                            )}&color=0f172a&bgcolor=ffffff`} 
+                            alt={`Order ${order.order_number} Verification QR`}
+                            loading="lazy"
                           />
                         </div>
                         <p className="text-[11px] text-center leading-tight text-slate-500 px-2">
                           {order.status === 'READY' ? (
-                            <span className="text-emerald-700 font-extrabold animate-pulse">✓ Ready for pickup! Show QR at counter</span>
+                            <span className="text-emerald-700 font-extrabold animate-pulse flex items-center justify-center gap-1">
+                              <span className="material-symbols-outlined text-[14px]">check_circle</span>
+                              Ready for pickup! Show QR at counter
+                            </span>
                           ) : (
-                            <span>Show this QR code or OTP to staff at counter</span>
+                            <span>Show this QR code or 4-digit PIN to staff at counter</span>
                           )}
                         </p>
                       </div>
