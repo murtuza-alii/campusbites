@@ -1,5 +1,8 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { Link } from 'react-router-dom';
+import { gsap } from 'gsap';
+import { ScrollTrigger } from 'gsap/ScrollTrigger';
+import { useGSAP } from '@gsap/react';
 import { 
   Store, 
   Sparkles, 
@@ -12,11 +15,20 @@ import {
   ChefHat, 
   Send, 
   RotateCw,
-  UtensilsCrossed
+  UtensilsCrossed,
+  Copy,
+  Check,
+  Smartphone,
+  Flame
 } from 'lucide-react';
 import { API_BASE_URL } from '../config.js';
 
+// Register GSAP plugins
+gsap.registerPlugin(ScrollTrigger, useGSAP);
+
 export function LandingPage() {
+  const containerRef = useRef<HTMLDivElement>(null);
+  
   const [formData, setFormData] = useState({
     restaurant_name: '',
     owner_name: '',
@@ -30,6 +42,102 @@ export function LandingPage() {
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
   const [submitSuccess, setSubmitSuccess] = useState<string | null>(null);
   const [submitError, setSubmitError] = useState<string | null>(null);
+  const [copiedSlug, setCopiedSlug] = useState<string | null>(null);
+
+  // Copy helper
+  const handleCopyLink = (slug: string) => {
+    const fullUrl = `${window.location.origin}/c/${slug}`;
+    navigator.clipboard.writeText(fullUrl);
+    setCopiedSlug(slug);
+    setTimeout(() => setCopiedSlug(null), 2000);
+  };
+
+  // GSAP Animations with useGSAP hook (auto cleanup on unmount)
+  useGSAP(() => {
+    // 1. Hero Entrance Timeline
+    const tl = gsap.timeline({ defaults: { ease: 'power3.out' } });
+
+    tl.from('.gsap-hero-pill', {
+      y: -25,
+      opacity: 0,
+      duration: 0.8,
+      ease: 'back.out(1.7)'
+    })
+    .from('.gsap-hero-h1', {
+      y: 45,
+      opacity: 0,
+      duration: 1,
+      stagger: 0.12
+    }, '-=0.4')
+    .from('.gsap-hero-sub', {
+      y: 25,
+      opacity: 0,
+      duration: 0.8
+    }, '-=0.6')
+    .from('.gsap-hero-cta', {
+      y: 20,
+      opacity: 0,
+      duration: 0.7,
+      stagger: 0.1
+    }, '-=0.5')
+    .from('.gsap-floating-token', {
+      scale: 0.85,
+      opacity: 0,
+      duration: 0.8,
+      ease: 'back.out(1.5)'
+    }, '-=0.4');
+
+    // 2. Continuous subtle token card float physics
+    gsap.to('.gsap-floating-token', {
+      y: -8,
+      duration: 2.4,
+      repeat: -1,
+      yoyo: true,
+      ease: 'sine.inOut'
+    });
+
+    // 3. ScrollTrigger for Campus Cards
+    gsap.from('.gsap-campus-card', {
+      scrollTrigger: {
+        trigger: '.gsap-campus-section',
+        start: 'top 80%',
+        toggleActions: 'play none none none'
+      },
+      y: 40,
+      opacity: 0,
+      duration: 0.85,
+      stagger: 0.18,
+      ease: 'power3.out'
+    });
+
+    // 4. ScrollTrigger for Bento Grid Cards
+    gsap.from('.gsap-bento-card', {
+      scrollTrigger: {
+        trigger: '.gsap-bento-grid',
+        start: 'top 80%',
+        toggleActions: 'play none none none'
+      },
+      y: 45,
+      opacity: 0,
+      duration: 0.8,
+      stagger: 0.12,
+      ease: 'power3.out'
+    });
+
+    // 5. ScrollTrigger for Registration Form
+    gsap.from('.gsap-register-card', {
+      scrollTrigger: {
+        trigger: '#register-section',
+        start: 'top 85%',
+        toggleActions: 'play none none none'
+      },
+      y: 40,
+      opacity: 0,
+      duration: 0.9,
+      ease: 'power3.out'
+    });
+
+  }, { scope: containerRef });
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -67,29 +175,35 @@ export function LandingPage() {
   };
 
   return (
-    <div className="flex-1 flex flex-col gap-20 pb-16 animate-in">
-      {/* Hero Section */}
-      <section className="relative pt-6 md:pt-12 text-center max-w-4xl mx-auto flex flex-col items-center">
-        <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-primary/10 border border-primary/20 text-primary text-xs font-bold uppercase tracking-widest mb-6">
-          <Sparkles className="w-3.5 h-3.5" />
-          <span>CampusBites for Restaurants & College Canteens</span>
+    <div ref={containerRef} className="flex-1 flex flex-col gap-28 md:gap-36 pb-24 overflow-x-hidden w-full max-w-full">
+      
+      {/* 1. HERO SECTION (Attention) */}
+      <section className="relative pt-8 md:pt-16 text-center max-w-5xl mx-auto flex flex-col items-center">
+        
+        {/* Eyebrow badge */}
+        <div className="gsap-hero-pill inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-indigo-50/90 border border-indigo-200/70 text-indigo-700 text-xs font-mono font-bold tracking-wide shadow-sm mb-6">
+          <Sparkles className="w-3.5 h-3.5 text-indigo-600" />
+          <span>CAMPUSBITES PLATFORM FOR COLLEGE DINERS</span>
         </div>
 
-        <h1 className="font-headline-xl text-4xl sm:text-5xl md:text-6xl font-black text-slate-900 tracking-tight leading-[1.1] mb-6">
-          Empower Your Campus Food Outlet. <br className="hidden sm:block" />
-          <span className="bg-gradient-to-r from-primary via-indigo-600 to-pink-600 bg-clip-text text-transparent">
+        {/* 2-Line Iron Rule Headline with Inline Micro-Badge */}
+        <h1 className="gsap-hero-h1 font-black text-4xl sm:text-6xl lg:text-7xl text-slate-900 tracking-tight leading-[1.08] mb-6 max-w-4xl">
+          Empower Your Campus Food Outlet.{' '}
+          <span className="inline-block bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 bg-clip-text text-transparent">
             Zero Queue Rush.
           </span>
         </h1>
 
-        <p className="font-body-lg text-slate-600 text-base sm:text-lg max-w-2xl leading-relaxed mb-8">
-          Join the unified digital ordering network built exclusively for university dining halls, college canteens, and campus eateries. Faster counter dispatch, live kitchen queues, and instant QR verification.
+        {/* Subtext */}
+        <p className="gsap-hero-sub text-slate-600 text-base sm:text-xl max-w-2xl leading-relaxed mb-10">
+          The unified digital ordering ecosystem designed for university food courts, canteens, and campus eateries. Faster kitchen dispatch, live queue tokens, and web camera QR verification.
         </p>
 
-        <div className="flex flex-wrap items-center justify-center gap-4">
+        {/* Dual High-Contrast CTAs */}
+        <div className="gsap-hero-cta flex flex-wrap items-center justify-center gap-4 mb-12">
           <a
             href="#register-section"
-            className="px-8 py-4 rounded-full bg-primary text-white font-label-md text-sm font-bold shadow-xl shadow-indigo-500/25 hover:bg-primary-container hover:scale-105 active:scale-95 transition-all flex items-center gap-2"
+            className="px-8 py-4 rounded-2xl bg-indigo-600 text-white font-bold text-sm shadow-xl shadow-indigo-600/25 hover:bg-indigo-700 hover:scale-[1.02] active:scale-[0.98] transition-all flex items-center gap-2"
           >
             <span>Register Your Canteen / Diner</span>
             <ArrowRight className="w-4 h-4" />
@@ -97,62 +211,101 @@ export function LandingPage() {
 
           <Link
             to="/c/mithibai-main-campus"
-            className="px-8 py-4 rounded-full bg-white/70 backdrop-blur-md border border-slate-200 text-slate-800 font-label-md text-sm font-bold shadow-sm hover:bg-white hover:scale-105 active:scale-95 transition-all flex items-center gap-2"
+            className="px-8 py-4 rounded-2xl bg-white/80 backdrop-blur-md border border-slate-200 text-slate-800 font-bold text-sm shadow-sm hover:bg-white hover:border-slate-300 hover:scale-[1.02] active:scale-[0.98] transition-all flex items-center gap-2"
           >
-            <UtensilsCrossed className="w-4 h-4 text-primary" />
+            <UtensilsCrossed className="w-4 h-4 text-indigo-600" />
             <span>View Mithibai Campus Menu</span>
           </Link>
         </div>
+
+        {/* Floating Live Verification Token Teaser Card */}
+        <div className="gsap-floating-token w-full max-w-md bg-white/90 backdrop-blur-xl border border-white rounded-3xl p-5 shadow-2xl shadow-indigo-500/10 flex items-center justify-between gap-4">
+          <div className="flex items-center gap-3.5">
+            <div className="w-12 h-12 rounded-2xl bg-emerald-500/10 text-emerald-600 flex items-center justify-center font-mono font-black text-lg border border-emerald-500/20">
+              #042
+            </div>
+            <div className="text-left">
+              <div className="flex items-center gap-1.5">
+                <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+                <span className="text-[11px] font-extrabold uppercase tracking-wider text-emerald-700">Ready For Pickup</span>
+              </div>
+              <p className="font-bold text-sm text-slate-900 leading-tight">Paneer Tikka Roll × 2</p>
+              <p className="text-[11px] text-slate-500">Mithibai South Wing · Token Verified</p>
+            </div>
+          </div>
+          <div className="w-10 h-10 rounded-xl bg-slate-100 flex items-center justify-center text-slate-600">
+            <QrCode className="w-5 h-5" />
+          </div>
+        </div>
       </section>
 
-      {/* Featured Campus Dining Hubs (Direct Links Testing Section) */}
-      <section className="space-y-6">
-        <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-2 border-b border-slate-200/60 pb-4">
+      {/* 2. FEATURED CAMPUS DINING HUBS (Desire / Live Showcase) */}
+      <section className="gsap-campus-section space-y-8 max-w-5xl mx-auto w-full">
+        <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-2 border-b border-slate-200/70 pb-4">
           <div>
-            <span className="text-xs font-bold text-primary uppercase tracking-widest">Active Campus Outlets</span>
-            <h2 className="text-2xl font-black text-slate-900 tracking-tight">Explore Live Campus Links</h2>
+            <span className="text-xs font-mono font-bold text-indigo-600 uppercase tracking-wider">Live Deployments</span>
+            <h2 className="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight mt-1">Active Campus Outlets & Diners</h2>
           </div>
-          <p className="text-xs text-slate-500">Click any card below to test direct campus & diner URLs</p>
+          <p className="text-xs text-slate-500">Click any outlet card to test live direct campus URLs</p>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {/* Mithibai Main Campus Hub Card */}
-          <div className="bg-white/70 backdrop-blur-xl border border-white/80 rounded-3xl p-6 shadow-xl shadow-indigo-500/5 flex flex-col justify-between group hover:border-primary/40 transition-all">
+          
+          {/* Card 1: Mithibai Main Campus Hub */}
+          <div className="gsap-campus-card bg-white/80 backdrop-blur-xl border border-white rounded-[2rem] p-7 shadow-xl shadow-indigo-500/5 flex flex-col justify-between group hover:border-indigo-500/30 hover:shadow-2xl hover:shadow-indigo-500/10 transition-all duration-300">
             <div className="space-y-4">
               <div className="flex items-start justify-between">
-                <div className="flex items-center gap-3">
+                <div className="flex items-center gap-3.5">
                   <div className="w-12 h-12 rounded-2xl bg-indigo-600/10 text-indigo-600 flex items-center justify-center font-bold">
                     <Building2 className="w-6 h-6" />
                   </div>
                   <div>
-                    <h3 className="font-bold text-lg text-slate-900 leading-tight">Mithibai Main Campus</h3>
-                    <p className="text-xs text-slate-500">Vile Parle West, Mumbai · 4 Canteen Outlets</p>
+                    <h3 className="font-black text-lg text-slate-900 leading-tight">Mithibai Main Campus</h3>
+                    <p className="text-xs text-slate-500">Vile Parle West, Mumbai · 4 Canteens</p>
                   </div>
                 </div>
                 <span className="px-3 py-1 rounded-full text-[10px] font-extrabold uppercase tracking-wider bg-emerald-500/10 text-emerald-700 border border-emerald-500/20">
-                  Campus Cluster
+                  Campus Hub
                 </span>
               </div>
 
               <p className="text-xs text-slate-600 leading-relaxed">
-                Multi-outlet campus cluster with Canteen A (South Wing), Canteen B (Central Cafe), Canteen C (Terrace), and Canteen D (Pavilion).
+                Multi-canteen cluster featuring Canteen A (South Wing), Canteen B (Central Cafe), Canteen C (Terrace), and Canteen D (Pavilion).
               </p>
 
               {/* Sub-canteens pills */}
-              <div className="flex flex-wrap gap-2 pt-1">
+              <div className="flex flex-wrap gap-1.5 pt-1">
                 {['Canteen A', 'Canteen B', 'Canteen C', 'Canteen D'].map((name) => (
-                  <span key={name} className="px-3 py-1 rounded-lg text-[11px] font-semibold bg-slate-100 text-slate-700">
+                  <span key={name} className="px-2.5 py-1 rounded-lg text-[11px] font-semibold bg-slate-100 text-slate-700">
                     {name}
                   </span>
                 ))}
               </div>
             </div>
 
-            <div className="pt-6 border-t border-slate-100 flex items-center justify-between">
-              <span className="text-xs font-mono font-medium text-slate-400">/c/mithibai-main-campus</span>
+            <div className="pt-6 border-t border-slate-100/80 flex items-center justify-between mt-6">
+              <button
+                type="button"
+                onClick={() => handleCopyLink('mithibai-main-campus')}
+                className="text-xs font-mono font-medium text-slate-500 hover:text-indigo-600 flex items-center gap-1.5 transition-colors"
+                title="Copy student link"
+              >
+                {copiedSlug === 'mithibai-main-campus' ? (
+                  <>
+                    <Check className="w-3.5 h-3.5 text-emerald-600" />
+                    <span className="text-emerald-600">Copied Link!</span>
+                  </>
+                ) : (
+                  <>
+                    <Copy className="w-3.5 h-3.5" />
+                    <span>/c/mithibai-main-campus</span>
+                  </>
+                )}
+              </button>
+
               <Link
                 to="/c/mithibai-main-campus"
-                className="px-5 py-2.5 rounded-full bg-primary text-white text-xs font-bold flex items-center gap-1.5 shadow-md group-hover:bg-indigo-700 transition-all"
+                className="px-5 py-2.5 rounded-full bg-indigo-600 text-white text-xs font-bold flex items-center gap-1.5 shadow-md group-hover:bg-indigo-700 transition-all"
               >
                 <span>Open Campus Hub</span>
                 <ArrowRight className="w-3.5 h-3.5" />
@@ -160,16 +313,16 @@ export function LandingPage() {
             </div>
           </div>
 
-          {/* Standalone Gourmet Diner Card */}
-          <div className="bg-white/70 backdrop-blur-xl border border-white/80 rounded-3xl p-6 shadow-xl shadow-indigo-500/5 flex flex-col justify-between group hover:border-primary/40 transition-all">
+          {/* Card 2: Standalone Gourmet Diner */}
+          <div className="gsap-campus-card bg-white/80 backdrop-blur-xl border border-white rounded-[2rem] p-7 shadow-xl shadow-indigo-500/5 flex flex-col justify-between group hover:border-indigo-500/30 hover:shadow-2xl hover:shadow-indigo-500/10 transition-all duration-300">
             <div className="space-y-4">
               <div className="flex items-start justify-between">
-                <div className="flex items-center gap-3">
+                <div className="flex items-center gap-3.5">
                   <div className="w-12 h-12 rounded-2xl bg-amber-500/10 text-amber-600 flex items-center justify-center font-bold">
                     <Store className="w-6 h-6" />
                   </div>
                   <div>
-                    <h3 className="font-bold text-lg text-slate-900 leading-tight">Downtown Gourmet Diner</h3>
+                    <h3 className="font-black text-lg text-slate-900 leading-tight">Downtown Gourmet Diner</h3>
                     <p className="text-xs text-slate-500">Standalone Restaurant · Custom Kitchen</p>
                   </div>
                 </div>
@@ -179,21 +332,39 @@ export function LandingPage() {
               </div>
 
               <p className="text-xs text-slate-600 leading-relaxed">
-                Standalone diner model with uncluttered UI: canteen selector dropdown is completely hidden, loading directly into the diner's signature offerings.
+                Standalone diner model with uncluttered UI: the top canteen selector is automatically hidden, routing students straight to fresh gourmet orders.
               </p>
 
-              <div className="flex flex-wrap gap-2 pt-1">
-                <span className="px-3 py-1 rounded-lg text-[11px] font-semibold bg-emerald-50 text-emerald-700">
+              <div className="flex flex-wrap gap-1.5 pt-1">
+                <span className="px-2.5 py-1 rounded-lg text-[11px] font-semibold bg-emerald-50 text-emerald-700">
                   ✓ Selector Hidden Automatically
                 </span>
-                <span className="px-3 py-1 rounded-lg text-[11px] font-semibold bg-slate-100 text-slate-700">
+                <span className="px-2.5 py-1 rounded-lg text-[11px] font-semibold bg-slate-100 text-slate-700">
                   QR Counter Pickup
                 </span>
               </div>
             </div>
 
-            <div className="pt-6 border-t border-slate-100 flex items-center justify-between">
-              <span className="text-xs font-mono font-medium text-slate-400">/c/downtown-diner</span>
+            <div className="pt-6 border-t border-slate-100/80 flex items-center justify-between mt-6">
+              <button
+                type="button"
+                onClick={() => handleCopyLink('downtown-diner')}
+                className="text-xs font-mono font-medium text-slate-500 hover:text-indigo-600 flex items-center gap-1.5 transition-colors"
+                title="Copy student link"
+              >
+                {copiedSlug === 'downtown-diner' ? (
+                  <>
+                    <Check className="w-3.5 h-3.5 text-emerald-600" />
+                    <span className="text-emerald-600">Copied Link!</span>
+                  </>
+                ) : (
+                  <>
+                    <Copy className="w-3.5 h-3.5" />
+                    <span>/c/downtown-diner</span>
+                  </>
+                )}
+              </button>
+
               <Link
                 to="/c/downtown-diner"
                 className="px-5 py-2.5 rounded-full bg-slate-900 text-white text-xs font-bold flex items-center gap-1.5 shadow-md hover:bg-black transition-all"
@@ -206,56 +377,107 @@ export function LandingPage() {
         </div>
       </section>
 
-      {/* Platform Features Bento Grid */}
-      <section className="space-y-8">
+      {/* 3. PLATFORM FEATURES GAPLESS BENTO GRID (Interest) */}
+      <section className="gsap-bento-grid space-y-8 max-w-5xl mx-auto w-full">
         <div className="text-center max-w-2xl mx-auto space-y-2">
-          <span className="text-xs font-bold text-primary uppercase tracking-widest">Built For Campus Speed</span>
-          <h2 className="text-3xl font-black text-slate-900 tracking-tight">Why Campus Food Outlets Choose CampusBites</h2>
-          <p className="text-sm text-slate-600">Solve the 20-minute break rush with purpose-built university dining tools.</p>
+          <span className="text-xs font-mono font-bold text-indigo-600 uppercase tracking-wider">Campus Engineering</span>
+          <h2 className="text-3xl font-black text-slate-900 tracking-tight">Engineered For 15-Minute College Breaks</h2>
+          <p className="text-sm text-slate-600">Zero phone app downloads. Zero hardware overhead. Maximum counter throughput.</p>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <div className="bg-white/60 backdrop-blur-md border border-white/80 p-6 rounded-3xl shadow-sm space-y-3">
-            <div className="w-10 h-10 rounded-2xl bg-primary/10 text-primary flex items-center justify-center font-bold">
-              <Clock className="w-5 h-5" />
+        {/* Gapless Interlocking Dense Bento Grid */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 grid-flow-dense">
+          
+          {/* Bento Cell 1: 3-Digit Token Engine (col-span-2) */}
+          <div className="gsap-bento-card md:col-span-2 bg-gradient-to-br from-white/90 to-indigo-50/40 backdrop-blur-xl border border-white rounded-[2rem] p-8 shadow-xl shadow-indigo-500/5 flex flex-col justify-between">
+            <div className="space-y-3">
+              <div className="w-12 h-12 rounded-2xl bg-indigo-600 text-white flex items-center justify-center shadow-lg shadow-indigo-600/30">
+                <Clock className="w-6 h-6" />
+              </div>
+              <h3 className="text-xl font-black text-slate-900">3-Digit Visual Queue Tokens</h3>
+              <p className="text-xs text-slate-600 leading-relaxed max-w-lg">
+                Students receive short, bold tokens like <code>#042</code>. Staff can call tokens on TV screens or shouting boards without relying on congested cellular SMS gateways during peak lunchtime breaks.
+              </p>
             </div>
-            <h3 className="font-bold text-base text-slate-900">3-Digit Visual Queue Token</h3>
-            <p className="text-xs text-slate-600 leading-relaxed">
-              Kitchen staff call simple tokens like <code>#042</code> on TV boards. No SMS delays or poor cell connectivity friction.
-            </p>
+
+            <div className="pt-6 flex flex-wrap gap-2">
+              <span className="px-3 py-1 rounded-xl text-xs font-bold bg-white text-indigo-700 shadow-sm border border-indigo-100">
+                ⚡ 3.2s Average Pickup Time
+              </span>
+              <span className="px-3 py-1 rounded-xl text-xs font-bold bg-white text-emerald-700 shadow-sm border border-emerald-100">
+                ✓ No SMS Gateway Delays
+              </span>
+            </div>
           </div>
 
-          <div className="bg-white/60 backdrop-blur-md border border-white/80 p-6 rounded-3xl shadow-sm space-y-3">
-            <div className="w-10 h-10 rounded-2xl bg-emerald-500/10 text-emerald-600 flex items-center justify-center font-bold">
-              <QrCode className="w-5 h-5" />
+          {/* Bento Cell 2: Live In-Browser Camera Scanner (col-span-1) */}
+          <div className="gsap-bento-card md:col-span-1 bg-white/80 backdrop-blur-xl border border-white rounded-[2rem] p-8 shadow-xl shadow-indigo-500/5 flex flex-col justify-between">
+            <div className="space-y-3">
+              <div className="w-12 h-12 rounded-2xl bg-emerald-500/10 text-emerald-600 flex items-center justify-center font-bold">
+                <QrCode className="w-6 h-6" />
+              </div>
+              <h3 className="text-xl font-black text-slate-900">In-Browser Camera Scanner</h3>
+              <p className="text-xs text-slate-600 leading-relaxed">
+                No handheld barcode scanners required. Staff use phone or laptop cameras to scan student QR codes in real time.
+              </p>
             </div>
-            <h3 className="font-bold text-base text-slate-900">In-Browser Camera QR Scanner</h3>
-            <p className="text-xs text-slate-600 leading-relaxed">
-              Staff scan student phones using their existing phone camera or laptop webcam to instantly verify and complete pickups.
-            </p>
+
+            <div className="pt-4">
+              <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[11px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">
+                <Smartphone className="w-3.5 h-3.5" />
+                <span>Works On Any Device</span>
+              </span>
+            </div>
           </div>
 
-          <div className="bg-white/60 backdrop-blur-md border border-white/80 p-6 rounded-3xl shadow-sm space-y-3">
-            <div className="w-10 h-10 rounded-2xl bg-indigo-500/10 text-indigo-600 flex items-center justify-center font-bold">
-              <ShieldCheck className="w-5 h-5" />
+          {/* Bento Cell 3: HMAC Security (col-span-1) */}
+          <div className="gsap-bento-card md:col-span-1 bg-white/80 backdrop-blur-xl border border-white rounded-[2rem] p-8 shadow-xl shadow-indigo-500/5 flex flex-col justify-between">
+            <div className="space-y-3">
+              <div className="w-12 h-12 rounded-2xl bg-purple-500/10 text-purple-600 flex items-center justify-center font-bold">
+                <ShieldCheck className="w-6 h-6" />
+              </div>
+              <h3 className="text-lg font-black text-slate-900">HMAC SHA-256 Signed</h3>
+              <p className="text-xs text-slate-600 leading-relaxed">
+                Cryptographic digital signatures prevent screenshot fraud, forged order IDs, and duplicate meal redemptions.
+              </p>
             </div>
-            <h3 className="font-bold text-base text-slate-900">HMAC Cryptographic Security</h3>
-            <p className="text-xs text-slate-600 leading-relaxed">
-              Tamper-proof HMAC SHA-256 signatures prevent students from sharing old screenshots or claiming unauthorized meals.
-            </p>
+
+            <div className="pt-4">
+              <span className="text-[11px] font-mono text-purple-700 font-semibold">100% Tamper Proof</span>
+            </div>
           </div>
+
+          {/* Bento Cell 4: Custom Clean Slug URLs (col-span-2) */}
+          <div className="gsap-bento-card md:col-span-2 bg-gradient-to-br from-white/90 to-emerald-50/40 backdrop-blur-xl border border-white rounded-[2rem] p-8 shadow-xl shadow-indigo-500/5 flex flex-col justify-between">
+            <div className="space-y-3">
+              <div className="w-12 h-12 rounded-2xl bg-pink-500/10 text-pink-600 flex items-center justify-center font-bold">
+                <Flame className="w-6 h-6" />
+              </div>
+              <h3 className="text-xl font-black text-slate-900">Custom Table QR Posters & Clean URLs</h3>
+              <p className="text-xs text-slate-600 leading-relaxed max-w-lg">
+                Generate simple print-ready QR codes for dining tables: <code>campusbites.com/c/mithibai-main-campus</code>. Students scan to view the live kitchen menu immediately without needing to install an app.
+              </p>
+            </div>
+
+            <div className="pt-4 flex items-center gap-2">
+              <span className="px-3 py-1 rounded-xl text-xs font-mono font-bold bg-white text-slate-700 shadow-sm border border-slate-100">
+                Zero App Downloads Required
+              </span>
+            </div>
+          </div>
+
         </div>
       </section>
 
-      {/* Restaurant / Canteen Onboarding Form Section */}
+      {/* 4. RESTAURANT ONBOARDING FORM SECTION (Action) */}
       <section id="register-section" className="scroll-mt-24 max-w-3xl mx-auto w-full">
-        <div className="bg-white/90 backdrop-blur-2xl border border-white rounded-[2.5rem] p-8 sm:p-12 shadow-2xl shadow-indigo-500/10 space-y-8">
+        <div className="gsap-register-card bg-white/95 backdrop-blur-2xl border border-white rounded-[2.5rem] p-8 sm:p-12 shadow-2xl shadow-indigo-500/10 space-y-8">
           <div className="space-y-2 text-center">
-            <div className="w-12 h-12 rounded-2xl bg-primary text-white mx-auto flex items-center justify-center shadow-lg">
-              <ChefHat className="w-6 h-6" />
+            <div className="w-14 h-14 rounded-2xl bg-indigo-600 text-white mx-auto flex items-center justify-center shadow-xl shadow-indigo-600/30">
+              <ChefHat className="w-7 h-7" />
             </div>
             <h2 className="text-3xl font-black text-slate-900 tracking-tight">Partner With CampusBites</h2>
-            <p className="text-sm text-slate-600">Register your college canteen, campus diner, or food court for digital ordering.</p>
+            <p className="text-sm text-slate-600">Register your college canteen, diner, or university food outlet for digital ordering.</p>
           </div>
 
           {submitSuccess && (
@@ -282,7 +504,7 @@ export function LandingPage() {
                   placeholder="e.g. Mithibai South Wing Cafe"
                   value={formData.restaurant_name}
                   onChange={(e) => setFormData({ ...formData, restaurant_name: e.target.value })}
-                  className="w-full px-4 py-3.5 bg-slate-50 border border-slate-200 rounded-2xl text-sm text-slate-900 focus:bg-white focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all"
+                  className="w-full px-4 py-3.5 bg-slate-50 border border-slate-200 rounded-2xl text-sm text-slate-900 focus:bg-white focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-600 outline-none transition-all"
                 />
               </div>
 
@@ -294,7 +516,7 @@ export function LandingPage() {
                   placeholder="e.g. Rajesh Mehta"
                   value={formData.owner_name}
                   onChange={(e) => setFormData({ ...formData, owner_name: e.target.value })}
-                  className="w-full px-4 py-3.5 bg-slate-50 border border-slate-200 rounded-2xl text-sm text-slate-900 focus:bg-white focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all"
+                  className="w-full px-4 py-3.5 bg-slate-50 border border-slate-200 rounded-2xl text-sm text-slate-900 focus:bg-white focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-600 outline-none transition-all"
                 />
               </div>
             </div>
@@ -308,7 +530,7 @@ export function LandingPage() {
                   placeholder="e.g. canteen@mithibai.edu"
                   value={formData.email}
                   onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                  className="w-full px-4 py-3.5 bg-slate-50 border border-slate-200 rounded-2xl text-sm text-slate-900 focus:bg-white focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all"
+                  className="w-full px-4 py-3.5 bg-slate-50 border border-slate-200 rounded-2xl text-sm text-slate-900 focus:bg-white focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-600 outline-none transition-all"
                 />
               </div>
 
@@ -320,7 +542,7 @@ export function LandingPage() {
                   placeholder="e.g. +91 98201 12345"
                   value={formData.phone}
                   onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                  className="w-full px-4 py-3.5 bg-slate-50 border border-slate-200 rounded-2xl text-sm text-slate-900 focus:bg-white focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all"
+                  className="w-full px-4 py-3.5 bg-slate-50 border border-slate-200 rounded-2xl text-sm text-slate-900 focus:bg-white focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-600 outline-none transition-all"
                 />
               </div>
             </div>
@@ -334,7 +556,7 @@ export function LandingPage() {
                   placeholder="e.g. Mithibai College of Arts & Commerce"
                   value={formData.campus_name}
                   onChange={(e) => setFormData({ ...formData, campus_name: e.target.value })}
-                  className="w-full px-4 py-3.5 bg-slate-50 border border-slate-200 rounded-2xl text-sm text-slate-900 focus:bg-white focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all"
+                  className="w-full px-4 py-3.5 bg-slate-50 border border-slate-200 rounded-2xl text-sm text-slate-900 focus:bg-white focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-600 outline-none transition-all"
                 />
               </div>
 
@@ -345,7 +567,7 @@ export function LandingPage() {
                   placeholder="e.g. Mumbai"
                   value={formData.city}
                   onChange={(e) => setFormData({ ...formData, city: e.target.value })}
-                  className="w-full px-4 py-3.5 bg-slate-50 border border-slate-200 rounded-2xl text-sm text-slate-900 focus:bg-white focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all"
+                  className="w-full px-4 py-3.5 bg-slate-50 border border-slate-200 rounded-2xl text-sm text-slate-900 focus:bg-white focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-600 outline-none transition-all"
                 />
               </div>
             </div>
@@ -353,7 +575,7 @@ export function LandingPage() {
             <button
               type="submit"
               disabled={isSubmitting}
-              className="w-full py-4 rounded-2xl bg-primary text-white font-label-md text-sm font-bold shadow-xl shadow-indigo-500/20 hover:bg-indigo-700 active:scale-[0.99] disabled:opacity-50 disabled:cursor-not-allowed transition-all flex items-center justify-center gap-2 mt-4"
+              className="w-full py-4 rounded-2xl bg-indigo-600 text-white font-bold text-sm shadow-xl shadow-indigo-600/20 hover:bg-indigo-700 active:scale-[0.99] disabled:opacity-50 disabled:cursor-not-allowed transition-all flex items-center justify-center gap-2 mt-4"
             >
               {isSubmitting ? (
                 <>
@@ -368,7 +590,7 @@ export function LandingPage() {
               )}
             </button>
             <p className="text-center text-[11px] text-slate-400">
-              Our campus integration specialists will set up your menu & staff portal within 24 hours.
+              Our campus onboarding team will provision your kitchen portal and custom QR link within 24 hours.
             </p>
           </form>
         </div>
