@@ -9,8 +9,10 @@ export async function getDb(): Promise<pg.Pool> {
 
   const dbConfig = config.db;
   if (dbConfig.connectionString) {
+    const isLocal = dbConfig.connectionString.includes('localhost') || dbConfig.connectionString.includes('127.0.0.1');
     pool = new pg.Pool({
       connectionString: dbConfig.connectionString,
+      ssl: isLocal ? false : { rejectUnauthorized: false },
     });
   } else {
     pool = new pg.Pool({
@@ -44,7 +46,9 @@ export async function initDb(): Promise<void> {
       id TEXT PRIMARY KEY,
       name TEXT NOT NULL,
       description TEXT,
-      image TEXT
+      image TEXT,
+      slug TEXT UNIQUE,
+      group_name TEXT
     )
   `);
 
@@ -101,22 +105,29 @@ export async function initDb(): Promise<void> {
     console.log('Could not alter orders table (might already have canteen_id or using sqlite fallback)');
   }
 
-  // Seed initial canteens
+  try {
+    await db.query('ALTER TABLE canteen ADD COLUMN IF NOT EXISTS slug TEXT UNIQUE');
+    await db.query('ALTER TABLE canteen ADD COLUMN IF NOT EXISTS group_name TEXT');
+  } catch (e) {
+    console.log('Could not alter canteen table for slug and group_name');
+  }
+
   // Seed initial canteens
   const canteens = [
-    { id: 'c1', name: 'Canteen A', description: 'Independent student dining hall serving full meals, snacks, and drinks.', image: 'https://images.unsplash.com/photo-1556910103-1c02745aae4d?w=150&auto=format&fit=crop&q=60' },
-    { id: 'c2', name: 'Canteen B', description: 'Self-contained student canteen with its own custom kitchen and menu.', image: 'https://images.unsplash.com/photo-1501339847302-ac426a4a7cbb?w=150&auto=format&fit=crop&q=60' },
-    { id: 'c3', name: 'Canteen C', description: 'Separate dining lounge offering independent meals, beverages, and desserts.', image: 'https://images.unsplash.com/photo-1600271886742-f049cd451bba?w=150&auto=format&fit=crop&q=60' },
-    { id: 'c4', name: 'Canteen D', description: 'Independent dining pavilion serving a full variety of dishes and quick bites.', image: 'https://images.unsplash.com/photo-1668236543090-82eba5ee5976?w=150&auto=format&fit=crop&q=60' }
+    { id: 'c1', name: 'Canteen A', slug: 'canteen-a', group_name: 'Main Campus', description: 'Independent student dining hall serving full meals, snacks, and drinks.', image: 'https://images.unsplash.com/photo-1556910103-1c02745aae4d?w=150&auto=format&fit=crop&q=60' },
+    { id: 'c2', name: 'Canteen B', slug: 'canteen-b', group_name: 'Main Campus', description: 'Self-contained student canteen with its own custom kitchen and menu.', image: 'https://images.unsplash.com/photo-1501339847302-ac426a4a7cbb?w=150&auto=format&fit=crop&q=60' },
+    { id: 'c3', name: 'Canteen C', slug: 'canteen-c', group_name: 'Main Campus', description: 'Separate dining lounge offering independent meals, beverages, and desserts.', image: 'https://images.unsplash.com/photo-1600271886742-f049cd451bba?w=150&auto=format&fit=crop&q=60' },
+    { id: 'c4', name: 'Canteen D', slug: 'canteen-d', group_name: 'Main Campus', description: 'Independent dining pavilion serving a full variety of dishes and quick bites.', image: 'https://images.unsplash.com/photo-1668236543090-82eba5ee5976?w=150&auto=format&fit=crop&q=60' },
+    { id: 'c5', name: 'Downtown Diner', slug: 'downtown-diner', group_name: null, description: 'Standalone premium gourmet diner with fresh meals made to order.', image: 'https://images.unsplash.com/photo-1555396273-367ea4eb4db5?w=150&auto=format&fit=crop&q=60' }
   ];
   for (const c of canteens) {
     await db.query(
-      `INSERT INTO canteen (id, name, description, image) VALUES ($1, $2, $3, $4)
-       ON CONFLICT (id) DO UPDATE SET name = EXCLUDED.name, description = EXCLUDED.description, image = EXCLUDED.image`,
-      [c.id, c.name, c.description, c.image]
+      `INSERT INTO canteen (id, name, slug, group_name, description, image) VALUES ($1, $2, $3, $4, $5, $6)
+       ON CONFLICT (id) DO UPDATE SET name = EXCLUDED.name, slug = EXCLUDED.slug, group_name = EXCLUDED.group_name, description = EXCLUDED.description, image = EXCLUDED.image`,
+      [c.id, c.name, c.slug, c.group_name, c.description, c.image]
     );
   }
-  console.log('Database seeded with generic canteens.');
+  console.log('Database seeded with canteens including slugs and standalone diner.');
 
   // Seed initial users - Wipe old users first to prevent duplicates
   await db.query('DELETE FROM users');

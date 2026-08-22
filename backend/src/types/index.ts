@@ -3,7 +3,7 @@ export interface MenuItem {
   name: string;
   price: number;
   category: string;
-  is_available: number; // 0 or 1 in SQLite
+  is_available: number; // 0 or 1 in DB
   image?: string;
   canteen_id: string;
 }
@@ -30,4 +30,11 @@ export interface Order {
 
 export interface ParsedOrder extends Omit<Order, 'items'> {
   items: OrderItem[];
+  qr_payload?: {
+    order_id: string;
+    order_number: string;
+    canteen_id: string;
+    pickup_code: string;
+    signature: string;
+  };
 }

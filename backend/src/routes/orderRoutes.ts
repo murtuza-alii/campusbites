@@ -12,6 +12,7 @@ const orderService = new OrderService(orderRepository);
 const orderController = new OrderController(orderService);
 
 router.post('/', validateBody(createOrderSchema), asyncErrorWrapper((req, res) => orderController.placeOrder(req, res)));
+router.post('/verify-pickup', asyncErrorWrapper((req, res) => orderController.verifyPickup(req, res)));
 router.get('/:id', asyncErrorWrapper((req, res) => orderController.getOrderDetails(req, res)));
 
 export default router;

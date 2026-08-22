@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { X, RefreshCw, Coffee, ShieldAlert } from 'lucide-react';
+import { useParams, useNavigate } from 'react-router-dom';
+import { X, RefreshCw, Coffee, ShieldAlert, Store } from 'lucide-react';
 import { socket } from '../utils/socket.js';
 import { API_BASE_URL } from '../config.js';
 
@@ -32,6 +33,9 @@ interface Order {
 }
 
 export function StudentView() {
+  const { slug } = useParams<{ slug?: string }>();
+  const navigate = useNavigate();
+
   const [menu, setMenu] = useState<MenuItem[]>([]);
   const categories = ['All', ...Array.from(new Set(menu.map(item => item.category)))];
   const [selectedCategory, setSelectedCategory] = useState<string>('All');
@@ -46,23 +50,43 @@ export function StudentView() {
   const [isLoadingMenu, setIsLoadingMenu] = useState<boolean>(true);
   const [serverError, setServerError] = useState<string>('');
 
-  const [canteens, setCanteens] = useState<any[]>([]);
+  const [currentCanteen, setCurrentCanteen] = useState<any>(null);
+  const [sisterCanteens, setSisterCanteens] = useState<any[]>([]);
   const [selectedCanteenId, setSelectedCanteenId] = useState<string>('');
   const [isLoadingCanteens, setIsLoadingCanteens] = useState<boolean>(true);
 
-  // Fetch Canteens from Server
+  // Fetch Canteens from Server (Direct Slug or List)
   const fetchCanteens = async () => {
     try {
       setServerError('');
-      const response = await fetch(`${API_BASE_URL}/api/canteens`);
-      if (response.ok) {
-        const data = await response.json();
-        setCanteens(data);
-        if (data.length > 0) {
-          setSelectedCanteenId(data[0].id);
+      setIsLoadingCanteens(true);
+      if (slug) {
+        const response = await fetch(`${API_BASE_URL}/api/canteens/by-slug/${slug}`);
+        if (response.ok) {
+          const data = await response.json();
+          setCurrentCanteen(data.canteen);
+          setSisterCanteens(data.sisterCanteens || [data.canteen]);
+          setSelectedCanteenId(data.canteen.id);
+        } else {
+          setServerError('Requested diner or canteen was not found.');
         }
       } else {
-        setServerError('Failed to load canteens.');
+        const response = await fetch(`${API_BASE_URL}/api/canteens`);
+        if (response.ok) {
+          const data = await response.json();
+          if (data.length > 0) {
+            const first = data[0];
+            setCurrentCanteen(first);
+            setSelectedCanteenId(first.id);
+            if (first.group_name) {
+              setSisterCanteens(data.filter((c: any) => c.group_name === first.group_name));
+            } else {
+              setSisterCanteens([first]);
+            }
+          }
+        } else {
+          setServerError('Failed to load canteens.');
+        }
       }
     } catch (err: any) {
       setServerError(`Connection Error: ${err?.message || String(err)}`);
@@ -92,18 +116,22 @@ export function StudentView() {
     }
   };
 
-  const handleCanteenChange = (canteenId: string) => {
+  const handleCanteenChange = (canteen: any) => {
     if (cart.length > 0) {
       const confirmChange = window.confirm("Switching canteens will clear your current cart. Do you want to proceed?");
       if (!confirmChange) return;
     }
-    setSelectedCanteenId(canteenId);
+    setCurrentCanteen(canteen);
+    setSelectedCanteenId(canteen.id);
     setCart([]);
+    if (canteen.slug) {
+      navigate(`/c/${canteen.slug}`, { replace: true });
+    }
   };
 
   useEffect(() => {
     fetchCanteens();
-  }, []);
+  }, [slug]);
 
   useEffect(() => {
     if (selectedCanteenId) {
@@ -338,36 +366,52 @@ export function StudentView() {
           {/* Left side: Search, Categories and Food Menu List */}
           <div className="flex-1 min-w-0 flex flex-col gap-6">
             
-            {/* Canteen Selector */}
-            <div className="space-y-2">
-              <label className="font-label-md text-label-md text-text-secondary block">Select Canteen / Outlet</label>
-              {isLoadingCanteens ? (
-                <div className="flex items-center gap-2 text-text-muted py-4">
-                  <RefreshCw className="w-4 h-4 animate-spin text-primary" />
-                  <span>Loading canteens...</span>
-                </div>
-              ) : (
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                  {canteens.map((c) => (
+            {/* Header Banner / Canteen Selector */}
+            {isLoadingCanteens ? (
+              <div className="flex items-center gap-2 text-text-muted py-4">
+                <RefreshCw className="w-4 h-4 animate-spin text-primary" />
+                <span>Loading diner...</span>
+              </div>
+            ) : sisterCanteens.length > 1 ? (
+              <div className="space-y-2">
+                <label className="font-label-md text-label-md text-text-secondary block">Select Campus Canteen</label>
+                <div className="flex items-center gap-2 overflow-x-auto pb-2 scrollbar-none">
+                  {sisterCanteens.map((c) => (
                     <button
                       key={c.id}
-                      onClick={() => handleCanteenChange(c.id)}
-                      className={`flex flex-col items-center p-4 rounded-3xl border transition-all duration-300 ${
+                      onClick={() => handleCanteenChange(c)}
+                      className={`flex items-center gap-2.5 px-5 py-2.5 rounded-full font-label-md text-sm font-semibold transition-all duration-300 shrink-0 ${
                         selectedCanteenId === c.id
-                          ? 'bg-primary-container/10 border-primary text-primary shadow-lg shadow-indigo-500/5'
-                          : 'bg-white/40 border-white/60 hover:bg-white/60 text-text-primary'
+                          ? 'bg-primary text-white shadow-lg shadow-indigo-500/20 scale-[1.02]'
+                          : 'bg-white/50 border border-white/60 text-text-secondary hover:bg-white/80 hover:text-primary'
                       }`}
                     >
-                      {c.image && (
-                        <img src={c.image} alt={c.name} className="w-12 h-12 rounded-2xl object-cover mb-2 shadow-sm" />
-                      )}
-                      <span className="font-bold text-sm text-center leading-tight">{c.name}</span>
-                      <span className="text-[10px] text-text-muted mt-1 text-center line-clamp-1">{c.description}</span>
+                      {c.image && <img src={c.image} alt={c.name} className="w-6 h-6 rounded-full object-cover" />}
+                      <span>{c.name}</span>
                     </button>
                   ))}
                 </div>
-              )}
-            </div>
+              </div>
+            ) : (
+              <div className="flex items-center justify-between p-5 bg-white/60 backdrop-blur-md rounded-3xl border border-white/60 shadow-sm">
+                <div className="flex items-center gap-4">
+                  {currentCanteen?.image ? (
+                    <img src={currentCanteen.image} alt={currentCanteen?.name} className="w-14 h-14 rounded-2xl object-cover shadow-md" />
+                  ) : (
+                    <div className="w-14 h-14 rounded-2xl bg-primary/10 flex items-center justify-center text-primary">
+                      <Store className="w-7 h-7" />
+                    </div>
+                  )}
+                  <div>
+                    <div className="flex items-center gap-2">
+                      <h2 className="font-headline-md text-xl font-extrabold text-primary">{currentCanteen?.name || 'Diner'}</h2>
+                      <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-emerald-500/10 text-emerald-600 border border-emerald-500/20">Open Now</span>
+                    </div>
+                    <p className="font-label-sm text-xs text-text-muted mt-0.5">{currentCanteen?.description || 'Fresh meals & beverages served daily'}</p>
+                  </div>
+                </div>
+              </div>
+            )}
 
             {/* Search Bar */}
             <div className="relative group">
@@ -693,29 +737,47 @@ export function StudentView() {
                       </div>
                     </div>
 
-                    {/* OTP & QR Code Section */}
+                    {/* OTP & Signed Verification QR Code Section */}
                     {!isCompleted ? (
-                      <div className="md:w-1/3 bg-surface-container/50 rounded-2xl p-6 flex flex-col items-center justify-center border border-white/20 gap-4 relative">
+                      <div className="md:w-1/3 bg-surface-container/50 rounded-2xl p-6 flex flex-col items-center justify-center border border-white/20 gap-3 relative">
                         <div className="text-center w-full">
-                          <span className="font-label-sm text-text-muted uppercase tracking-wider block mb-2">PICKUP OTP</span>
-                          <div className="font-mono text-[40px] font-bold text-primary tracking-[8px] leading-tight mb-1">
-                            {order.pickup_code}
+                          <span className="font-label-sm text-text-muted uppercase tracking-wider block mb-1">VISUAL QUEUE TOKEN</span>
+                          <div className="font-headline-lg text-2xl font-black text-primary tracking-tight leading-tight">
+                            {order.order_number}
                           </div>
-                          <p className="text-[10px] leading-tight text-text-muted px-4">Pay offline and show code to canteen staff</p>
+                          <div className="font-mono text-sm font-bold text-slate-500 mt-0.5">
+                            OTP: {order.pickup_code}
+                          </div>
                         </div>
-                        <div className="p-3 bg-white rounded-xl shadow-inner border border-outline-variant/20 group-hover:scale-105 transition-transform duration-500">
+
+                        {/* Scannable HMAC-Signed Verification QR */}
+                        <div className="p-3 bg-white rounded-2xl shadow-md border border-outline-variant/20 group-hover:scale-105 transition-transform duration-500 flex flex-col items-center">
                           <img 
-                            className="w-24 h-24 object-contain" 
-                            src={`https://api.qrserver.com/v1/create-qr-code/?size=100x100&data=${encodeURIComponent(order.pickup_code)}&color=0f172a`} 
-                            alt="Order QR"
+                            className="w-28 h-28 object-contain rounded-lg" 
+                            src={`https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=${encodeURIComponent(
+                              JSON.stringify((order as any).qr_payload || {
+                                order_id: order.id,
+                                order_number: order.order_number,
+                                canteen_id: (order as any).canteen_id,
+                                pickup_code: order.pickup_code
+                              })
+                            )}&color=0f172a`} 
+                            alt="Order Verification QR"
                           />
                         </div>
+                        <p className="text-[10px] text-center leading-tight text-text-muted px-2">
+                          {order.status === 'READY' ? (
+                            <span className="text-emerald-600 font-bold animate-pulse">✓ Ready for pickup! Show QR to staff</span>
+                          ) : (
+                            <span>Show this QR code or OTP to staff at counter</span>
+                          )}
+                        </p>
                       </div>
                     ) : (
                       <div className="md:w-1/3 bg-success/5 border border-success/15 p-6 rounded-2xl text-center flex flex-col items-center justify-center min-h-[160px] self-stretch justify-self-stretch">
                         <span className="material-symbols-outlined text-success text-[40px] mb-2" style={{ fontVariationSettings: "'FILL' 1" }}>check_circle</span>
                         <span className="text-success text-sm font-bold">Order Completed!</span>
-                        <span className="text-xs text-text-muted mt-1 max-w-[180px]">Dishes collected and paid. Thank you!</span>
+                        <span className="text-xs text-text-muted mt-1 max-w-[180px]">Verified & collected. Thank you!</span>
                       </div>
                     )}
                   </div>

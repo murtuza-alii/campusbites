@@ -1,7 +1,8 @@
 import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
+import jsQR from 'jsqr';
 import { socket } from '../utils/socket.js';
-import { Clock, Coffee, RotateCw, CheckCircle, ShieldAlert, FileText, CheckCheck } from 'lucide-react';
+import { Clock, Coffee, RotateCw, CheckCircle, ShieldAlert, FileText, CheckCheck, Camera, Keyboard } from 'lucide-react';
 import { decodeToken, type DecodedToken } from '../utils/jwt.js';
 import { API_BASE_URL } from '../config.js';
 
@@ -36,6 +37,18 @@ export function StaffOrders() {
   const [canteens, setCanteens] = useState<any[]>([]);
   const [selectedAdminCanteenId, setSelectedAdminCanteenId] = useState<string>('');
   const [canteenName, setCanteenName] = useState<string>('');
+
+  // QR Pickup Verification State & Camera Scanner
+  const [isVerifyModalOpen, setIsVerifyModalOpen] = useState<boolean>(false);
+  const [verifyMode, setVerifyMode] = useState<'camera' | 'manual'>('camera');
+  const [verifyInput, setVerifyInput] = useState<string>('');
+  const [verifyResult, setVerifyResult] = useState<{ success: boolean; message: string } | null>(null);
+  const [isVerifying, setIsVerifying] = useState<boolean>(false);
+
+  const videoRef = useRef<HTMLVideoElement | null>(null);
+  const canvasRef = useRef<HTMLCanvasElement | null>(null);
+  const animFrameRef = useRef<number | null>(null);
+  const mediaStreamRef = useRef<MediaStream | null>(null);
 
   // Keep track of previous orders length to play sound on new orders
   const prevPendingCount = useRef<number>(0);
@@ -183,6 +196,123 @@ export function StaffOrders() {
     }
   };
 
+  const handleVerifyPickup = async (inputVal?: string) => {
+    const val = inputVal !== undefined ? inputVal : verifyInput;
+    if (!val.trim()) return;
+    try {
+      setIsVerifying(true);
+      setVerifyResult(null);
+
+      let bodyData: any = {};
+      const trimmed = val.trim();
+      if (trimmed.startsWith('{')) {
+        bodyData = { qr_data: trimmed };
+      } else {
+        bodyData = { order_id: trimmed, pickup_code: trimmed };
+      }
+
+      const res = await fetch(`${API_BASE_URL}/api/orders/verify-pickup`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(bodyData)
+      });
+
+      const data = await res.json();
+      if (res.ok && data.success) {
+        setVerifyResult({ success: true, message: data.message || 'Pickup verified & completed!' });
+        fetchOrders(selectedAdminCanteenId);
+      } else {
+        setVerifyResult({ success: false, message: data.error || 'Verification failed.' });
+      }
+    } catch (err: any) {
+      setVerifyResult({ success: false, message: err?.message || 'Connection error' });
+    } finally {
+      setIsVerifying(false);
+    }
+  };
+
+  useEffect(() => {
+    if (!isVerifyModalOpen || verifyMode !== 'camera') {
+      if (mediaStreamRef.current) {
+        mediaStreamRef.current.getTracks().forEach(t => t.stop());
+        mediaStreamRef.current = null;
+      }
+      if (animFrameRef.current) {
+        cancelAnimationFrame(animFrameRef.current);
+        animFrameRef.current = null;
+      }
+      return;
+    }
+
+    let active = true;
+
+    const startCamera = async () => {
+      try {
+        const stream = await navigator.mediaDevices.getUserMedia({
+          video: { facingMode: 'environment', width: { ideal: 640 }, height: { ideal: 480 } }
+        });
+        if (!active) {
+          stream.getTracks().forEach(t => t.stop());
+          return;
+        }
+        mediaStreamRef.current = stream;
+        if (videoRef.current) {
+          videoRef.current.srcObject = stream;
+          videoRef.current.setAttribute('playsinline', 'true');
+          await videoRef.current.play();
+        }
+
+        const scanFrame = () => {
+          if (!active) return;
+          const video = videoRef.current;
+          const canvas = canvasRef.current;
+          if (video && canvas && video.readyState === video.HAVE_ENOUGH_DATA) {
+            const ctx = canvas.getContext('2d');
+            if (ctx) {
+              canvas.width = video.videoWidth;
+              canvas.height = video.videoHeight;
+              ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+              const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+              const code = jsQR(imageData.data, imageData.width, imageData.height, {
+                inversionAttempts: 'dontInvert'
+              });
+
+              if (code && code.data) {
+                setVerifyInput(code.data);
+                handleVerifyPickup(code.data);
+                setTimeout(() => {
+                  if (active) {
+                    animFrameRef.current = requestAnimationFrame(scanFrame);
+                  }
+                }, 2500);
+                return;
+              }
+            }
+          }
+          animFrameRef.current = requestAnimationFrame(scanFrame);
+        };
+
+        animFrameRef.current = requestAnimationFrame(scanFrame);
+      } catch (err: any) {
+        console.error('Camera access error:', err);
+      }
+    };
+
+    startCamera();
+
+    return () => {
+      active = false;
+      if (mediaStreamRef.current) {
+        mediaStreamRef.current.getTracks().forEach(t => t.stop());
+        mediaStreamRef.current = null;
+      }
+      if (animFrameRef.current) {
+        cancelAnimationFrame(animFrameRef.current);
+        animFrameRef.current = null;
+      }
+    };
+  }, [isVerifyModalOpen, verifyMode]);
+
   const getFilteredOrders = (status: 'PENDING' | 'PREPARING' | 'READY' | 'COMPLETED') => {
     return orders.filter(o => o.status === status);
   };
@@ -218,20 +348,48 @@ export function StaffOrders() {
           </div>
         )}
 
-        {/* Canteen Switcher for all roles */}
+        {/* Canteen Switcher & Direct Link */}
         {userProfile && (
-          <div className="flex items-center gap-3 bg-white/40 border border-white/60 p-2 rounded-2xl backdrop-blur-md shadow-sm self-start md:self-auto">
-            <span className="material-symbols-outlined text-slate-400 text-[20px] ml-1">storefront</span>
-            <select
-              value={selectedAdminCanteenId}
-              onChange={(e) => setSelectedAdminCanteenId(e.target.value)}
-              className="bg-transparent border-none rounded-xl px-2 py-1 font-label-md text-slate-900 focus:outline-none cursor-pointer"
+          <div className="flex items-center gap-3">
+            <div className="flex items-center gap-3 bg-white/40 border border-white/60 p-2 rounded-2xl backdrop-blur-md shadow-sm self-start md:self-auto">
+              <span className="material-symbols-outlined text-slate-400 text-[20px] ml-1">storefront</span>
+              <select
+                value={selectedAdminCanteenId}
+                onChange={(e) => setSelectedAdminCanteenId(e.target.value)}
+                className="bg-transparent border-none rounded-xl px-2 py-1 font-label-md text-slate-900 focus:outline-none cursor-pointer"
+              >
+                <option value="">All Canteens</option>
+                {canteens.map(c => (
+                  <option key={c.id} value={c.id}>{c.name}</option>
+                ))}
+              </select>
+            </div>
+            <button
+              onClick={() => {
+                const current = canteens.find(c => c.id === selectedAdminCanteenId);
+                const slug = current?.slug || selectedAdminCanteenId || 'canteen-a';
+                const url = `${window.location.origin}/c/${slug}`;
+                navigator.clipboard.writeText(url);
+                alert(`Direct Student Link copied to clipboard:\n${url}`);
+              }}
+              className="flex items-center gap-1.5 px-3 py-2 rounded-2xl font-label-md text-xs font-bold text-primary bg-primary/10 hover:bg-primary/20 border border-primary/20 transition-all shadow-sm active:scale-95"
+              title="Copy Direct Link for Students"
             >
-              <option value="">All Canteens</option>
-              {canteens.map(c => (
-                <option key={c.id} value={c.id}>{c.name}</option>
-              ))}
-            </select>
+              <span className="material-symbols-outlined text-[16px]">link</span>
+              <span>Copy Link</span>
+            </button>
+            <button
+              onClick={() => {
+                setIsVerifyModalOpen(true);
+                setVerifyInput('');
+                setVerifyResult(null);
+              }}
+              className="flex items-center gap-1.5 px-4 py-2 rounded-2xl font-label-md text-xs font-bold text-white bg-emerald-600 hover:bg-emerald-700 transition-all shadow-md active:scale-95"
+              title="Scan or enter QR verification code"
+            >
+              <span className="material-symbols-outlined text-[16px]">qr_code_scanner</span>
+              <span>Verify Pickup QR</span>
+            </button>
           </div>
         )}
 
@@ -620,6 +778,170 @@ export function StaffOrders() {
             )}
           </div>
         </section>
+      )}
+
+      {/* QR Pickup Verification Modal with Live Camera Scanner */}
+      {isVerifyModalOpen && (
+        <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-md flex items-center justify-center p-4">
+          <div className="bg-white/95 backdrop-blur-2xl border border-white rounded-3xl p-6 max-w-lg w-full shadow-2xl space-y-5 animate-in">
+            <div className="flex justify-between items-center border-b border-outline-variant/20 pb-3">
+              <div className="flex items-center gap-2.5">
+                <div className="w-10 h-10 rounded-2xl bg-emerald-500/10 text-emerald-600 flex items-center justify-center font-bold shadow-sm">
+                  <span className="material-symbols-outlined text-[22px]">qr_code_scanner</span>
+                </div>
+                <div>
+                  <h3 className="font-bold text-lg text-primary leading-none">Order QR Scanner & Verification</h3>
+                  <p className="text-xs text-text-muted mt-1">Scan student device QR code or enter OTP</p>
+                </div>
+              </div>
+              <button 
+                onClick={() => setIsVerifyModalOpen(false)}
+                className="p-2 rounded-full text-slate-400 hover:bg-slate-100 hover:text-slate-700 transition-colors"
+              >
+                <span className="material-symbols-outlined text-[20px]">close</span>
+              </button>
+            </div>
+
+            {/* Mode Selector Tabs */}
+            <div className="grid grid-cols-2 gap-2 bg-slate-100 p-1 rounded-2xl">
+              <button
+                type="button"
+                onClick={() => setVerifyMode('camera')}
+                className={`py-2 rounded-xl font-label-md text-xs font-bold flex items-center justify-center gap-2 transition-all ${
+                  verifyMode === 'camera'
+                    ? 'bg-white text-emerald-700 shadow-sm'
+                    : 'text-slate-600 hover:text-slate-900'
+                }`}
+              >
+                <Camera className="w-4 h-4" />
+                <span>Camera Scanner</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => setVerifyMode('manual')}
+                className={`py-2 rounded-xl font-label-md text-xs font-bold flex items-center justify-center gap-2 transition-all ${
+                  verifyMode === 'manual'
+                    ? 'bg-white text-emerald-700 shadow-sm'
+                    : 'text-slate-600 hover:text-slate-900'
+                }`}
+              >
+                <Keyboard className="w-4 h-4" />
+                <span>Manual OTP / Code</span>
+              </button>
+            </div>
+
+            {/* Mode 1: Live Camera Scan View */}
+            {verifyMode === 'camera' ? (
+              <div className="space-y-3">
+                <div className="relative rounded-2xl overflow-hidden bg-slate-950 aspect-video flex items-center justify-center border border-slate-800 shadow-inner">
+                  <video 
+                    ref={videoRef} 
+                    className="w-full h-full object-cover" 
+                    playsInline 
+                    muted 
+                  />
+                  <canvas ref={canvasRef} className="hidden" />
+
+                  {/* Scanning Viewfinder Frame */}
+                  <div className="absolute inset-0 pointer-events-none flex items-center justify-center">
+                    <div className="w-48 h-48 border-2 border-emerald-400 rounded-2xl relative shadow-[0_0_20px_rgba(52,211,153,0.3)] animate-pulse">
+                      <div className="absolute top-0 left-0 w-6 h-6 border-t-4 border-l-4 border-emerald-500 rounded-tl-xl"></div>
+                      <div className="absolute top-0 right-0 w-6 h-6 border-t-4 border-r-4 border-emerald-500 rounded-tr-xl"></div>
+                      <div className="absolute bottom-0 left-0 w-6 h-6 border-b-4 border-l-4 border-emerald-500 rounded-bl-xl"></div>
+                      <div className="absolute bottom-0 right-0 w-6 h-6 border-b-4 border-r-4 border-emerald-500 rounded-br-xl"></div>
+                      <div className="absolute inset-0 bg-emerald-500/5 rounded-2xl"></div>
+                    </div>
+                  </div>
+
+                  <div className="absolute bottom-2 inset-x-0 text-center">
+                    <span className="px-3 py-1 bg-black/60 backdrop-blur-md rounded-full text-[10px] text-emerald-300 font-semibold border border-emerald-500/20">
+                      Align student QR inside frame
+                    </span>
+                  </div>
+                </div>
+              </div>
+            ) : (
+              /* Mode 2: Manual Code Input */
+              <div className="space-y-3">
+                <label className="font-label-md text-xs text-text-secondary block">
+                  Paste Scanned QR JSON Payload or Enter Pickup OTP / Order ID
+                </label>
+                <textarea
+                  rows={4}
+                  value={verifyInput}
+                  onChange={(e) => setVerifyInput(e.target.value)}
+                  placeholder='e.g. {"order_id": "ord_...", "pickup_code": "1234", "signature": "..."} or 1234'
+                  className="w-full px-4 py-3 bg-white border border-outline-variant/40 rounded-2xl text-xs font-mono focus:ring-2 focus:ring-emerald-500/30 focus:border-emerald-500 outline-none resize-none shadow-sm"
+                />
+                <div className="flex gap-2">
+                  <button
+                    type="button"
+                    onClick={async () => {
+                      try {
+                        const text = await navigator.clipboard.readText();
+                        setVerifyInput(text);
+                        handleVerifyPickup(text);
+                      } catch (e) {
+                        alert('Could not read clipboard');
+                      }
+                    }}
+                    className="px-3 py-1.5 rounded-xl text-xs font-bold bg-slate-100 text-slate-700 hover:bg-slate-200 transition-all flex items-center gap-1"
+                  >
+                    <span className="material-symbols-outlined text-[14px]">content_paste</span>
+                    <span>Paste Clipboard & Verify</span>
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {/* Verification Result Feedback Overlay */}
+            {verifyResult && (
+              <div className={`p-4 rounded-2xl border text-xs font-semibold flex items-center gap-3 animate-in ${
+                verifyResult.success
+                  ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-800'
+                  : 'bg-rose-500/10 border-rose-500/30 text-rose-800'
+              }`}>
+                <span className="material-symbols-outlined text-[24px] shrink-0">
+                  {verifyResult.success ? 'check_circle' : 'error'}
+                </span>
+                <div className="flex-1 min-w-0">
+                  <p className="font-bold text-sm leading-tight">{verifyResult.success ? 'Verified Successfully!' : 'Verification Failed'}</p>
+                  <p className="text-xs mt-0.5 opacity-90">{verifyResult.message}</p>
+                </div>
+              </div>
+            )}
+
+            <div className="flex justify-end gap-3 pt-2">
+              <button
+                type="button"
+                onClick={() => setIsVerifyModalOpen(false)}
+                className="px-5 py-2.5 rounded-2xl font-label-md text-xs text-text-secondary bg-slate-100 hover:bg-slate-200 transition-all"
+              >
+                Close
+              </button>
+              {verifyMode === 'manual' && (
+                <button
+                  type="button"
+                  onClick={() => handleVerifyPickup()}
+                  disabled={isVerifying || !verifyInput.trim()}
+                  className="px-6 py-2.5 rounded-2xl font-label-md text-xs font-bold text-white bg-emerald-600 hover:bg-emerald-700 disabled:opacity-50 disabled:cursor-not-allowed shadow-md transition-all flex items-center gap-2"
+                >
+                  {isVerifying ? (
+                    <>
+                      <RotateCw className="w-4 h-4 animate-spin" />
+                      Verifying...
+                    </>
+                  ) : (
+                    <>
+                      <span className="material-symbols-outlined text-[16px]">verified</span>
+                      Verify Pickup
+                    </>
+                  )}
+                </button>
+              )}
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );

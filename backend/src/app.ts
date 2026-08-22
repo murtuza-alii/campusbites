@@ -11,6 +11,9 @@ import canteenRoutes from './routes/canteenRoutes.js';
 import { errorMiddleware } from './middleware/errorMiddleware.js';
 
 const app = express();
+ 
+// Trust reverse proxy (Render / Cloudflare) for accurate rate limiting
+app.set('trust proxy', 1);
 
 // Apply security headers
 app.use(helmet());

@@ -1,7 +1,8 @@
 import { OrderRepository } from '../repositories/OrderRepository.js';
 import { ParsedOrder } from '../types/index.js';
-import { emitOrderStatusChanged } from '../utils/websocket.js';
+import { emitOrderCreated, emitOrderStatusChanged } from '../utils/websocket.js';
 import { orderQueue } from '../queues/orderQueue.js';
+import { buildQRPayload } from '../utils/qrSigner.js';
 
 export class OrderService {
   constructor(private readonly orderRepository: OrderRepository) {}
@@ -16,31 +17,76 @@ export class OrderService {
     // Generate order ID synchronously so the client can immediately subscribe to updates
     const id = 'ord_' + Math.random().toString(36).substring(2, 11);
 
-    // Push the checkout task to the BullMQ Redis queue
-    await orderQueue.add('checkout', {
-      id,
-      student_name: data.name,
-      student_roll: data.rollNumber,
-      canteen_id: data.canteenId,
-      items: JSON.stringify(data.items),
-      total_price: data.totalPrice,
-    });
+    try {
+      // Push the checkout task to the BullMQ Redis queue
+      await orderQueue.add('checkout', {
+        id,
+        student_name: data.name,
+        student_roll: data.rollNumber,
+        canteen_id: data.canteenId,
+        items: JSON.stringify(data.items),
+        total_price: data.totalPrice,
+      });
 
-    console.log(`Enqueued checkout job for order ID: ${id}`);
+      console.log(`Enqueued checkout job for order ID: ${id}`);
 
-    // Return immediate pending state representation
-    return {
-      id,
-      order_number: 'Queueing...',
-      student_name: data.name,
-      student_roll: data.rollNumber,
-      canteen_id: data.canteenId,
-      items: data.items,
-      total_price: data.totalPrice,
-      status: 'PENDING',
-      pickup_code: '...',
-      created_at: new Date().toISOString(),
-    };
+      // Return immediate pending state representation
+      return {
+        id,
+        order_number: 'Queueing...',
+        student_name: data.name,
+        student_roll: data.rollNumber,
+        canteen_id: data.canteenId,
+        items: data.items,
+        total_price: data.totalPrice,
+        status: 'PENDING',
+        pickup_code: '...',
+        created_at: new Date().toISOString(),
+      };
+    } catch (queueError) {
+      console.warn('Redis queue unavailable, falling back to direct database write:', queueError);
+
+      // Calculate order number sequentially
+      const totalOrders = await this.orderRepository.countAll();
+      const orderNum = 1001 + totalOrders;
+      const orderNumber = `#${orderNum}`;
+
+      // Generate 4-digit pickup code
+      const pickupCode = Math.floor(1000 + Math.random() * 9000).toString();
+
+      // Write order directly to PostgreSQL
+      await this.orderRepository.create({
+        id,
+        order_number: orderNumber,
+        student_name: data.name,
+        student_roll: data.rollNumber,
+        canteen_id: data.canteenId,
+        items: JSON.stringify(data.items),
+        total_price: data.totalPrice,
+        status: 'PENDING',
+        pickup_code: pickupCode,
+      });
+
+      const parsedOrder: ParsedOrder = {
+        id,
+        order_number: orderNumber,
+        student_name: data.name,
+        student_roll: data.rollNumber,
+        canteen_id: data.canteenId,
+        items: data.items,
+        total_price: data.totalPrice,
+        status: 'PENDING',
+        pickup_code: pickupCode,
+        created_at: new Date().toISOString(),
+        qr_payload: buildQRPayload({ id, order_number: orderNumber, canteen_id: data.canteenId, pickup_code: pickupCode })
+      };
+
+      // Notify staff dashboard and student in real-time
+      emitOrderCreated(parsedOrder);
+      emitOrderStatusChanged(parsedOrder);
+
+      return parsedOrder;
+    }
   }
 
   async getOrderDetails(id: string): Promise<ParsedOrder> {
@@ -53,7 +99,8 @@ export class OrderService {
 
     return {
       ...order,
-      items: JSON.parse(order.items)
+      items: JSON.parse(order.items),
+      qr_payload: buildQRPayload(order)
     };
   }
 
@@ -61,7 +108,8 @@ export class OrderService {
     const orders = await this.orderRepository.findAll(canteenId);
     return orders.map(ord => ({
       ...ord,
-      items: JSON.parse(ord.items)
+      items: JSON.parse(ord.items),
+      qr_payload: buildQRPayload(ord)
     }));
   }
 
@@ -77,9 +125,10 @@ export class OrderService {
 
     const updated = await this.orderRepository.findById(id);
     if (updated) {
-      const parsedOrder = {
+      const parsedOrder: ParsedOrder = {
         ...updated,
-        items: JSON.parse(updated.items)
+        items: JSON.parse(updated.items),
+        qr_payload: buildQRPayload(updated)
       };
 
       // Emit WebSocket notification to student client and admins

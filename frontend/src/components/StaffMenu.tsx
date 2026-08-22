@@ -295,18 +295,34 @@ export function StaffMenu() {
         <div className="flex items-center gap-4 self-stretch md:self-auto justify-between">
           {/* Canteen Switcher for all roles */}
           {userProfile && (
-            <div className="flex items-center gap-3 bg-white/40 border border-white/60 p-2 rounded-2xl backdrop-blur-md shadow-sm">
-              <span className="material-symbols-outlined text-slate-400 text-[20px] ml-1">storefront</span>
-              <select
-                value={selectedAdminCanteenId}
-                onChange={(e) => setSelectedAdminCanteenId(e.target.value)}
-                className="bg-transparent border-none rounded-xl px-2 py-1 font-label-md text-slate-900 focus:outline-none cursor-pointer"
+            <div className="flex items-center gap-3">
+              <div className="flex items-center gap-3 bg-white/40 border border-white/60 p-2 rounded-2xl backdrop-blur-md shadow-sm">
+                <span className="material-symbols-outlined text-slate-400 text-[20px] ml-1">storefront</span>
+                <select
+                  value={selectedAdminCanteenId}
+                  onChange={(e) => setSelectedAdminCanteenId(e.target.value)}
+                  className="bg-transparent border-none rounded-xl px-2 py-1 font-label-md text-slate-900 focus:outline-none cursor-pointer"
+                >
+                  <option value="">All Canteens</option>
+                  {canteens.map(c => (
+                    <option key={c.id} value={c.id}>{c.name}</option>
+                  ))}
+                </select>
+              </div>
+              <button
+                onClick={() => {
+                  const current = canteens.find(c => c.id === selectedAdminCanteenId);
+                  const slug = current?.slug || selectedAdminCanteenId || 'canteen-a';
+                  const url = `${window.location.origin}/c/${slug}`;
+                  navigator.clipboard.writeText(url);
+                  alert(`Direct Student Link copied to clipboard:\n${url}`);
+                }}
+                className="flex items-center gap-1.5 px-4 py-2.5 rounded-2xl font-label-md text-xs font-bold text-primary bg-primary/10 hover:bg-primary/20 border border-primary/20 transition-all shadow-sm active:scale-95"
+                title="Copy Direct Link for Students"
               >
-                <option value="">All Canteens</option>
-                {canteens.map(c => (
-                  <option key={c.id} value={c.id}>{c.name}</option>
-                ))}
-              </select>
+                <span className="material-symbols-outlined text-[16px]">link</span>
+                <span>Copy Link</span>
+              </button>
             </div>
           )}
 

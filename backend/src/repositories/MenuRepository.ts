@@ -2,10 +2,13 @@ import { getDb } from '../db.js';
 import { MenuItem } from '../types/index.js';
 
 export class MenuRepository {
-  async findAllPublic(canteenId?: string): Promise<MenuItem[]> {
+  async findAllPublic(canteenIdOrSlug?: string): Promise<MenuItem[]> {
     const db = await getDb();
-    if (canteenId) {
-      const result = await db.query<MenuItem>('SELECT * FROM menu WHERE is_available = 1 AND canteen_id = $1', [canteenId]);
+    if (canteenIdOrSlug) {
+      const result = await db.query<MenuItem>(
+        'SELECT * FROM menu WHERE is_available = 1 AND (canteen_id = $1 OR canteen_id = (SELECT id FROM canteen WHERE slug = $1 LIMIT 1))',
+        [canteenIdOrSlug]
+      );
       return result.rows;
     } else {
       const result = await db.query<MenuItem>('SELECT * FROM menu WHERE is_available = 1');
@@ -13,10 +16,13 @@ export class MenuRepository {
     }
   }
 
-  async findAllAdmin(canteenId?: string): Promise<MenuItem[]> {
+  async findAllAdmin(canteenIdOrSlug?: string): Promise<MenuItem[]> {
     const db = await getDb();
-    if (canteenId) {
-      const result = await db.query<MenuItem>('SELECT * FROM menu WHERE canteen_id = $1', [canteenId]);
+    if (canteenIdOrSlug) {
+      const result = await db.query<MenuItem>(
+        'SELECT * FROM menu WHERE (canteen_id = $1 OR canteen_id = (SELECT id FROM canteen WHERE slug = $1 LIMIT 1))',
+        [canteenIdOrSlug]
+      );
       return result.rows;
     } else {
       const result = await db.query<MenuItem>('SELECT * FROM menu');

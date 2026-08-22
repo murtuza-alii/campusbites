@@ -17,6 +17,12 @@ if (rawUrl) {
       username: parsed.username || undefined,
       password: parsed.password ? decodeURIComponent(parsed.password) : undefined,
       maxRetriesPerRequest: null, // Required by BullMQ
+      retryStrategy(times) {
+        if (times > 3) {
+          return 30000; // Backoff to 30s after 3 failed attempts
+        }
+        return Math.min(times * 1000, 3000);
+      },
     };
     
     // For Upstash rediss:// connections, we need tls options
@@ -30,6 +36,10 @@ if (rawUrl) {
       port: config.redis.port,
       password: config.redis.password,
       maxRetriesPerRequest: null,
+      retryStrategy(times) {
+        if (times > 3) return 30000;
+        return Math.min(times * 1000, 3000);
+      },
     };
   }
 } else {
@@ -38,6 +48,10 @@ if (rawUrl) {
     port: config.redis.port,
     password: config.redis.password,
     maxRetriesPerRequest: null,
+    retryStrategy(times) {
+      if (times > 3) return 30000;
+      return Math.min(times * 1000, 3000);
+    },
   };
 }
 
