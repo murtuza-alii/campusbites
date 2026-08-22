@@ -36,26 +36,20 @@ export default function App() {
   const isStaffPath = location.pathname.startsWith('/staff');
 
   return (
-    <div className="min-h-screen flex flex-col selection:bg-primary-fixed antialiased relative">
-      {/* Design System Background Elements */}
-      <div className="noise"></div>
-      <div className="blob bg-indigo-200 w-[500px] h-[500px] top-[-10%] left-[-5%]"></div>
-      <div className="blob bg-pink-100 w-[400px] h-[400px] bottom-[10%] right-[10%]"></div>
-      <div className="blob bg-emerald-50 w-[300px] h-[300px] top-[40%] left-[30%]"></div>
-
+    <div className="min-h-screen flex flex-col antialiased relative bg-[#F8FAFC]">
       {/* Navigation Bar */}
-      <header className="fixed top-0 w-full h-[64px] z-50 bg-white/55 backdrop-blur-[16px] border-b border-white/45 flex items-center justify-between px-margin-mobile md:px-margin-desktop shadow-[0_32px_32px_rgba(31,38,135,0.03)]">
-        <Link to="/" className="flex items-center gap-3">
-          <div className="w-10 h-10 bg-primary-container rounded-xl flex items-center justify-center text-white shadow-lg">
-            <span className="material-symbols-outlined text-[24px]" style={{ fontVariationSettings: "'FILL' 1" }}>restaurant</span>
+      <header className="fixed top-0 w-full h-[70px] z-50 bg-white/80 backdrop-blur-xl border-b border-slate-200/80 flex items-center justify-between px-4 sm:px-8 shadow-sm">
+        <Link to="/" className="flex items-center gap-3 group">
+          <div className="w-10 h-10 bg-indigo-600 group-hover:bg-indigo-700 rounded-2xl flex items-center justify-center text-white shadow-md shadow-indigo-600/20 transition-all">
+            <span className="material-symbols-outlined text-[22px]">restaurant</span>
           </div>
           <div>
-            <h1 className="font-headline-md text-headline-md font-bold text-primary leading-none">CampusBites</h1>
-            <p className="font-label-sm text-label-sm text-on-surface-variant">College Canteen Hub</p>
+            <h1 className="font-headline-md text-lg font-black text-slate-900 leading-none tracking-tight">CampusBites</h1>
+            <p className="font-label-sm text-[11px] font-semibold text-slate-500 mt-0.5">College Dining & Canteen Hub</p>
           </div>
         </Link>
 
-        <div className="flex items-center gap-4 sm:gap-6">
+        <div className="flex items-center gap-3 sm:gap-4">
           {isStaffPath ? (
             <>
               {isStaffLoggedIn && (
