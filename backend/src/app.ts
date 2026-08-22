@@ -9,6 +9,7 @@ import orderRoutes from './routes/orderRoutes.js';
 import adminRoutes from './routes/adminRoutes.js';
 import canteenRoutes from './routes/canteenRoutes.js';
 import partnerRoutes from './routes/partnerRoutes.js';
+import healthRoutes from './routes/healthRoutes.js';
 import { errorMiddleware } from './middleware/errorMiddleware.js';
 
 const app = express();
@@ -21,6 +22,10 @@ app.use(helmet());
 
 // Enable CORS
 app.use(cors());
+
+// Dedicated healthcheck endpoints (exempt from rate limiter for keepalive & monitoring)
+app.use('/health', healthRoutes);
+app.use('/api/health', healthRoutes);
 
 // Limit requests to prevent brute force / DoS
 const limiter = rateLimit({

@@ -5,6 +5,7 @@ import { config } from './config/unifiedConfig.js';
 import { initSocket } from './utils/websocket.js';
 import { initOrderWorker } from './queues/orderQueue.js';
 import { getRedis } from './config/redis.js';
+import { startKeepAliveService } from './utils/keepAlive.js';
 
 async function startServer() {
   try {
@@ -26,6 +27,8 @@ async function startServer() {
     
     httpServer.listen(port, () => {
       console.log(`Canteen server running on http://localhost:${port}`);
+      // Launch background keep-alive pings to keep Render free tier alive
+      startKeepAliveService();
     });
   } catch (error) {
     console.error('Failed to start canteen server:', error);

@@ -8,6 +8,7 @@ import { StaffOrders } from './components/StaffOrders';
 import { StaffMenu } from './components/StaffMenu';
 import { SmoothCursor } from './components/ui/SmoothCursor';
 import { InteractiveBackground } from './components/ui/InteractiveBackground';
+import { ServerWarmupBanner } from './components/ServerWarmupBanner';
 import { decodeToken } from './utils/jwt';
 import { UtensilsCrossed, ArrowLeft, LogOut, ShieldCheck, Utensils } from 'lucide-react';
 
@@ -45,6 +46,9 @@ export default function App() {
 
       {/* ReactBits Dynamic Dot Matrix Canvas */}
       <InteractiveBackground />
+
+      {/* Render Server Standby & Warmup Banner */}
+      <ServerWarmupBanner />
 
       {/* Navigation Bar */}
       <header className="fixed top-0 w-full h-[68px] z-40 bg-white/90 backdrop-blur-xl border-b border-slate-200/90 flex items-center justify-between px-3.5 sm:px-8 shadow-sm">
