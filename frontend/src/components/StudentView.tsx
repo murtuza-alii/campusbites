@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
-import { X, RefreshCw, Coffee, ShieldAlert, Store } from 'lucide-react';
+import { useParams, useNavigate, Link } from 'react-router-dom';
+import { X, RefreshCw, Coffee, ShieldAlert, Store, Building2, ArrowLeft } from 'lucide-react';
 import { socket } from '../utils/socket.js';
 import { API_BASE_URL } from '../config.js';
 
@@ -373,23 +373,52 @@ export function StudentView() {
                 <span>Loading diner...</span>
               </div>
             ) : sisterCanteens.length > 1 ? (
-              <div className="space-y-2">
-                <label className="font-label-md text-label-md text-text-secondary block">Select Campus Canteen</label>
-                <div className="flex items-center gap-2 overflow-x-auto pb-2 scrollbar-none">
-                  {sisterCanteens.map((c) => (
-                    <button
-                      key={c.id}
-                      onClick={() => handleCanteenChange(c)}
-                      className={`flex items-center gap-2.5 px-5 py-2.5 rounded-full font-label-md text-sm font-semibold transition-all duration-300 shrink-0 ${
-                        selectedCanteenId === c.id
-                          ? 'bg-primary text-white shadow-lg shadow-indigo-500/20 scale-[1.02]'
-                          : 'bg-white/50 border border-white/60 text-text-secondary hover:bg-white/80 hover:text-primary'
-                      }`}
+              <div className="space-y-4">
+                {currentCanteen?.group_name && (
+                  <div className="flex items-center justify-between p-4 sm:p-5 bg-white/70 backdrop-blur-md rounded-3xl border border-white/80 shadow-sm">
+                    <div className="flex items-center gap-3.5">
+                      <div className="w-11 h-11 rounded-2xl bg-indigo-600/10 text-indigo-600 flex items-center justify-center font-bold">
+                        <Building2 className="w-6 h-6" />
+                      </div>
+                      <div>
+                        <div className="flex items-center gap-2">
+                          <h2 className="font-headline-md text-base sm:text-lg font-black text-slate-900 leading-tight">
+                            {currentCanteen.group_name}
+                          </h2>
+                          <span className="px-2.5 py-0.5 rounded-full text-[10px] font-extrabold uppercase tracking-wider bg-emerald-500/10 text-emerald-700 border border-emerald-500/20">
+                            Campus Open
+                          </span>
+                        </div>
+                        <p className="text-xs text-slate-500 mt-0.5">Showing menu for {currentCanteen.name} · Switch canteen below</p>
+                      </div>
+                    </div>
+                    <Link
+                      to="/"
+                      className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold text-slate-600 hover:text-slate-900 bg-slate-100 hover:bg-slate-200 transition-all"
                     >
-                      {c.image && <img src={c.image} alt={c.name} className="w-6 h-6 rounded-full object-cover" />}
-                      <span>{c.name}</span>
-                    </button>
-                  ))}
+                      <ArrowLeft className="w-3.5 h-3.5" />
+                      <span>All Campuses</span>
+                    </Link>
+                  </div>
+                )}
+                <div className="space-y-2">
+                  <label className="font-label-md text-xs font-bold text-text-secondary uppercase tracking-wider block">Select Campus Canteen</label>
+                  <div className="flex items-center gap-2 overflow-x-auto pb-2 scrollbar-none">
+                    {sisterCanteens.map((c) => (
+                      <button
+                        key={c.id}
+                        onClick={() => handleCanteenChange(c)}
+                        className={`flex items-center gap-2.5 px-5 py-2.5 rounded-full font-label-md text-sm font-semibold transition-all duration-300 shrink-0 ${
+                          selectedCanteenId === c.id
+                            ? 'bg-primary text-white shadow-lg shadow-indigo-500/20 scale-[1.02]'
+                            : 'bg-white/50 border border-white/60 text-text-secondary hover:bg-white/80 hover:text-primary'
+                        }`}
+                      >
+                        {c.image && <img src={c.image} alt={c.name} className="w-6 h-6 rounded-full object-cover" />}
+                        <span>{c.name}</span>
+                      </button>
+                    ))}
+                  </div>
                 </div>
               </div>
             ) : (
@@ -410,6 +439,13 @@ export function StudentView() {
                     <p className="font-label-sm text-xs text-text-muted mt-0.5">{currentCanteen?.description || 'Fresh meals & beverages served daily'}</p>
                   </div>
                 </div>
+                <Link
+                  to="/"
+                  className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold text-slate-600 hover:text-slate-900 bg-slate-100 hover:bg-slate-200 transition-all"
+                >
+                  <ArrowLeft className="w-3.5 h-3.5" />
+                  <span>All Campuses</span>
+                </Link>
               </div>
             )}
 

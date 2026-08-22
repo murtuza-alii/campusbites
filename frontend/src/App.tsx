@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Routes, Route, Link, useNavigate, useLocation } from 'react-router-dom';
+import { LandingPage } from './components/LandingPage';
 import { StudentView } from './components/StudentView';
 import { StaffView } from './components/StaffView';
 import { StaffLogin } from './components/StaffLogin';
@@ -54,7 +55,7 @@ export default function App() {
           </div>
         </Link>
 
-        <div className="flex items-center gap-6">
+        <div className="flex items-center gap-4 sm:gap-6">
           {isStaffPath ? (
             <>
               {isStaffLoggedIn && (
@@ -86,7 +87,7 @@ export default function App() {
               <div className="h-8 w-px bg-outline-variant/30 hidden md:block"></div>
               <div className="flex items-center gap-3">
                 <Link 
-                  to="/" 
+                  to="/c/mithibai-main-campus" 
                   className="flex items-center gap-2 px-4 py-2 border border-primary/20 rounded-full font-label-md text-label-md text-primary bg-white/40 hover:bg-white/60 transition-all active:scale-[0.98]"
                 >
                   <span className="material-symbols-outlined text-[18px]">arrow_back</span>
@@ -104,17 +105,21 @@ export default function App() {
               </div>
             </>
           ) : (
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-3">
+              <Link
+                to="/c/mithibai-main-campus"
+                className="hidden sm:flex items-center gap-2 px-4 py-2 border border-primary/20 rounded-full font-label-md text-xs font-bold text-primary bg-primary/5 hover:bg-primary/10 transition-all active:scale-[0.98]"
+              >
+                <span className="material-symbols-outlined text-[16px]">school</span>
+                <span>Mithibai Campus Menu</span>
+              </Link>
               <Link
                 to="/staff"
-                className="flex items-center gap-2 px-4 py-2 border border-primary/20 rounded-full font-label-md text-label-md text-primary bg-white/40 hover:bg-white/60 transition-all active:scale-[0.98]"
+                className="flex items-center gap-2 px-4 py-2 border border-slate-300 rounded-full font-label-md text-xs font-bold text-slate-700 bg-white/50 hover:bg-white transition-all active:scale-[0.98]"
               >
-                <span className="material-symbols-outlined text-[18px]">admin_panel_settings</span>
-                <span>Staff Dashboard</span>
+                <span className="material-symbols-outlined text-[16px]">admin_panel_settings</span>
+                <span>Staff Portal</span>
               </Link>
-              <div className="w-10 h-10 rounded-full border border-white bg-white/30 flex items-center justify-center text-on-surface-variant">
-                <span className="material-symbols-outlined">account_circle</span>
-              </div>
             </div>
           )}
         </div>
@@ -123,7 +128,8 @@ export default function App() {
       {/* Main Content Area */}
       <main className="pt-[96px] pb-[40px] px-margin-mobile md:px-margin-desktop max-w-container-max w-full mx-auto flex-1 flex flex-col">
         <Routes>
-          <Route path="/" element={<StudentView />} />
+          <Route path="/" element={<LandingPage />} />
+          <Route path="/menu" element={<StudentView />} />
           <Route path="/c/:slug" element={<StudentView />} />
           <Route path="/canteen/:slug" element={<StudentView />} />
           <Route path="/staff" element={<StaffView />}>
@@ -137,11 +143,11 @@ export default function App() {
       {/* Footer */}
       <footer className="w-full py-stack-lg border-t border-white/40 bg-white/30 backdrop-blur-md">
         <div className="max-w-container-max mx-auto px-margin-mobile md:px-margin-desktop flex flex-col md:flex-row justify-between items-center gap-4">
-          <p className="font-label-sm text-label-sm text-text-muted">© 2026 CampusBites. Made for college canteens.</p>
+          <p className="font-label-sm text-label-sm text-text-muted">© 2026 CampusBites. Made for college canteens & university food courts.</p>
           <div className="flex gap-6">
-            <a className="font-label-sm text-label-sm text-text-muted hover:text-primary transition-colors" href="#">Privacy Policy</a>
-            <a className="font-label-sm text-label-sm text-text-muted hover:text-primary transition-colors" href="#">Terms of Service</a>
-            <a className="font-label-sm text-label-sm text-text-muted hover:text-primary transition-colors" href="#">Contact Support</a>
+            <Link className="font-label-sm text-label-sm text-text-muted hover:text-primary transition-colors" to="/c/mithibai-main-campus">Mithibai Campus</Link>
+            <Link className="font-label-sm text-label-sm text-text-muted hover:text-primary transition-colors" to="/c/downtown-diner">Downtown Diner</Link>
+            <Link className="font-label-sm text-label-sm text-text-muted hover:text-primary transition-colors" to="/staff">Staff Dashboard</Link>
           </div>
         </div>
       </footer>

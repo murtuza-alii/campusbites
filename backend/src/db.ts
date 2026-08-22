@@ -105,29 +105,86 @@ export async function initDb(): Promise<void> {
     console.log('Could not alter orders table (might already have canteen_id or using sqlite fallback)');
   }
 
+  // Create restaurant partner registrations table
+  await db.query(`
+    CREATE TABLE IF NOT EXISTS restaurant_registrations (
+      id TEXT PRIMARY KEY,
+      restaurant_name TEXT NOT NULL,
+      owner_name TEXT NOT NULL,
+      email TEXT NOT NULL,
+      phone TEXT NOT NULL,
+      campus_name TEXT NOT NULL,
+      city TEXT,
+      daily_orders_capacity INTEGER,
+      status TEXT DEFAULT 'PENDING',
+      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    )
+  `);
+
   try {
     await db.query('ALTER TABLE canteen ADD COLUMN IF NOT EXISTS slug TEXT UNIQUE');
     await db.query('ALTER TABLE canteen ADD COLUMN IF NOT EXISTS group_name TEXT');
+    await db.query('ALTER TABLE canteen ADD COLUMN IF NOT EXISTS group_slug TEXT');
   } catch (e) {
-    console.log('Could not alter canteen table for slug and group_name');
+    console.log('Could not alter canteen table for slug, group_name, and group_slug');
   }
 
-  // Seed initial canteens
+  // Seed initial canteens for Mithibai Main Campus and Standalone Diners
   const canteens = [
-    { id: 'c1', name: 'Canteen A', slug: 'canteen-a', group_name: 'Main Campus', description: 'Independent student dining hall serving full meals, snacks, and drinks.', image: 'https://images.unsplash.com/photo-1556910103-1c02745aae4d?w=150&auto=format&fit=crop&q=60' },
-    { id: 'c2', name: 'Canteen B', slug: 'canteen-b', group_name: 'Main Campus', description: 'Self-contained student canteen with its own custom kitchen and menu.', image: 'https://images.unsplash.com/photo-1501339847302-ac426a4a7cbb?w=150&auto=format&fit=crop&q=60' },
-    { id: 'c3', name: 'Canteen C', slug: 'canteen-c', group_name: 'Main Campus', description: 'Separate dining lounge offering independent meals, beverages, and desserts.', image: 'https://images.unsplash.com/photo-1600271886742-f049cd451bba?w=150&auto=format&fit=crop&q=60' },
-    { id: 'c4', name: 'Canteen D', slug: 'canteen-d', group_name: 'Main Campus', description: 'Independent dining pavilion serving a full variety of dishes and quick bites.', image: 'https://images.unsplash.com/photo-1668236543090-82eba5ee5976?w=150&auto=format&fit=crop&q=60' },
-    { id: 'c5', name: 'Downtown Diner', slug: 'downtown-diner', group_name: null, description: 'Standalone premium gourmet diner with fresh meals made to order.', image: 'https://images.unsplash.com/photo-1555396273-367ea4eb4db5?w=150&auto=format&fit=crop&q=60' }
+    { 
+      id: 'c1', 
+      name: 'Canteen A', 
+      slug: 'mithibai-canteen-a', 
+      group_name: 'Mithibai Main Campus', 
+      group_slug: 'mithibai-main-campus', 
+      description: 'Mithibai College South Wing student dining hall serving full meals, snacks, and drinks.', 
+      image: 'https://images.unsplash.com/photo-1556910103-1c02745aae4d?w=150&auto=format&fit=crop&q=60' 
+    },
+    { 
+      id: 'c2', 
+      name: 'Canteen B', 
+      slug: 'mithibai-canteen-b', 
+      group_name: 'Mithibai Main Campus', 
+      group_slug: 'mithibai-main-campus', 
+      description: 'Mithibai Central student cafeteria with quick bites, beverages, and custom kitchen.', 
+      image: 'https://images.unsplash.com/photo-1501339847302-ac426a4a7cbb?w=150&auto=format&fit=crop&q=60' 
+    },
+    { 
+      id: 'c3', 
+      name: 'Canteen C', 
+      slug: 'mithibai-canteen-c', 
+      group_name: 'Mithibai Main Campus', 
+      group_slug: 'mithibai-main-campus', 
+      description: 'Mithibai College Terrace lounge offering independent meals, beverages, and desserts.', 
+      image: 'https://images.unsplash.com/photo-1600271886742-f049cd451bba?w=150&auto=format&fit=crop&q=60' 
+    },
+    { 
+      id: 'c4', 
+      name: 'Canteen D', 
+      slug: 'mithibai-canteen-d', 
+      group_name: 'Mithibai Main Campus', 
+      group_slug: 'mithibai-main-campus', 
+      description: 'Mithibai Ground Pavilion serving fresh thalis, sandwiches, and quick bites.', 
+      image: 'https://images.unsplash.com/photo-1668236543090-82eba5ee5976?w=150&auto=format&fit=crop&q=60' 
+    },
+    { 
+      id: 'c5', 
+      name: 'Downtown Diner', 
+      slug: 'downtown-diner', 
+      group_name: null, 
+      group_slug: null, 
+      description: 'Standalone premium gourmet diner with fresh meals made to order.', 
+      image: 'https://images.unsplash.com/photo-1555396273-367ea4eb4db5?w=150&auto=format&fit=crop&q=60' 
+    }
   ];
   for (const c of canteens) {
     await db.query(
-      `INSERT INTO canteen (id, name, slug, group_name, description, image) VALUES ($1, $2, $3, $4, $5, $6)
-       ON CONFLICT (id) DO UPDATE SET name = EXCLUDED.name, slug = EXCLUDED.slug, group_name = EXCLUDED.group_name, description = EXCLUDED.description, image = EXCLUDED.image`,
-      [c.id, c.name, c.slug, c.group_name, c.description, c.image]
+      `INSERT INTO canteen (id, name, slug, group_name, group_slug, description, image) VALUES ($1, $2, $3, $4, $5, $6, $7)
+       ON CONFLICT (id) DO UPDATE SET name = EXCLUDED.name, slug = EXCLUDED.slug, group_name = EXCLUDED.group_name, group_slug = EXCLUDED.group_slug, description = EXCLUDED.description, image = EXCLUDED.image`,
+      [c.id, c.name, c.slug, c.group_name, c.group_slug, c.description, c.image]
     );
   }
-  console.log('Database seeded with canteens including slugs and standalone diner.');
+  console.log('Database seeded with Mithibai Main Campus canteens and standalone diner.');
 
   // Seed initial users - Wipe old users first to prevent duplicates
   await db.query('DELETE FROM users');
