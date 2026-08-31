@@ -5,6 +5,8 @@ import { OrderRepository } from '../repositories/OrderRepository.js';
 import { emitOrderCreated, emitOrderStatusChanged } from '../utils/websocket.js';
 import { buildQRPayload } from '../utils/qrSigner.js';
 import { getDb } from '../db.js';
+import { config } from '../config/unifiedConfig.js';
+
 
 export class PaymentController extends BaseController {
   constructor(
