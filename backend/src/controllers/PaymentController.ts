@@ -76,6 +76,7 @@ export class PaymentController extends BaseController {
           paymentSessionId: cfOrder.payment_session_id,
           cfOrderId: cfOrder.cf_order_id,
           orderAmount: cfOrder.order_amount,
+          environment: config.cashfree.env === 'PROD' ? 'production' : 'sandbox',
         },
         201
       );

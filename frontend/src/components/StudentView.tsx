@@ -346,16 +346,17 @@ export function StudentView() {
       }
 
       const sessionData = await response.json();
-      const { paymentSessionId, orderId } = sessionData;
+      const { paymentSessionId, orderId, environment } = sessionData;
+      const checkoutMode = environment === 'production' ? 'production' : 'sandbox';
 
       // 2. Trigger Cashfree Web Checkout SDK
       const win = window as any;
       if (paymentSessionId && (win.Cashfree || win.loadCashfree)) {
         let cashfreeInstance: any;
         if (typeof win.Cashfree === 'function') {
-          cashfreeInstance = win.Cashfree({ mode: 'sandbox' });
+          cashfreeInstance = win.Cashfree({ mode: checkoutMode });
         } else if (typeof win.loadCashfree === 'function') {
-          cashfreeInstance = await win.loadCashfree({ mode: 'sandbox' });
+          cashfreeInstance = await win.loadCashfree({ mode: checkoutMode });
         }
 
         if (cashfreeInstance) {
