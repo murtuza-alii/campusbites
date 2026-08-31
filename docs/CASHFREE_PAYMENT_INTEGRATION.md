@@ -229,3 +229,57 @@ To generate a new key or switch between Sandbox/Production:
 3. Update `CASHFREE_APP_ID` & `CASHFREE_SECRET_KEY` in:
    - Local: `backend/.env`
    - Render: **Render Dashboard ➔ campusbites service ➔ Environment Variables**.
+
+---
+
+## 📋 Comprehensive Onboarding & Implementation Log
+
+A detailed chronicle of everything completed during the Cashfree Payment Gateway onboarding and development session:
+
+### 1. Step 1: Sandbox Verification & Order Creation
+* **Sandbox Keys Configured**: Connected to Cashfree Sandbox using initial App ID & Secret Key from dashboard.
+* **Backend Services Implemented**:
+  - `PaymentService.ts`: PG order creation via `https://sandbox.cashfree.com/pg/orders`, status polling, HMAC SHA256 signature verification.
+  - `PaymentController.ts` & `paymentRoutes.ts`: Mounted on `/api/payments/create-order`, `/api/payments/verify`, and `/api/payments/webhook`.
+  - `db.ts` & `unifiedConfig.ts`: Auto-migrated `orders` table to track `payment_status`, `payment_session_id`, and `cf_order_id`.
+* **Frontend Web SDK**:
+  - Added Cashfree Web SDK V3 to `index.html`.
+  - Updated `StudentView.tsx` with dynamic modal checkout (`_modal` target) and automatic return-order verification.
+* **Test Simulation Completed**: Performed mock transaction on Sandbox (`HTTP 200`), satisfying Cashfree's Sandbox Onboarding requirement.
+
+### 2. Step 2: Domain Whitelisting & Method Verification
+* **Whitelisted Origin**: Registered and verified `campusbites-frontend-4jw1.onrender.com` in Cashfree.
+* **Payment Methods**: Verified active support for UPI (GPay, PhonePe, Paytm, BHIM, RuPay), Credit/Debit Cards, and Net Banking.
+
+### 3. Step 3: Webhooks & Production Deployment
+* **Live Webhook Endpoint**: Deployed `https://campusbites-4dch.onrender.com/api/payments/webhook` to Render.
+* **Render Environment Synced**: Configured live Render backend with `CASHFREE_APP_ID`, `CASHFREE_SECRET_KEY`, `CASHFREE_ENV=PROD`, and `CASHFREE_API_VERSION=2023-08-01`.
+* **Live Test Verified**: Confirmed Render webhook returns `{"status": "OK"}` (HTTP 200) to Cashfree server tests.
+
+### 4. Step 4: Production Account Activation & Brand Assets
+* **Production Credentials**: Generated and activated live Production App ID & Secret Key (`1391868e54a4bff2786fe680ef08681931`).
+* **Vector Branding**: Designed and deployed vector SVG assets:
+  - `frontend/public/campusbites-logo-square.svg` (512x512 app icon).
+  - `frontend/public/campusbites-logo-wide.svg` (Horizontal banner logo).
+* **Live Merchant Dashboard**: Cashfree dashboard unlocked full live mode with banner: *"Congratulations! You can start transacting now"*.
+
+---
+
+### 📂 Modified / Created File Inventory
+
+| File | Type | Purpose |
+|---|---|---|
+| [`backend/src/services/PaymentService.ts`](file:///e:/campusbites/backend/src/services/PaymentService.ts) | Backend Service | Connects to Cashfree PG APIs & computes HMAC signatures |
+| [`backend/src/controllers/PaymentController.ts`](file:///e:/campusbites/backend/src/controllers/PaymentController.ts) | Controller | Handles checkout session creation, status verification & webhooks |
+| [`backend/src/routes/paymentRoutes.ts`](file:///e:/campusbites/backend/src/routes/paymentRoutes.ts) | Express Router | Exposes `/api/payments/*` routes |
+| [`backend/src/config/unifiedConfig.ts`](file:///e:/campusbites/backend/src/config/unifiedConfig.ts) | Configuration | Zod environment schema & dynamic Cashfree URLs |
+| [`backend/src/db.ts`](file:///e:/campusbites/backend/src/db.ts) | Database | Schema alterations for order payment status & session IDs |
+| [`backend/src/app.ts`](file:///e:/campusbites/backend/src/app.ts) | Application | Mounts payment routes onto the Express app |
+| [`frontend/index.html`](file:///e:/campusbites/frontend/index.html) | Frontend | Loads Cashfree Web SDK V3 |
+| [`frontend/src/components/StudentView.tsx`](file:///e:/campusbites/frontend/src/components/StudentView.tsx) | React UI | Triggers dynamic checkout popup & auto-verifies payments |
+| [`frontend/public/campusbites-logo-square.svg`](file:///e:/campusbites/frontend/public/campusbites-logo-square.svg) | Brand Asset | 512x512 vector squircle logo for Cashfree checkout |
+| [`frontend/public/campusbites-logo-wide.svg`](file:///e:/campusbites/frontend/public/campusbites-logo-wide.svg) | Brand Asset | Horizontal vector banner logo |
+| [`docs/CASHFREE_PAYMENT_INTEGRATION.md`](file:///e:/campusbites/docs/CASHFREE_PAYMENT_INTEGRATION.md) | Documentation | Comprehensive technical integration & architecture guide |
+| [`docs/API_DOCUMENTATION.md`](file:///e:/campusbites/docs/API_DOCUMENTATION.md) | Documentation | Updated with `/api/payments` endpoints |
+| [`README.md`](file:///e:/campusbites/README.md) | Documentation | Updated with Cashfree PG guide reference |
+
