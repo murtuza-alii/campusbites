@@ -99,6 +99,72 @@ This document describes all REST API endpoints, request schemas, response format
 
 ---
 
+### 4. Create Cashfree Payment Session
+* **Method**: `POST /api/payments/create-order`
+* **Auth**: None
+* **Description**: Initializes an active payment session with Cashfree PG (Sandbox or Live) and generates an order ticket in `PENDING` state.
+* **Request Body**:
+  ```json
+  {
+    "name": "Rahul Sharma",
+    "rollNumber": "CS2026",
+    "canteenId": "c1",
+    "items": [
+      { "id": "m1", "name": "Paneer Tikka Roll", "price": 80, "quantity": 1 }
+    ],
+    "totalPrice": 80,
+    "phone": "9876543210",
+    "email": "student@college.edu"
+  }
+  ```
+* **Response**: `201 Created`
+  ```json
+  {
+    "success": true,
+    "data": {
+      "orderId": "ord_x7k9p2a1b",
+      "orderNumber": "#1042",
+      "paymentSessionId": "session_Tdt_E2DEKxkX...",
+      "cfOrderId": "214899299215296",
+      "orderAmount": 80,
+      "environment": "production"
+    }
+  }
+  ```
+
+---
+
+### 5. Verify Payment Status
+* **Method**: `POST /api/payments/verify`
+* **Auth**: None
+* **Description**: Queries Cashfree's authoritative order status and updates database `payment_status` to `'PAID'`.
+* **Request Body**:
+  ```json
+  {
+    "orderId": "ord_x7k9p2a1b"
+  }
+  ```
+* **Response**: `200 OK`
+  ```json
+  {
+    "success": true,
+    "data": {
+      "success": true,
+      "status": "PAID",
+      "order": { ... }
+    }
+  }
+  ```
+
+---
+
+### 6. Cashfree Webhook Handler
+* **Method**: `POST /api/payments/webhook`
+* **Auth**: Validated via `x-webhook-signature` (HMAC SHA-256)
+* **Description**: Handles asynchronous events (`ORDER_PAID`, `PAYMENT_SUCCESS_WEBHOOK`) and pushes real-time WebSocket notifications to the kitchen dashboard.
+
+---
+
 ### 4. Check Order Status
 * **Method**: `GET /api/orders/:id`
 * **Auth**: None

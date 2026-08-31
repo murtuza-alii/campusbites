@@ -170,6 +170,8 @@ CampusBites is ready for deployment on [Render](https://render.com):
 
 ## 📚 Further Documentation
 
+* 💳 **[Cashfree Payment Gateway Integration Guide](docs/CASHFREE_PAYMENT_INTEGRATION.md)**: Full PG architecture, webhook security, SDK modal integration, and environment switching.
 * 📖 **[API & WebSocket Reference](docs/API_DOCUMENTATION.md)**: Full endpoint definitions, payload examples, and real-time events.
 * 🏛️ **[Architecture & Database Guide](docs/ARCHITECTURE.md)**: Relational schema, BullMQ queue pipeline, and RBAC matrix.
 * 🎨 **[Design System Specifications](DESIGN.md)**: Glassmorphic tokens, color palette, and micro-interactions.
+
