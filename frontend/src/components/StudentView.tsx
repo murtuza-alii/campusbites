@@ -267,13 +267,64 @@ export function StudentView() {
     return item ? item.quantity : 0;
   };
 
+  const verifyAndCompleteOrder = async (orderId: string) => {
+    try {
+      const verifyRes = await fetch(`${API_BASE_URL}/api/payments/verify`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ orderId }),
+      });
+      const verifyData = await verifyRes.json();
+
+      if (verifyRes.ok && verifyData.order) {
+        const orderData = verifyData.order;
+        setMyOrders((prev) => {
+          const exists = prev.some((o) => o.id === orderData.id);
+          const next = exists ? prev.map((o) => (o.id === orderData.id ? orderData : o)) : [orderData, ...prev];
+          localStorage.setItem('myOrdersList', JSON.stringify(next));
+          return next;
+        });
+        setCart([]);
+        setIsCartOpen(false);
+        setActiveSubTab('orders');
+      } else {
+        // Fallback fetch if order was already written
+        const fallbackRes = await fetch(`${API_BASE_URL}/api/orders/${orderId}`);
+        if (fallbackRes.ok) {
+          const orderData = await fallbackRes.json();
+          setMyOrders((prev) => {
+            const next = [orderData, ...prev.filter((o) => o.id !== orderData.id)];
+            localStorage.setItem('myOrdersList', JSON.stringify(next));
+            return next;
+          });
+          setCart([]);
+          setIsCartOpen(false);
+          setActiveSubTab('orders');
+        }
+      }
+    } catch (err) {
+      console.error('Error verifying order payment:', err);
+    }
+  };
+
+  // Check URL return query for redirect payments
+  useEffect(() => {
+    const query = new URLSearchParams(window.location.search);
+    const returnOrderId = query.get('order_id');
+    if (returnOrderId) {
+      verifyAndCompleteOrder(returnOrderId);
+      window.history.replaceState({}, document.title, window.location.pathname);
+    }
+  }, []);
+
   const handleCheckout = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!studentName.trim() || !studentRoll.trim() || cart.length === 0 || !selectedCanteenId) return;
 
     setIsSubmitting(true);
     try {
-      const response = await fetch(`${API_BASE_URL}/api/orders`, {
+      // 1. Create Cashfree payment order session on backend
+      const response = await fetch(`${API_BASE_URL}/api/payments/create-order`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -287,19 +338,53 @@ export function StudentView() {
         }),
       });
 
-      if (response.ok) {
-        const orderData = await response.json();
-        const updatedOrders = [orderData, ...myOrders];
-        setMyOrders(updatedOrders);
-        localStorage.setItem('myOrdersList', JSON.stringify(updatedOrders));
-        setCart([]);
-        setIsCartOpen(false);
-        setActiveSubTab('orders'); // Switch to orders tab
-      } else {
-        alert('Failed to place order. Please try again.');
+      if (!response.ok) {
+        const errData = await response.json().catch(() => ({}));
+        alert(errData.error || 'Failed to initiate Cashfree payment session.');
+        setIsSubmitting(false);
+        return;
       }
-    } catch (e) {
-      alert('Network error. Is the server running?');
+
+      const sessionData = await response.json();
+      const { paymentSessionId, orderId } = sessionData;
+
+      // 2. Trigger Cashfree Web Checkout SDK
+      const win = window as any;
+      if (paymentSessionId && (win.Cashfree || win.loadCashfree)) {
+        let cashfreeInstance: any;
+        if (typeof win.Cashfree === 'function') {
+          cashfreeInstance = win.Cashfree({ mode: 'sandbox' });
+        } else if (typeof win.loadCashfree === 'function') {
+          cashfreeInstance = await win.loadCashfree({ mode: 'sandbox' });
+        }
+
+        if (cashfreeInstance) {
+          cashfreeInstance.checkout({
+            paymentSessionId: paymentSessionId,
+            redirectTarget: '_modal', // Opens sleek modal popup inside page
+          }).then(async (result: any) => {
+            if (result.error) {
+              console.warn('[Cashfree] Payment cancelled / failed:', result.error);
+              setIsSubmitting(false);
+              return;
+            }
+            // Once modal closes after payment, verify status
+            await verifyAndCompleteOrder(orderId);
+          }).catch(async (err: any) => {
+            console.error('[Cashfree] Checkout error:', err);
+            await verifyAndCompleteOrder(orderId);
+          }).finally(() => {
+            setIsSubmitting(false);
+          });
+          return;
+        }
+      }
+
+      // Fallback if SDK not loaded
+      await verifyAndCompleteOrder(orderId);
+    } catch (e: any) {
+      console.error('Checkout error:', e);
+      alert('Network error during payment checkout. Please verify server status.');
     } finally {
       setIsSubmitting(false);
     }
@@ -313,6 +398,7 @@ export function StudentView() {
 
   // Filters
   const filteredMenu = menu.filter((item) => {
+
     const matchesSearch = item.name.toLowerCase().includes(searchQuery.toLowerCase());
     const matchesCategory = selectedCategory === 'All' || item.category === selectedCategory;
     return matchesSearch && matchesCategory;
@@ -681,24 +767,26 @@ export function StudentView() {
                     <button
                       type="submit"
                       disabled={isSubmitting}
-                      className="w-full py-4 rounded-2xl glossy-primary text-white font-label-md flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                      className="w-full py-4 rounded-2xl glossy-primary text-white font-label-md flex items-center justify-center gap-2 shadow-lg shadow-primary/25 hover:shadow-primary/40 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
                     >
                       {isSubmitting ? (
                         <>
                           <RefreshCw className="w-4 h-4 animate-spin" />
-                          Ordering...
+                          Processing Payment...
                         </>
                       ) : (
                         <>
-                          <span className="material-symbols-outlined text-[20px]">local_mall</span>
-                          Place Order
+                          <span className="material-symbols-outlined text-[20px]">lock</span>
+                          Pay ₹{getCartTotal()} with Cashfree
                         </>
                       )}
                     </button>
-                    <p className="text-center font-label-sm text-label-sm text-text-muted">
-                      Pick up your order in 15-20 mins
-                    </p>
+                    <div className="flex items-center justify-center gap-1.5 text-center font-label-sm text-label-sm text-text-muted">
+                      <span className="inline-block w-2 h-2 rounded-full bg-emerald-500"></span>
+                      <span>100% Secure Sandbox Checkout • Cashfree PG</span>
+                    </div>
                   </form>
+
                 </div>
               )}
             </div>
@@ -952,21 +1040,26 @@ export function StudentView() {
               <button
                 type="submit"
                 disabled={isSubmitting}
-                className="w-full py-4 rounded-2xl glossy-primary text-white font-label-md flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                className="w-full py-4 rounded-2xl glossy-primary text-white font-label-md flex items-center justify-center gap-2 shadow-lg shadow-primary/25 hover:shadow-primary/40 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {isSubmitting ? (
                   <>
                     <RefreshCw className="w-4 h-4 animate-spin" />
-                    Ordering...
+                    Processing Payment...
                   </>
                 ) : (
                   <>
-                    <span className="material-symbols-outlined text-[20px]">local_mall</span>
-                    Place Order
+                    <span className="material-symbols-outlined text-[20px]">lock</span>
+                    Pay ₹{getCartTotal()} with Cashfree
                   </>
                 )}
               </button>
+              <div className="flex items-center justify-center gap-1.5 text-center font-label-sm text-label-sm text-text-muted pb-2">
+                <span className="inline-block w-2 h-2 rounded-full bg-emerald-500"></span>
+                <span>100% Secure Sandbox Checkout • Cashfree PG</span>
+              </div>
             </form>
+
           </div>
         </div>
       )}

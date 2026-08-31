@@ -10,6 +10,10 @@ lerna-debug.log*
 
 # Application-specific ignores
 backend/.env
+*.env
+*.env.local
+APIKey.csv
+*.csv
 backend/canteen.db
 backend/dist/
 backend/node_modules/

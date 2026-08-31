@@ -9,6 +9,7 @@ import orderRoutes from './routes/orderRoutes.js';
 import adminRoutes from './routes/adminRoutes.js';
 import canteenRoutes from './routes/canteenRoutes.js';
 import partnerRoutes from './routes/partnerRoutes.js';
+import paymentRoutes from './routes/paymentRoutes.js';
 import healthRoutes from './routes/healthRoutes.js';
 import { errorMiddleware } from './middleware/errorMiddleware.js';
 
@@ -47,6 +48,7 @@ app.use('/api/orders', orderRoutes);
 app.use('/api/admin', adminRoutes);
 app.use('/api/canteens', canteenRoutes);
 app.use('/api/partner', partnerRoutes);
+app.use('/api/payments', paymentRoutes);
 
 // Centralized error handler
 app.use(errorMiddleware);

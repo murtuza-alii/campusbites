@@ -101,9 +101,13 @@ export async function initDb(): Promise<void> {
 
   try {
     await db.query('ALTER TABLE orders ADD COLUMN IF NOT EXISTS canteen_id TEXT REFERENCES canteen(id)');
+    await db.query('ALTER TABLE orders ADD COLUMN IF NOT EXISTS payment_status TEXT DEFAULT \'PAID\'');
+    await db.query('ALTER TABLE orders ADD COLUMN IF NOT EXISTS payment_session_id TEXT');
+    await db.query('ALTER TABLE orders ADD COLUMN IF NOT EXISTS cf_order_id TEXT');
   } catch (e) {
-    console.log('Could not alter orders table (might already have canteen_id or using sqlite fallback)');
+    console.log('Could not alter orders table (might already have payment columns or using sqlite fallback)');
   }
+
 
   // Create restaurant partner registrations table
   await db.query(`
@@ -186,8 +190,7 @@ export async function initDb(): Promise<void> {
   }
   console.log('Database seeded with Mithibai Main Campus canteens and standalone diner.');
 
-  // Seed initial users - Wipe old users first to prevent duplicates
-  await db.query('DELETE FROM users');
+  // Seed initial users
   const users = [
     { id: 'u1', username: 'admin', password: 'adminpassword', role: 'admin', canteen_id: null },
     { id: 'u2', username: 'canteen_a_mgr', password: '1234', role: 'manager', canteen_id: 'c1' },
@@ -204,7 +207,13 @@ export async function initDb(): Promise<void> {
   for (const u of users) {
     const passwordHash = bcrypt.hashSync(u.password, 10);
     await db.query(
-      'INSERT INTO users (id, username, password_hash, role, canteen_id) VALUES ($1, $2, $3, $4, $5)',
+      `INSERT INTO users (id, username, password_hash, role, canteen_id) 
+       VALUES ($1, $2, $3, $4, $5)
+       ON CONFLICT (id) DO UPDATE SET 
+         username = EXCLUDED.username,
+         password_hash = EXCLUDED.password_hash,
+         role = EXCLUDED.role,
+         canteen_id = EXCLUDED.canteen_id`,
       [u.id, u.username, passwordHash, u.role, u.canteen_id]
     );
   }

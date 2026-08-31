@@ -12,18 +12,20 @@ async function startServer() {
     // Initialize PostgreSQL tables and seed data
     await initDb();
 
-    // Verify Redis connection on startup
-    getRedis();
+    // Initialize Redis & BullMQ worker gracefully (OrderService has direct DB fallback)
+    try {
+      getRedis();
+      initOrderWorker();
+      console.log('BullMQ Order Queue worker initialized successfully.');
+    } catch (redisErr) {
+      console.warn('Redis/BullMQ unavailable, using direct DB fallback mode:', redisErr);
+    }
     
     const port = config.server.port;
     const httpServer = createServer(app);
     
     // Initialize Socket.io
     initSocket(httpServer);
-
-    // Initialize BullMQ background order worker
-    initOrderWorker();
-    console.log('BullMQ Order Queue worker initialized successfully.');
     
     httpServer.listen(port, () => {
       console.log(`Canteen server running on http://localhost:${port}`);
