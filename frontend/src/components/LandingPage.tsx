@@ -5,7 +5,6 @@ import { useGSAP } from '@gsap/react';
 import { 
   Store, 
   Sparkles, 
-  QrCode, 
   Clock, 
   ShieldCheck, 
   ArrowRight, 
@@ -20,6 +19,7 @@ import {
   Smartphone, 
   Flame, 
   CheckCheck,
+  PackageCheck,
   Mail,
   Phone,
   Shield
@@ -158,7 +158,7 @@ export function LandingPage() {
 
         {/* Subtext */}
         <p className="gsap-hero-sub text-slate-600 text-base sm:text-lg md:text-xl max-w-2xl leading-relaxed mb-8 sm:mb-10">
-          The unified digital ordering ecosystem designed for university food courts, canteens, and campus eateries. Faster kitchen dispatch, live queue tokens, and web camera QR verification.
+          The unified digital ordering ecosystem designed for university food courts, canteens, and campus eateries. Faster kitchen dispatch, live queue tokens, and instant cashless checkout.
         </p>
 
         {/* Dual High-Contrast CTAs */}
@@ -196,8 +196,8 @@ export function LandingPage() {
               <p className="text-[11px] text-slate-500">Mithibai South Wing · Token Verified</p>
             </div>
           </div>
-          <div className="w-10 h-10 rounded-xl bg-slate-100 flex items-center justify-center text-slate-700">
-            <QrCode className="w-5 h-5" />
+          <div className="w-10 h-10 rounded-xl bg-indigo-50 flex items-center justify-center text-indigo-600">
+            <Sparkles className="w-5 h-5" />
           </div>
         </SpotlightCard>
       </section>
@@ -393,22 +393,22 @@ export function LandingPage() {
             </div>
           </SpotlightCard>
 
-          {/* Bento Cell 2: Live In-Browser Camera Scanner (col-span-1) */}
+          {/* Bento Cell 2: 1-Tap Counter Handover & PIN Verification (col-span-1) */}
           <SpotlightCard className="md:col-span-1 p-8 shadow-lg shadow-slate-200/40 flex flex-col justify-between">
             <div className="space-y-3">
               <div className="w-12 h-12 rounded-2xl bg-emerald-50 text-emerald-700 flex items-center justify-center font-bold border border-emerald-100">
-                <QrCode className="w-6 h-6" />
+                <PackageCheck className="w-6 h-6" />
               </div>
-              <h3 className="text-xl font-black text-slate-900">In-Browser Camera Scanner</h3>
+              <h3 className="text-xl font-black text-slate-900">1-Tap Counter Handover</h3>
               <p className="text-xs text-slate-600 leading-relaxed">
-                No handheld scanner hardware required. Staff use phone or laptop cameras to scan student QR codes in real time.
+                Fulfill orders instantly with one tap or 4-digit counter PIN verification. Zero handheld hardware or scanning bottlenecks.
               </p>
             </div>
 
             <div className="pt-4">
               <HeroChip variant="success" size="sm">
                 <Smartphone className="w-3 h-3 text-emerald-600" />
-                <span>Any Phone / Laptop</span>
+                <span>Any Phone / Tablet</span>
               </HeroChip>
             </div>
           </SpotlightCard>
