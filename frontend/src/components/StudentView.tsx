@@ -65,7 +65,7 @@ export function StudentView() {
   const [cart, setCart] = useState<CartItem[]>([]);
   const [isCartOpen, setIsCartOpen] = useState<boolean>(false);
   const [studentName, setStudentName] = useState<string>('');
-  const [studentRoll, setStudentRoll] = useState<string>('');
+  const [studentPhone, setStudentPhone] = useState<string>('');
   const [myOrders, setMyOrders] = useState<Order[]>([]);
   const [activeSubTab, setActiveSubTab] = useState<'menu' | 'orders'>('menu');
   const [isStudentHistoryExpanded, setIsStudentHistoryExpanded] = useState<boolean>(false);
@@ -333,7 +333,7 @@ export function StudentView() {
 
   const handleCheckout = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!studentName.trim() || !studentRoll.trim() || cart.length === 0 || !selectedCanteenId) return;
+    if (!studentName.trim() || !studentPhone.trim() || cart.length === 0 || !selectedCanteenId) return;
 
     setIsSubmitting(true);
     try {
@@ -344,7 +344,8 @@ export function StudentView() {
         },
         body: JSON.stringify({
           name: studentName,
-          rollNumber: studentRoll,
+          rollNumber: studentPhone,
+          phone: studentPhone,
           canteenId: selectedCanteenId,
           items: cart,
           totalPrice: getCartTotal(),
@@ -743,13 +744,13 @@ export function StudentView() {
                       />
                     </div>
                     <div className="space-y-1">
-                      <label className="text-[11px] font-bold text-slate-600 uppercase tracking-wider">Roll No / Phone</label>
+                      <label className="text-[11px] font-bold text-slate-600 uppercase tracking-wider">Phone Number</label>
                       <input
-                        type="text"
+                        type="tel"
                         required
-                        placeholder="e.g. TYCS042 or 9876543210"
-                        value={studentRoll}
-                        onChange={(e) => setStudentRoll(e.target.value)}
+                        placeholder="e.g. 9876543210"
+                        value={studentPhone}
+                        onChange={(e) => setStudentPhone(e.target.value)}
                         className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-slate-900 focus:bg-white focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 outline-none transition-all placeholder:text-slate-400 placeholder:font-normal"
                       />
                     </div>
@@ -879,8 +880,8 @@ export function StudentView() {
 
                       <div className="flex justify-between items-end border-t border-slate-100 pt-3">
                         <div>
-                          <span className="text-[10px] font-mono font-bold text-slate-400 uppercase tracking-wider block">Student</span>
-                          <span className="text-xs font-bold text-slate-700">{order.student_name} ({order.student_roll})</span>
+                          <span className="text-[10px] font-mono font-bold text-slate-400 uppercase tracking-wider block">Customer</span>
+                          <span className="text-xs font-bold text-slate-700">{order.student_name} {order.student_roll ? `• ${order.student_roll}` : ''}</span>
                         </div>
                         <div className="text-right">
                           <span className="text-[10px] font-mono font-bold text-slate-400 uppercase tracking-wider block">Total Paid</span>
@@ -1067,13 +1068,13 @@ export function StudentView() {
                 />
               </div>
               <div className="space-y-1">
-                <label className="text-[11px] font-bold text-slate-600 uppercase tracking-wider">Roll Number / Phone</label>
+                <label className="text-[11px] font-bold text-slate-600 uppercase tracking-wider">Phone Number</label>
                 <input
-                  type="text"
+                  type="tel"
                   required
-                  placeholder="e.g. TYCS042 or 9876543210"
-                  value={studentRoll}
-                  onChange={(e) => setStudentRoll(e.target.value)}
+                  placeholder="e.g. 9876543210"
+                  value={studentPhone}
+                  onChange={(e) => setStudentPhone(e.target.value)}
                   className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-slate-900 focus:bg-white focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 outline-none transition-all placeholder:text-slate-400 placeholder:font-normal"
                 />
               </div>
