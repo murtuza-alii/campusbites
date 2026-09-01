@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useCallback } from 'react';
+import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { socket } from '../utils/socket.js';
 import { 
@@ -6,14 +6,19 @@ import {
   RotateCw, 
   CheckCircle, 
   ShieldAlert, 
-  FileText, 
-  CheckCheck, 
   Search, 
   X, 
   ChefHat, 
   PackageCheck, 
   Store, 
-  Link as LinkIcon
+  Link as LinkIcon, 
+  Trash2, 
+  ChevronDown, 
+  ChevronUp, 
+  Flame, 
+  Clock, 
+  CheckCheck,
+  User
 } from 'lucide-react';
 import { SpotlightCard } from './ui/SpotlightCard';
 import { decodeToken, type DecodedToken } from '../utils/jwt.js';
@@ -40,10 +45,12 @@ interface Order {
 
 export function StaffOrders() {
   const [orders, setOrders] = useState<Order[]>([]);
-  const [activeTab, setActiveTab] = useState<'ALL_ACTIVE' | 'TO_COOK' | 'READY' | 'COMPLETED'>('ALL_ACTIVE');
+  // Dual-tab architecture: 'KITCHEN' (Cook view) or 'COUNTER' (Pickup & PIN handover view)
+  const [activeTab, setActiveTab] = useState<'KITCHEN' | 'COUNTER'>('KITCHEN');
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [error, setError] = useState<string>('');
+  const [isHistoryExpanded, setIsHistoryExpanded] = useState<boolean>(false);
   const navigate = useNavigate();
   
   // User metadata and canteen state
@@ -75,7 +82,7 @@ export function StaffOrders() {
       osc.start();
       osc.stop(ctx.currentTime + 0.25);
     } catch (e) {
-      console.log('Audio tone error', e);
+      console.log('Audio tone error');
     }
   }, []);
 
@@ -89,7 +96,7 @@ export function StaffOrders() {
         setCanteens(data);
       }
     } catch (e) {
-      console.error('Failed to load canteens list', e);
+      console.error('Failed to load canteens list');
     }
   };
 
@@ -165,7 +172,7 @@ export function StaffOrders() {
             const match = data.find((c: any) => c.id === decoded.canteenId);
             if (match) setCanteenName(match.name);
           })
-          .catch(e => console.error(e));
+          .catch(() => {});
       }
     }
 
@@ -219,9 +226,10 @@ export function StaffOrders() {
     }
   };
 
+  // Strictly authenticate handover using 4-digit PIN
   const handleVerifyOrderPin = async (order: Order, pinOverride?: string) => {
     const pin = (pinOverride !== undefined ? pinOverride : pinInputs[order.id] || '').trim();
-    if (!pin) {
+    if (!pin || pin.length < 4) {
       setOrderErrors(prev => ({ ...prev, [order.id]: 'Enter 4-digit PIN' }));
       return;
     }
@@ -244,12 +252,12 @@ export function StaffOrders() {
       const data = await res.json();
       if (res.ok && data.success) {
         playSuccessTone();
-        setOrderSuccess(prev => ({ ...prev, [order.id]: `Verified! Order ${order.order_number} completed.` }));
+        setOrderSuccess(prev => ({ ...prev, [order.id]: `✓ Verified! Order ${order.order_number} handed over.` }));
         setOrders(prev => prev.map(o => o.id === order.id ? { ...o, status: 'COMPLETED' } : o));
         setPinInputs(prev => ({ ...prev, [order.id]: '' }));
         setTimeout(() => {
           fetchOrders(selectedAdminCanteenId);
-        }, 600);
+        }, 500);
       } else {
         setOrderErrors(prev => ({ ...prev, [order.id]: data.error || 'Incorrect PIN' }));
       }
@@ -260,9 +268,21 @@ export function StaffOrders() {
     }
   };
 
-  const formatTime = (dateStr: string) => {
-    const d = new Date(dateStr);
-    return d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+  const deletePastOrder = async (orderId: string) => {
+    const confirmDelete = window.confirm('Are you sure you want to remove this completed order record?');
+    if (!confirmDelete) return;
+
+    // Locally remove from state immediately
+    setOrders(prev => prev.filter(o => o.id !== orderId));
+  };
+
+  const formatElapsed = (dateStr: string) => {
+    const diffMs = Date.now() - new Date(dateStr).getTime();
+    const diffMins = Math.floor(diffMs / 60000);
+    if (diffMins < 1) return 'Just now';
+    if (diffMins < 60) return `${diffMins}m ago`;
+    const diffHrs = Math.floor(diffMins / 60);
+    return `${diffHrs}h ago`;
   };
 
   const userCanteen = canteens.find(c => c.id === userProfile?.canteenId);
@@ -279,82 +299,71 @@ export function StaffOrders() {
 
   const currentCanteenObj = canteens.find(c => c.id === selectedAdminCanteenId) || userCanteen;
 
-  // Counts for tabs
-  const activeOrdersCount = orders.filter(o => o.status !== 'COMPLETED').length;
-  const toCookCount = orders.filter(o => o.status === 'PENDING' || o.status === 'PREPARING').length;
-  const readyCount = orders.filter(o => o.status === 'READY').length;
-  const completedCount = orders.filter(o => o.status === 'COMPLETED').length;
+  // Kitchen cooking queue (PENDING + PREPARING)
+  const kitchenOrders = useMemo(() => {
+    return orders.filter(o => o.status === 'PENDING' || o.status === 'PREPARING');
+  }, [orders]);
 
-  // Filtering by search query & tab
-  const getDisplayOrders = () => {
-    let filtered = orders;
+  // Ready for pickup queue
+  const readyOrders = useMemo(() => {
+    return orders.filter(o => o.status === 'READY');
+  }, [orders]);
 
-    if (activeTab === 'TO_COOK') {
-      filtered = filtered.filter(o => o.status === 'PENDING' || o.status === 'PREPARING');
-    } else if (activeTab === 'READY') {
-      filtered = filtered.filter(o => o.status === 'READY');
-    } else if (activeTab === 'ALL_ACTIVE') {
-      filtered = filtered.filter(o => o.status !== 'COMPLETED');
-    } else if (activeTab === 'COMPLETED') {
-      filtered = filtered.filter(o => o.status === 'COMPLETED');
-    }
+  // Completed history
+  const completedOrders = useMemo(() => {
+    return orders.filter(o => o.status === 'COMPLETED');
+  }, [orders]);
 
-    if (searchQuery.trim()) {
-      const q = searchQuery.toLowerCase().trim();
-      filtered = filtered.filter(o => 
-        o.order_number.toLowerCase().includes(q) ||
-        o.pickup_code.toLowerCase().includes(q) ||
-        o.student_name.toLowerCase().includes(q) ||
-        o.student_roll.toLowerCase().includes(q) ||
-        o.items.some(i => i.name.toLowerCase().includes(q))
-      );
-    }
+  // 🍳 LIVE AGGREGATED BATCH PREP SUMMARY: Calculate total quantities across all active kitchen orders
+  const batchPrepSummary = useMemo(() => {
+    const summary: Record<string, number> = {};
+    let totalItemCount = 0;
+    kitchenOrders.forEach(order => {
+      order.items.forEach(item => {
+        summary[item.name] = (summary[item.name] || 0) + item.quantity;
+        totalItemCount += item.quantity;
+      });
+    });
+    return { summary, totalItemCount };
+  }, [kitchenOrders]);
 
-    return filtered;
-  };
+  // Filter kitchen orders by search
+  const filteredKitchenOrders = useMemo(() => {
+    if (!searchQuery.trim()) return kitchenOrders;
+    const q = searchQuery.toLowerCase().trim();
+    return kitchenOrders.filter(o => 
+      o.order_number.toLowerCase().includes(q) ||
+      o.items.some(i => i.name.toLowerCase().includes(q))
+    );
+  }, [kitchenOrders, searchQuery]);
 
-  const displayedOrders = getDisplayOrders();
+  // Filter ready orders by search
+  const filteredReadyOrders = useMemo(() => {
+    if (!searchQuery.trim()) return readyOrders;
+    const q = searchQuery.toLowerCase().trim();
+    return readyOrders.filter(o => 
+      o.order_number.toLowerCase().includes(q) ||
+      o.student_name.toLowerCase().includes(q) ||
+      o.pickup_code.toLowerCase().includes(q)
+    );
+  }, [readyOrders, searchQuery]);
 
   return (
-    <div className="flex-1 flex flex-col gap-4 sm:gap-6 animate-in pb-12">
+    <div className="flex-1 flex flex-col gap-4 animate-in pb-16">
       
-      {/* Header Section */}
-      <header className="flex flex-col md:flex-row md:items-center justify-between gap-3.5 pb-2 border-b border-slate-200/80">
-        <div className="space-y-1">
-          <div className="flex flex-wrap items-center gap-2">
-            {userProfile?.role === 'admin' ? (
-              <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 bg-emerald-50 border border-emerald-200 text-emerald-800 rounded-full text-[11px] font-black uppercase tracking-wider">
-                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-                Network Administrator
-              </span>
-            ) : userGroupName ? (
-              <span className="inline-flex items-center gap-1 px-2.5 py-0.5 bg-indigo-50 border border-indigo-200 text-indigo-800 rounded-full text-[11px] font-black uppercase tracking-wider">
-                {userGroupName}
-              </span>
-            ) : (
-              <span className="inline-flex items-center gap-1 px-2.5 py-0.5 bg-amber-50 border border-amber-200 text-amber-800 rounded-full text-[11px] font-black uppercase tracking-wider">
-                Standalone Diner
-              </span>
-            )}
-
-            {userProfile?.role && (
-              <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider ${
-                userProfile.role === 'cook'
-                  ? 'bg-orange-100 text-orange-800 border border-orange-200'
-                  : userProfile.role === 'manager'
-                  ? 'bg-purple-100 text-purple-800 border border-purple-200'
-                  : 'bg-emerald-100 text-emerald-800 border border-emerald-200'
-              }`}>
-                {userProfile.role === 'cook' ? 'Cook Terminal' : userProfile.role === 'manager' ? 'Outlet Manager' : 'Admin'}
-              </span>
-            )}
+      {/* 1. Header & Canteen Info */}
+      <header className="bg-white border border-slate-200/90 rounded-2xl p-3.5 sm:p-4 shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+        <div>
+          <div className="flex items-center gap-2">
+            <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+            <h1 className="text-base sm:text-lg font-black text-slate-900 tracking-tight">
+              {currentCanteenObj?.name || canteenName || 'Canteen'} Portal
+            </h1>
+            <span className="px-2 py-0.5 bg-slate-100 text-slate-700 rounded-full text-[10px] font-black uppercase tracking-wider">
+              {userProfile?.role === 'cook' ? 'Cook Terminal' : 'Staff Terminal'}
+            </span>
           </div>
-
-          <h1 className="text-xl sm:text-2xl font-black text-slate-900 tracking-tight">
-            {userProfile?.role === 'admin' 
-              ? 'Campus Kitchen Dashboard' 
-              : `${currentCanteenObj?.name || canteenName || 'Canteen'} Portal`}
-          </h1>
+          <p className="text-xs text-slate-500 mt-0.5">Live Kitchen Queue & Counter PIN Verification</p>
         </div>
 
         {error && (
@@ -364,150 +373,94 @@ export function StaffOrders() {
           </div>
         )}
 
-        {/* Outlet Switcher & Direct Copy Link */}
-        {userProfile && (
-          <div className="flex flex-wrap items-center gap-2">
-            {userProfile.role === 'admin' ? (
-              <div className="flex items-center gap-1.5 bg-white border border-slate-200 px-2.5 py-1.5 rounded-xl shadow-xs">
-                <Store className="w-4 h-4 text-slate-400" />
-                <select
-                  value={selectedAdminCanteenId}
-                  onChange={(e) => setSelectedAdminCanteenId(e.target.value)}
-                  className="bg-transparent border-none text-xs font-bold text-slate-800 focus:outline-none cursor-pointer pr-1"
-                >
-                  <option value="">All Outlets (Global)</option>
-                  {canteens.map(c => (
-                    <option key={c.id} value={c.id}>{c.name}</option>
-                  ))}
-                </select>
-              </div>
-            ) : scopedCanteens.length > 1 ? (
-              <div className="flex items-center gap-1.5 bg-white border border-slate-200 px-2.5 py-1.5 rounded-xl shadow-xs">
-                <Store className="w-4 h-4 text-slate-400" />
-                <select
-                  value={selectedAdminCanteenId}
-                  onChange={(e) => setSelectedAdminCanteenId(e.target.value)}
-                  className="bg-transparent border-none text-xs font-bold text-slate-800 focus:outline-none cursor-pointer pr-1"
-                >
-                  <option value="">All {userGroupName || 'Campus'} Outlets</option>
-                  {scopedCanteens.map(c => (
-                    <option key={c.id} value={c.id}>{c.name}</option>
-                  ))}
-                </select>
-              </div>
-            ) : (
-              <div className="flex items-center gap-1.5 px-3 py-1.5 bg-indigo-50 border border-indigo-200 rounded-xl text-xs font-bold text-indigo-900 shadow-xs">
-                <Store className="w-3.5 h-3.5 text-indigo-600" />
-                <span>{scopedCanteens[0]?.name || currentCanteenObj?.name || 'Assigned Outlet'}</span>
-              </div>
-            )}
+        {/* Outlet Switcher & Copy Menu Link */}
+        <div className="flex items-center gap-2 shrink-0">
+          {scopedCanteens.length > 1 && (
+            <div className="flex items-center gap-1.5 bg-slate-50 border border-slate-200 px-2.5 py-1.5 rounded-xl">
+              <Store className="w-3.5 h-3.5 text-slate-400" />
+              <select
+                value={selectedAdminCanteenId}
+                onChange={(e) => setSelectedAdminCanteenId(e.target.value)}
+                className="bg-transparent border-none text-xs font-bold text-slate-800 focus:outline-none cursor-pointer"
+              >
+                <option value="">All Outlets</option>
+                {scopedCanteens.map(c => (
+                  <option key={c.id} value={c.id}>{c.name}</option>
+                ))}
+              </select>
+            </div>
+          )}
 
-            <button
-              onClick={() => {
-                const current = canteens.find(c => c.id === (selectedAdminCanteenId || userProfile?.canteenId));
-                let url = window.location.origin;
-                if (current?.group_slug) {
-                  url += `/c/${current.group_slug}?canteen=${current.slug || current.id}`;
-                } else if (current?.slug) {
-                  url += `/c/${current.slug}`;
-                } else {
-                  url += `/c/mithibai-main-campus`;
-                }
-                navigator.clipboard.writeText(url);
-                alert(`Student menu URL copied to clipboard:\n${url}`);
-              }}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold text-indigo-700 bg-indigo-50 hover:bg-indigo-100 border border-indigo-200 transition-all active:scale-95 shadow-xs"
-              title="Copy student direct menu link"
-            >
-              <LinkIcon className="w-3.5 h-3.5" />
-              <span className="hidden sm:inline">Copy Link</span>
-            </button>
-          </div>
-        )}
+          <button
+            onClick={() => {
+              const current = canteens.find(c => c.id === (selectedAdminCanteenId || userProfile?.canteenId));
+              let url = window.location.origin;
+              if (current?.slug) url += `/c/${current.slug}`;
+              else url += `/c/mithibai-main-campus`;
+              navigator.clipboard.writeText(url);
+              alert(`Student menu URL copied:\n${url}`);
+            }}
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold text-indigo-700 bg-indigo-50 hover:bg-indigo-100 border border-indigo-200 transition-all active:scale-95 shadow-xs"
+            title="Copy student direct menu link"
+          >
+            <LinkIcon className="w-3.5 h-3.5" />
+            <span className="hidden sm:inline">Menu Link</span>
+          </button>
+        </div>
       </header>
 
-      {/* 🔍 INSTANT BULK SEARCH & STATUS FILTER TABS */}
-      <div className="flex flex-col md:flex-row gap-3 items-stretch md:items-center justify-between">
-        
+      {/* 2. DUAL-TAB OPERATIONAL SWITCHER (KITCHEN QUEUE vs COUNTER PICKUP) */}
+      <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-2.5">
+        <div className="inline-flex p-1 bg-slate-200/90 rounded-2xl shadow-inner select-none">
+          <button
+            onClick={() => setActiveTab('KITCHEN')}
+            className={`flex-1 sm:flex-none px-5 py-2.5 rounded-xl text-xs font-black transition-all flex items-center justify-center gap-2 ${
+              activeTab === 'KITCHEN'
+                ? 'bg-white text-amber-700 shadow-md'
+                : 'text-slate-600 hover:text-slate-900'
+            }`}
+          >
+            <ChefHat className="w-4 h-4 text-amber-600" />
+            <span>🍳 Kitchen Queue</span>
+            <span className="px-2 py-0.5 rounded-full text-[10px] font-black bg-amber-100 text-amber-800">
+              {kitchenOrders.length}
+            </span>
+          </button>
+
+          <button
+            onClick={() => setActiveTab('COUNTER')}
+            className={`flex-1 sm:flex-none px-5 py-2.5 rounded-xl text-xs font-black transition-all flex items-center justify-center gap-2 ${
+              activeTab === 'COUNTER'
+                ? 'bg-white text-emerald-700 shadow-md'
+                : 'text-slate-600 hover:text-slate-900'
+            }`}
+          >
+            <PackageCheck className="w-4 h-4 text-emerald-600" />
+            <span>📦 Counter Pickup</span>
+            <span className="px-2 py-0.5 rounded-full text-[10px] font-black bg-emerald-100 text-emerald-800">
+              {readyOrders.length}
+            </span>
+          </button>
+        </div>
+
         {/* Instant Search Bar */}
-        <div className="relative flex-1 max-w-md">
-          <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
+        <div className="relative flex-1 max-w-sm">
+          <Search className="w-3.5 h-3.5 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
           <input
             type="text"
-            placeholder="Search Order #1010, PIN 9799, Student Name..."
+            placeholder={activeTab === 'KITCHEN' ? "Search Ticket #1011 or Dish name..." : "Search Ticket #, Student, or PIN..."}
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full pl-10 pr-9 py-2.5 bg-white border border-slate-200 rounded-2xl text-xs font-bold text-slate-900 shadow-xs focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500 outline-none transition-all placeholder:text-slate-400 placeholder:font-normal"
+            className="w-full pl-9 pr-8 py-2 bg-white border border-slate-200 rounded-xl text-xs font-bold text-slate-900 shadow-xs focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 outline-none transition-all placeholder:text-slate-400 placeholder:font-normal"
           />
           {searchQuery && (
             <button
               onClick={() => setSearchQuery('')}
-              className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-700 p-0.5"
+              className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-700 p-0.5"
             >
               <X className="w-3.5 h-3.5" />
             </button>
           )}
-        </div>
-
-        {/* Status Filter Segmented Control Tabs */}
-        <div className="flex items-center gap-1 bg-slate-200/80 p-1 rounded-2xl overflow-x-auto no-scrollbar shadow-inner shrink-0">
-          <button
-            onClick={() => setActiveTab('ALL_ACTIVE')}
-            className={`px-3.5 py-1.5 rounded-xl text-xs font-bold whitespace-nowrap transition-all flex items-center gap-1.5 ${
-              activeTab === 'ALL_ACTIVE'
-                ? 'bg-white text-indigo-600 shadow-xs'
-                : 'text-slate-600 hover:text-slate-900'
-            }`}
-          >
-            <span>All Active</span>
-            <span className="px-1.5 py-0.2 rounded-full text-[10px] font-black bg-indigo-50 text-indigo-700">
-              {activeOrdersCount}
-            </span>
-          </button>
-
-          <button
-            onClick={() => setActiveTab('TO_COOK')}
-            className={`px-3.5 py-1.5 rounded-xl text-xs font-bold whitespace-nowrap transition-all flex items-center gap-1.5 ${
-              activeTab === 'TO_COOK'
-                ? 'bg-white text-amber-700 shadow-xs'
-                : 'text-slate-600 hover:text-slate-900'
-            }`}
-          >
-            <ChefHat className="w-3.5 h-3.5 text-amber-600" />
-            <span>To Cook</span>
-            <span className="px-1.5 py-0.2 rounded-full text-[10px] font-black bg-amber-100 text-amber-800">
-              {toCookCount}
-            </span>
-          </button>
-
-          <button
-            onClick={() => setActiveTab('READY')}
-            className={`px-3.5 py-1.5 rounded-xl text-xs font-bold whitespace-nowrap transition-all flex items-center gap-1.5 ${
-              activeTab === 'READY'
-                ? 'bg-white text-emerald-700 shadow-xs'
-                : 'text-slate-600 hover:text-slate-900'
-            }`}
-          >
-            <PackageCheck className="w-3.5 h-3.5 text-emerald-600" />
-            <span>Ready</span>
-            <span className="px-1.5 py-0.2 rounded-full text-[10px] font-black bg-emerald-100 text-emerald-800">
-              {readyCount}
-            </span>
-          </button>
-
-          <button
-            onClick={() => setActiveTab('COMPLETED')}
-            className={`px-3.5 py-1.5 rounded-xl text-xs font-bold whitespace-nowrap transition-all flex items-center gap-1.5 ${
-              activeTab === 'COMPLETED'
-                ? 'bg-white text-slate-900 shadow-xs'
-                : 'text-slate-600 hover:text-slate-900'
-            }`}
-          >
-            <span>History</span>
-            <span className="px-1.5 py-0.2 rounded-full text-[10px] font-black bg-slate-100 text-slate-600">
-              {completedCount}
-            </span>
-          </button>
         </div>
       </div>
 
@@ -516,128 +469,159 @@ export function StaffOrders() {
           <RotateCw className="w-7 h-7 animate-spin text-indigo-600" />
           <span className="text-xs font-bold">Synchronizing kitchen queue...</span>
         </div>
-      ) : activeTab === 'COMPLETED' ? (
-        /* Completed History Section (Responsive Cards on Mobile + Table on Desktop) */
-        <section className="bg-white border border-slate-200/90 rounded-3xl overflow-hidden shadow-sm">
-          {displayedOrders.length === 0 ? (
-            <div className="py-16 flex flex-col items-center justify-center text-slate-400 text-center">
-              <FileText className="w-10 h-10 opacity-30 mb-2 text-indigo-600" />
-              <span className="text-sm font-bold text-slate-700">No completed orders found</span>
-              <span className="text-xs text-slate-400 mt-0.5">Fulfilled orders will appear here</span>
-            </div>
-          ) : (
-            <div>
-              {/* Mobile View: Clean Card List */}
-              <div className="md:hidden divide-y divide-slate-100">
-                {displayedOrders.map((order) => (
-                  <div key={order.id} className="p-4 space-y-2">
-                    <div className="flex justify-between items-start">
-                      <div className="flex items-center gap-2">
-                        <span className="font-mono font-black text-sm text-slate-900">{order.order_number}</span>
-                        <span className="px-2 py-0.5 bg-emerald-50 text-emerald-700 border border-emerald-200 rounded-full text-[10px] font-bold uppercase">
-                          Completed
-                        </span>
-                      </div>
-                      <span className="text-xs font-black text-slate-900">₹{order.total_price}</span>
-                    </div>
-                    <div>
-                      <p className="text-xs font-bold text-slate-800">{order.student_name} <span className="text-slate-400 font-normal">({order.student_roll})</span></p>
-                      <p className="text-[11px] text-slate-600 mt-0.5">
-                        {order.items.map((i) => `${i.name} ×${i.quantity}`).join(', ')}
-                      </p>
-                    </div>
-                    <p className="text-[10px] font-mono text-slate-400">{formatTime(order.created_at)}</p>
-                  </div>
+      ) : activeTab === 'KITCHEN' ? (
+        /* ================= 🍳 TAB 1: KITCHEN QUEUE (COOK VIEW) ================= */
+        <div className="space-y-3">
+          
+          {/* 🍳 LIVE BATCH PREP SUMMARY BAR (Aggregated Dish Totals) */}
+          {batchPrepSummary.totalItemCount > 0 && (
+            <div className="bg-amber-500 text-white rounded-2xl p-3 sm:p-3.5 shadow-md flex items-center justify-between gap-3 overflow-hidden">
+              <div className="flex items-center gap-2 shrink-0">
+                <Flame className="w-4 h-4 text-amber-200 fill-amber-200 animate-pulse" />
+                <span className="font-black text-xs uppercase tracking-wider">
+                  To Prepare ({batchPrepSummary.totalItemCount}):
+                </span>
+              </div>
+              <div className="flex items-center gap-2 overflow-x-auto no-scrollbar py-0.5 text-xs font-black">
+                {Object.entries(batchPrepSummary.summary).map(([dishName, qty]) => (
+                  <span 
+                    key={dishName} 
+                    className="bg-black/20 px-2.5 py-1 rounded-xl whitespace-nowrap text-[11px] border border-white/10"
+                  >
+                    {dishName} <span className="text-amber-200 font-black">×{qty}</span>
+                  </span>
                 ))}
               </div>
-
-              {/* Desktop View: Clean Table */}
-              <table className="hidden md:table w-full text-left border-collapse">
-                <thead>
-                  <tr className="border-b border-slate-200 bg-slate-50/70">
-                    <th className="px-5 py-3.5 text-[11px] font-black text-slate-500 uppercase tracking-wider">Order</th>
-                    <th className="px-5 py-3.5 text-[11px] font-black text-slate-500 uppercase tracking-wider">Student</th>
-                    <th className="px-5 py-3.5 text-[11px] font-black text-slate-500 uppercase tracking-wider">Dishes</th>
-                    <th className="px-5 py-3.5 text-[11px] font-black text-slate-500 uppercase tracking-wider text-right">Price</th>
-                    <th className="px-5 py-3.5 text-[11px] font-black text-slate-500 uppercase tracking-wider text-center">Time</th>
-                    <th className="px-5 py-3.5 text-[11px] font-black text-slate-500 uppercase tracking-wider text-center">Status</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-slate-100 text-xs">
-                  {displayedOrders.map((order) => (
-                    <tr key={order.id} className="hover:bg-slate-50/80 transition-colors">
-                      <td className="px-5 py-3.5 font-mono font-black text-slate-900">{order.order_number}</td>
-                      <td className="px-5 py-3.5">
-                        <div className="font-bold text-slate-800">{order.student_name}</div>
-                        <div className="text-slate-400 font-mono text-[11px]">{order.student_roll}</div>
-                      </td>
-                      <td className="px-5 py-3.5 text-slate-700 font-medium">
-                        {order.items.map((i) => `${i.name} (×${i.quantity})`).join(', ')}
-                      </td>
-                      <td className="px-5 py-3.5 text-right font-black text-slate-900">₹{order.total_price}</td>
-                      <td className="px-5 py-3.5 text-center text-slate-500 font-mono">{formatTime(order.created_at)}</td>
-                      <td className="px-5 py-3.5 text-center">
-                        <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-bold border border-emerald-200 bg-emerald-50 text-emerald-700">
-                          <CheckCheck className="w-3 h-3" /> Completed
-                        </span>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
             </div>
           )}
-        </section>
-      ) : (
-        /* ACTIVE ORDERS FEED (High Density Grid, Glanceable, 1-Tap Handover) */
-        <div className="space-y-4">
-          {displayedOrders.length === 0 ? (
+
+          {/* ULTRA-DENSE KITCHEN TICKETS LIST */}
+          {filteredKitchenOrders.length === 0 ? (
             <div className="bg-white border border-slate-200/90 rounded-3xl p-12 text-center flex flex-col items-center justify-center text-slate-400 shadow-sm">
               <Coffee className="w-10 h-10 text-slate-300 mb-2" />
-              <span className="text-base font-bold text-slate-800">No active orders in this view</span>
+              <span className="text-sm font-black text-slate-800">Kitchen Queue is Empty!</span>
               <span className="text-xs text-slate-400 mt-1">
-                {searchQuery ? `No orders matched query "${searchQuery}"` : 'All caught up! New orders will notify automatically.'}
+                {searchQuery ? `No active tickets match "${searchQuery}"` : 'All cooking orders have been completed and marked ready.'}
               </span>
             </div>
           ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3.5 sm:gap-4">
-              {displayedOrders.map((order) => {
+            <div className="space-y-2.5">
+              {filteredKitchenOrders.map((order) => {
                 const isPending = order.status === 'PENDING';
-                const isPreparing = order.status === 'PREPARING';
-                const isReady = order.status === 'READY';
                 return (
-                  <SpotlightCard 
-                    key={order.id} 
-                    className={`p-4 sm:p-5 rounded-2xl sm:rounded-3xl flex flex-col justify-between gap-3 bg-white border border-slate-200/90 shadow-sm transition-all ${
-                      isReady 
-                        ? 'border-l-4 border-l-emerald-500 ring-1 ring-emerald-500/20' 
-                        : isPreparing
-                        ? 'border-l-4 border-l-indigo-600'
-                        : 'border-l-4 border-l-amber-500'
+                  <SpotlightCard
+                    key={order.id}
+                    className={`bg-white border p-3 sm:p-3.5 rounded-2xl shadow-xs transition-all flex flex-col sm:flex-row sm:items-center justify-between gap-3 ${
+                      isPending 
+                        ? 'border-l-4 border-l-amber-500 border-slate-200/90' 
+                        : 'border-l-4 border-l-indigo-600 border-slate-200/90'
                     }`}
                   >
-                    {/* Card Top: Order Number + Status + Timestamp */}
-                    <div>
-                      <div className="flex justify-between items-center pb-2 border-b border-slate-100">
-                        <div className="flex items-center gap-2">
-                          <span className="font-mono font-black text-base text-slate-900">{order.order_number}</span>
-                          <span className={`px-2 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider ${
-                            isReady 
-                              ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' 
-                              : isPreparing
-                              ? 'bg-indigo-50 text-indigo-700 border border-indigo-200'
-                              : 'bg-amber-50 text-amber-700 border border-amber-200'
-                          }`}>
-                            {order.status}
-                          </span>
-                        </div>
-                        <span className="text-[11px] font-mono text-slate-400">{formatTime(order.created_at)}</span>
+                    {/* Left: Ticket Number + Elapsed Time + Dishes */}
+                    <div className="flex-1 min-w-0 space-y-1">
+                      <div className="flex items-center gap-2">
+                        <span className="font-mono font-black text-base text-slate-900">{order.order_number}</span>
+                        <span className="text-[11px] font-mono text-slate-400 flex items-center gap-1">
+                          <Clock className="w-3 h-3" />
+                          {formatElapsed(order.created_at)}
+                        </span>
+                        <span className={`px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-wider ${
+                          isPending 
+                            ? 'bg-amber-50 text-amber-700 border border-amber-200' 
+                            : 'bg-indigo-50 text-indigo-700 border border-indigo-200'
+                        }`}>
+                          {isPending ? 'Pending' : 'Cooking'}
+                        </span>
                       </div>
 
-                      {/* Student Info */}
-                      <div className="pt-2">
-                        <p className="font-black text-sm text-slate-900 leading-tight">{order.student_name}</p>
-                        <p className="text-[11px] font-mono text-slate-500 mt-0.5">{order.student_roll}</p>
+                      {/* Food Items with prominent quantity chips */}
+                      <div className="flex flex-wrap items-center gap-1.5 pt-0.5">
+                        {order.items.map((item, idx) => (
+                          <span 
+                            key={idx}
+                            className="inline-flex items-center gap-1 bg-slate-100 border border-slate-200/80 px-2 py-0.5 rounded-lg text-xs font-bold text-slate-800"
+                          >
+                            <span>{item.name}</span>
+                            <span className="text-indigo-600 font-black">×{item.quantity}</span>
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* Right: Direct 1-Tap Cooking Transition Action */}
+                    <div className="shrink-0 flex items-center gap-2">
+                      {isPending ? (
+                        <button
+                          onClick={() => updateOrderStatus(order.id, 'PREPARING')}
+                          className="w-full sm:w-auto px-4 py-2.5 rounded-xl bg-amber-500 hover:bg-amber-600 text-white font-black text-xs shadow-sm active:scale-95 transition-all flex items-center justify-center gap-1.5"
+                        >
+                          <ChefHat className="w-4 h-4" />
+                          <span>Start Cooking</span>
+                        </button>
+                      ) : (
+                        <button
+                          onClick={() => updateOrderStatus(order.id, 'READY')}
+                          className="w-full sm:w-auto px-4 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-black text-xs shadow-sm active:scale-95 transition-all flex items-center justify-center gap-1.5"
+                        >
+                          <CheckCircle className="w-4 h-4" />
+                          <span>Mark Ready</span>
+                        </button>
+                      )}
+                    </div>
+                  </SpotlightCard>
+                );
+              })}
+            </div>
+          )}
+        </div>
+      ) : (
+        /* ================= 📦 TAB 2: COUNTER PICKUP & PIN HANDOVER ================= */
+        <div className="space-y-4">
+          
+          {/* READY FOR PICKUP SECTION */}
+          <div>
+            <div className="flex items-center justify-between pb-2">
+              <h2 className="text-sm font-black text-slate-900 uppercase tracking-wider flex items-center gap-1.5">
+                <span className="w-2 h-2 rounded-full bg-emerald-500"></span>
+                <span>Ready for Counter Pickup ({filteredReadyOrders.length})</span>
+              </h2>
+              <span className="text-[11px] text-slate-400 font-semibold">Verify 4-digit PIN to handover</span>
+            </div>
+
+            {filteredReadyOrders.length === 0 ? (
+              <div className="bg-white border border-slate-200/90 rounded-3xl p-10 text-center flex flex-col items-center justify-center text-slate-400 shadow-sm">
+                <PackageCheck className="w-10 h-10 text-slate-300 mb-2" />
+                <span className="text-sm font-black text-slate-800">No Orders Awaiting Pickup</span>
+                <span className="text-xs text-slate-400 mt-0.5">Dishes marked 'Ready' in the kitchen will appear here.</span>
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3.5">
+                {filteredReadyOrders.map((order) => (
+                  <SpotlightCard
+                    key={order.id}
+                    className="bg-white border-2 border-emerald-500/80 p-4 sm:p-5 rounded-2xl shadow-sm flex flex-col justify-between gap-3.5"
+                  >
+                    <div>
+                      {/* Top: Ticket # and Time */}
+                      <div className="flex justify-between items-start pb-2 border-b border-slate-100">
+                        <div className="flex items-center gap-2">
+                          <span className="font-mono font-black text-lg text-slate-900">{order.order_number}</span>
+                          <span className="px-2 py-0.5 bg-emerald-50 text-emerald-700 border border-emerald-200 rounded-full text-[10px] font-black uppercase tracking-wider">
+                            Ready
+                          </span>
+                        </div>
+                        <span className="text-xs font-mono text-slate-400">{formatElapsed(order.created_at)}</span>
+                      </div>
+
+                      {/* Student Name (Requested by user) */}
+                      <div className="pt-2 flex items-center gap-2">
+                        <div className="w-7 h-7 rounded-full bg-indigo-50 text-indigo-600 flex items-center justify-center">
+                          <User className="w-3.5 h-3.5" />
+                        </div>
+                        <div>
+                          <p className="text-xs font-black text-slate-900">{order.student_name}</p>
+                          <p className="text-[10px] font-mono text-slate-400">{order.student_roll}</p>
+                        </div>
                       </div>
 
                       {/* Dishes List */}
@@ -650,98 +634,120 @@ export function StaffOrders() {
                             <span className="font-semibold text-slate-500">₹{item.price * item.quantity}</span>
                           </div>
                         ))}
+                        <div className="border-t border-slate-200/60 pt-1 flex justify-between items-center text-xs font-black text-slate-900">
+                          <span>Total Paid</span>
+                          <span>₹{order.total_price}</span>
+                        </div>
                       </div>
                     </div>
 
-                    {/* Card Bottom: Quick Actions */}
+                    {/* STRICT 4-DIGIT PIN VERIFICATION FORM (NO BYPASS BUTTON) */}
                     <div className="space-y-2 pt-1">
-                      <div className="flex justify-between items-center text-xs">
-                        <div className="flex items-center gap-1 text-slate-500 font-bold">
-                          <span>OTP PIN:</span>
-                          <span className="font-mono font-black text-indigo-600 text-sm bg-indigo-50 px-1.5 py-0.5 rounded-md border border-indigo-100">
-                            {order.pickup_code}
-                          </span>
-                        </div>
-                        <div className="font-black text-slate-900 text-sm">
-                          ₹{order.total_price}
-                        </div>
+                      <label className="text-[11px] font-black text-slate-600 uppercase tracking-wider block">
+                        Enter Student 4-Digit PIN:
+                      </label>
+                      <div className="flex items-center gap-2">
+                        <input
+                          type="text"
+                          maxLength={4}
+                          placeholder="e.g. 9799"
+                          value={pinInputs[order.id] || ''}
+                          onChange={(e) => {
+                            const val = e.target.value.replace(/\D/g, '');
+                            setPinInputs(prev => ({ ...prev, [order.id]: val }));
+                            if (val.length === 4) {
+                              handleVerifyOrderPin(order, val);
+                            }
+                          }}
+                          onKeyDown={(e) => {
+                            if (e.key === 'Enter') handleVerifyOrderPin(order);
+                          }}
+                          className="w-28 px-3 py-2.5 text-center font-mono font-black text-sm tracking-widest bg-slate-50 border-2 border-slate-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 outline-none transition-all placeholder:text-slate-400 placeholder:font-normal"
+                        />
+                        <button
+                          onClick={() => handleVerifyOrderPin(order)}
+                          disabled={verifyingOrders[order.id] || (pinInputs[order.id] || '').length < 4}
+                          className="flex-1 py-2.5 px-4 bg-emerald-600 hover:bg-emerald-700 text-white font-black text-xs rounded-xl shadow-md shadow-emerald-600/20 active:scale-95 transition-all disabled:opacity-50 disabled:pointer-events-none flex items-center justify-center gap-1.5"
+                        >
+                          {verifyingOrders[order.id] ? (
+                            <>
+                              <RotateCw className="w-3.5 h-3.5 animate-spin" />
+                              <span>Verifying...</span>
+                            </>
+                          ) : (
+                            <>
+                              <CheckCheck className="w-4 h-4" />
+                              <span>Verify & Handover</span>
+                            </>
+                          )}
+                        </button>
                       </div>
 
-                      {/* 1-Tap Progression Buttons */}
-                      {isPending && (
-                        <button
-                          onClick={() => updateOrderStatus(order.id, 'PREPARING')}
-                          className="w-full py-2.5 rounded-xl bg-amber-500 hover:bg-amber-600 text-white font-black text-xs shadow-md shadow-amber-500/20 active:scale-[0.98] transition-all flex items-center justify-center gap-1.5"
-                        >
-                          <ChefHat className="w-4 h-4" />
-                          <span>Start Cooking</span>
-                        </button>
+                      {orderErrors[order.id] && (
+                        <p className="text-[11px] font-bold text-rose-600 animate-shake">{orderErrors[order.id]}</p>
                       )}
-
-                      {isPreparing && (
-                        <button
-                          onClick={() => updateOrderStatus(order.id, 'READY')}
-                          className="w-full py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-black text-xs shadow-md shadow-indigo-600/20 active:scale-[0.98] transition-all flex items-center justify-center gap-1.5"
-                        >
-                          <CheckCircle className="w-4 h-4" />
-                          <span>Mark Ready for Pickup</span>
-                        </button>
-                      )}
-
-                      {isReady && (
-                        <div className="space-y-2">
-                          <button
-                            onClick={() => updateOrderStatus(order.id, 'COMPLETED')}
-                            className="w-full py-3 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-black text-xs shadow-md shadow-emerald-600/25 active:scale-[0.98] transition-all flex items-center justify-center gap-1.5"
-                          >
-                            <PackageCheck className="w-4 h-4" />
-                            <span>1-Tap Handover / Complete</span>
-                          </button>
-
-                          {/* Quick Inline PIN input verification for extra security */}
-                          <div className="flex items-center gap-1.5 pt-1">
-                            <input
-                              type="text"
-                              maxLength={4}
-                              placeholder="Enter PIN"
-                              value={pinInputs[order.id] || ''}
-                              onChange={(e) => {
-                                const val = e.target.value.replace(/\D/g, '');
-                                setPinInputs(prev => ({ ...prev, [order.id]: val }));
-                                if (val.length === 4) {
-                                  handleVerifyOrderPin(order, val);
-                                }
-                              }}
-                              onKeyDown={(e) => {
-                                if (e.key === 'Enter') {
-                                  handleVerifyOrderPin(order);
-                                }
-                              }}
-                              className="w-20 px-2 py-1.5 text-center font-mono font-black text-xs tracking-wider bg-slate-50 border border-slate-200 rounded-lg focus:bg-white focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 outline-none"
-                            />
-                            <button
-                              onClick={() => handleVerifyOrderPin(order)}
-                              disabled={verifyingOrders[order.id]}
-                              className="flex-1 py-1.5 px-2 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-[11px] rounded-lg transition-all active:scale-95 disabled:opacity-50"
-                            >
-                              {verifyingOrders[order.id] ? 'Verifying...' : 'Verify PIN'}
-                            </button>
-                          </div>
-
-                          {orderErrors[order.id] && (
-                            <p className="text-[10px] font-bold text-rose-600">{orderErrors[order.id]}</p>
-                          )}
-                          {orderSuccess[order.id] && (
-                            <p className="text-[10px] font-bold text-emerald-700">{orderSuccess[order.id]}</p>
-                          )}
-                        </div>
+                      {orderSuccess[order.id] && (
+                        <p className="text-[11px] font-bold text-emerald-700">{orderSuccess[order.id]}</p>
                       )}
                     </div>
                   </SpotlightCard>
-                );
-              })}
-            </div>
-          )}
+                ))}
+              </div>
+            )}
+          </div>
+
+          {/* 📜 COLLAPSIBLE COMPLETED ORDERS ACCORDION WITH PROMINENT LARGE DELETE BUTTON */}
+          <div className="bg-white border border-slate-200/90 rounded-2xl overflow-hidden shadow-sm mt-6">
+            <button
+              onClick={() => setIsHistoryExpanded(!isHistoryExpanded)}
+              className="w-full p-4 bg-slate-50 hover:bg-slate-100/80 transition-colors flex items-center justify-between text-left"
+            >
+              <div className="flex items-center gap-2">
+                <CheckCheck className="w-4 h-4 text-slate-500" />
+                <h3 className="text-xs font-black text-slate-800 uppercase tracking-wider">
+                  Completed Orders History ({completedOrders.length})
+                </h3>
+              </div>
+              <div className="flex items-center gap-1.5 text-xs font-bold text-slate-500">
+                <span>{isHistoryExpanded ? 'Collapse' : 'Expand'}</span>
+                {isHistoryExpanded ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+              </div>
+            </button>
+
+            {isHistoryExpanded && (
+              <div className="p-3 sm:p-4 divide-y divide-slate-100">
+                {completedOrders.length === 0 ? (
+                  <p className="text-xs text-slate-400 text-center py-6">No completed orders in history.</p>
+                ) : (
+                  completedOrders.map((order) => (
+                    <div key={order.id} className="py-3 flex items-center justify-between gap-3">
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2">
+                          <span className="font-mono font-black text-sm text-slate-900">{order.order_number}</span>
+                          <span className="text-xs font-bold text-slate-700">{order.student_name}</span>
+                          <span className="text-xs font-black text-slate-900">₹{order.total_price}</span>
+                        </div>
+                        <p className="text-xs text-slate-500 truncate mt-0.5">
+                          {order.items.map(i => `${i.name} ×${i.quantity}`).join(', ')}
+                        </p>
+                      </div>
+
+                      {/* 🗑️ BIG PROMINENT DELETE BUTTON (44px x 44px) */}
+                      <button
+                        onClick={() => deletePastOrder(order.id)}
+                        className="w-11 h-11 rounded-xl bg-rose-50 hover:bg-rose-100 border border-rose-200 text-rose-600 hover:text-rose-700 flex items-center justify-center transition-all active:scale-90 shrink-0 shadow-xs"
+                        title="Delete order record"
+                        aria-label="Delete order"
+                      >
+                        <Trash2 className="w-5 h-5" />
+                      </button>
+                    </div>
+                  ))
+                )}
+              </div>
+            )}
+          </div>
+
         </div>
       )}
     </div>

@@ -17,7 +17,10 @@ import {
   Trash2, 
   Plus, 
   Minus, 
-  Lock 
+  Lock,
+  ChevronDown,
+  ChevronUp,
+  CheckCheck
 } from 'lucide-react';
 import { SpotlightCard } from './ui/SpotlightCard';
 import { socket } from '../utils/socket.js';
@@ -65,6 +68,7 @@ export function StudentView() {
   const [studentRoll, setStudentRoll] = useState<string>('');
   const [myOrders, setMyOrders] = useState<Order[]>([]);
   const [activeSubTab, setActiveSubTab] = useState<'menu' | 'orders'>('menu');
+  const [isStudentHistoryExpanded, setIsStudentHistoryExpanded] = useState<boolean>(false);
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
   const [isLoadingMenu, setIsLoadingMenu] = useState<boolean>(true);
   const [serverError, setServerError] = useState<string>('');
@@ -810,15 +814,23 @@ export function StudentView() {
             </div>
           ) : (
             <div className="space-y-4 sm:space-y-5">
-              {myOrders.map((order) => {
-                const isCompleted = order.status === 'COMPLETED';
+              {/* Active Orders List */}
+              {myOrders.filter(o => o.status !== 'COMPLETED').length === 0 && myOrders.filter(o => o.status === 'COMPLETED').length > 0 && (
+                <div className="bg-white border border-slate-200/90 rounded-2xl p-6 text-center shadow-xs">
+                  <CheckCheck className="w-8 h-8 text-emerald-600 mx-auto mb-2" />
+                  <h3 className="text-sm font-black text-slate-800">All current orders completed!</h3>
+                  <p className="text-xs text-slate-500 mt-0.5">Check your completed orders history below or order fresh food from the menu.</p>
+                </div>
+              )}
+
+              {myOrders.filter(o => o.status !== 'COMPLETED').map((order) => {
                 const isReady = order.status === 'READY';
                 const isPreparing = order.status === 'PREPARING';
                 return (
                   <SpotlightCard 
                     key={order.id} 
                     className={`p-5 sm:p-6 flex flex-col md:flex-row gap-5 relative overflow-hidden bg-white border border-slate-200/90 rounded-3xl shadow-md ${
-                      isReady ? 'ring-2 ring-emerald-500/80' : isCompleted ? 'opacity-70 bg-slate-50' : ''
+                      isReady ? 'ring-2 ring-emerald-500/80' : ''
                     }`}
                   >
                     <div className="flex-1 flex flex-col justify-between">
@@ -846,21 +858,6 @@ export function StudentView() {
                               <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-emerald-50 border border-emerald-300 text-emerald-800 rounded-full text-xs font-black uppercase tracking-wider animate-bounce">
                                 <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" /> Ready for Pickup!
                               </span>
-                            )}
-                            {order.status === 'COMPLETED' && (
-                              <span className="inline-flex items-center gap-1 px-2.5 py-0.5 bg-slate-100 text-slate-600 rounded-full text-xs font-bold">
-                                Collected
-                              </span>
-                            )}
-                            
-                            {isCompleted && (
-                              <button
-                                onClick={() => removeOrderFromHistory(order.id)}
-                                className="p-1 rounded-lg text-slate-400 hover:text-rose-600 hover:bg-rose-50 transition-colors"
-                                title="Clear from history"
-                              >
-                                <Trash2 className="w-3.5 h-3.5" />
-                              </button>
                             )}
                           </div>
                         </div>
@@ -892,44 +889,88 @@ export function StudentView() {
                       </div>
                     </div>
 
-                    {!isCompleted ? (
-                      <div className={`md:w-64 rounded-2xl p-4 flex flex-col items-center justify-center text-center gap-2 border ${
-                        isReady 
-                          ? 'bg-emerald-50/90 border-emerald-300 shadow-sm' 
-                          : isPreparing
-                          ? 'bg-indigo-50/60 border-indigo-200'
-                          : 'bg-amber-50/50 border-amber-200'
-                      }`}>
-                        <span className="text-[10px] font-mono font-black text-slate-400 uppercase tracking-wider">
-                          Pickup Token
-                        </span>
-                        <div className="text-3xl sm:text-4xl font-black tracking-tight text-slate-900 font-mono">
-                          {order.order_number}
-                        </div>
-                        
-                        <div className="bg-white px-3.5 py-1.5 rounded-xl border border-slate-200 shadow-xs flex items-center gap-2 my-1">
-                          <span className="text-[11px] font-bold text-slate-500 uppercase">Counter PIN:</span>
-                          <span className="text-lg font-black font-mono text-indigo-600 tracking-widest">{order.pickup_code}</span>
-                        </div>
+                    <div className={`md:w-64 rounded-2xl p-4 flex flex-col items-center justify-center text-center gap-2 border ${
+                      isReady 
+                        ? 'bg-emerald-50/90 border-emerald-300 shadow-sm' 
+                        : isPreparing
+                        ? 'bg-indigo-50/60 border-indigo-200'
+                        : 'bg-amber-50/50 border-amber-200'
+                    }`}>
+                      <span className="text-[10px] font-mono font-black text-slate-400 uppercase tracking-wider">
+                        Pickup Token
+                      </span>
+                      <div className="text-3xl sm:text-4xl font-black tracking-tight text-slate-900 font-mono">
+                        {order.order_number}
+                      </div>
+                      
+                      <div className="bg-white px-3.5 py-1.5 rounded-xl border border-slate-200 shadow-xs flex items-center gap-2 my-1">
+                        <span className="text-[11px] font-bold text-slate-500 uppercase">Counter PIN:</span>
+                        <span className="text-lg font-black font-mono text-indigo-600 tracking-widest">{order.pickup_code}</span>
+                      </div>
 
-                        <p className="text-[11px] font-semibold text-slate-600 leading-tight">
-                          {isReady ? (
-                            <span className="text-emerald-800 font-bold">Your food is ready! Show token {order.order_number} at the counter.</span>
-                          ) : (
-                            <span>Cooks are preparing your order. Keep token handy.</span>
-                          )}
-                        </p>
-                      </div>
-                    ) : (
-                      <div className="md:w-64 bg-slate-100 rounded-2xl p-4 flex flex-col items-center justify-center text-center gap-1">
-                        <CheckCircle2 className="w-8 h-8 text-emerald-600" />
-                        <span className="text-xs font-black text-slate-800">Order Completed</span>
-                        <span className="text-[11px] text-slate-500">Collected at counter</span>
-                      </div>
-                    )}
+                      <p className="text-[11px] font-semibold text-slate-600 leading-tight">
+                        {isReady ? (
+                          <span className="text-emerald-800 font-bold">Your food is ready! Show token {order.order_number} & PIN at the counter.</span>
+                        ) : (
+                          <span>Cooks are preparing your order. Keep token handy.</span>
+                        )}
+                      </p>
+                    </div>
                   </SpotlightCard>
                 );
               })}
+
+              {/* 📜 COLLAPSIBLE COMPLETED ORDERS ACCORDION */}
+              {myOrders.filter(o => o.status === 'COMPLETED').length > 0 && (
+                <div className="bg-white border border-slate-200/90 rounded-2xl overflow-hidden shadow-sm mt-6">
+                  <button
+                    onClick={() => setIsStudentHistoryExpanded(!isStudentHistoryExpanded)}
+                    className="w-full p-4 bg-slate-50 hover:bg-slate-100/80 transition-colors flex items-center justify-between text-left"
+                  >
+                    <div className="flex items-center gap-2">
+                      <CheckCheck className="w-4 h-4 text-slate-500" />
+                      <h3 className="text-xs font-black text-slate-800 uppercase tracking-wider">
+                        Past Completed Orders ({myOrders.filter(o => o.status === 'COMPLETED').length})
+                      </h3>
+                    </div>
+                    <div className="flex items-center gap-1.5 text-xs font-bold text-slate-500">
+                      <span>{isStudentHistoryExpanded ? 'Collapse' : 'Expand'}</span>
+                      {isStudentHistoryExpanded ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+                    </div>
+                  </button>
+
+                  {isStudentHistoryExpanded && (
+                    <div className="p-3 sm:p-4 divide-y divide-slate-100">
+                      {myOrders.filter(o => o.status === 'COMPLETED').map((order) => (
+                        <div key={order.id} className="py-3 flex items-center justify-between gap-3">
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center gap-2">
+                              <span className="font-mono font-black text-sm text-slate-900">{order.order_number}</span>
+                              <span className="text-xs font-bold text-slate-700">₹{order.total_price}</span>
+                              <span className="text-[11px] font-mono text-slate-400">
+                                {new Date(order.created_at).toLocaleDateString([], { month: 'short', day: 'numeric' })}
+                              </span>
+                            </div>
+                            <p className="text-xs text-slate-500 truncate mt-0.5">
+                              {order.items.map(i => `${i.name} ×${i.quantity}`).join(', ')}
+                            </p>
+                          </div>
+
+                          {/* 🗑️ BIG PROMINENT RED DELETE BUTTON (44px x 44px) */}
+                          <button
+                            onClick={() => removeOrderFromHistory(order.id)}
+                            className="w-11 h-11 rounded-xl bg-rose-50 hover:bg-rose-100 border border-rose-200 text-rose-600 hover:text-rose-700 flex items-center justify-center transition-all active:scale-90 shrink-0 shadow-xs"
+                            title="Delete completed order from history"
+                            aria-label="Delete order"
+                          >
+                            <Trash2 className="w-5 h-5" />
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
           )}
         </div>

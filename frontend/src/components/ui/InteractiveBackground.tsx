@@ -95,7 +95,7 @@ export function InteractiveBackground({
   return (
     <canvas
       ref={canvasRef}
-      className="pointer-events-none fixed inset-0 z-0 h-full w-full opacity-85"
+      className="pointer-events-none fixed inset-0 -z-10 h-full w-full opacity-60"
     />
   );
 }

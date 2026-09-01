@@ -139,7 +139,7 @@ export default function App() {
       </header>
 
       {/* Main Content Area */}
-      <main className="pt-[96px] pb-[40px] px-margin-mobile md:px-margin-desktop max-w-container-max w-full mx-auto flex-1 flex flex-col">
+      <main className="relative z-10 pt-[96px] pb-[40px] px-margin-mobile md:px-margin-desktop max-w-container-max w-full mx-auto flex-1 flex flex-col">
         <Routes>
           <Route path="/" element={<LandingPage />} />
           <Route path="/menu" element={<StudentView />} />
