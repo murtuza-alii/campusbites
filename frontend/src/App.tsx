@@ -9,8 +9,9 @@ import { StaffMenu } from './components/StaffMenu';
 import { SmoothCursor } from './components/ui/SmoothCursor';
 import { InteractiveBackground } from './components/ui/InteractiveBackground';
 import { ServerWarmupBanner } from './components/ServerWarmupBanner';
+import { LegalPolicies } from './components/LegalPolicies';
 import { decodeToken } from './utils/jwt';
-import { UtensilsCrossed, ArrowLeft, LogOut, ShieldCheck, Utensils } from 'lucide-react';
+import { UtensilsCrossed, ArrowLeft, LogOut, ShieldCheck, Utensils, Phone, Mail } from 'lucide-react';
 
 export default function App() {
   const navigate = useNavigate();
@@ -152,17 +153,108 @@ export default function App() {
           <Route path="/staff/login/:slug" element={<StaffLogin />} />
           <Route path="/c/:slug/staff/login" element={<StaffLogin />} />
           <Route path="/canteen/:slug/staff/login" element={<StaffLogin />} />
+
+          {/* Legal, Customer Policies & Contact Routes for Payment Gateway Compliance */}
+          <Route path="/terms" element={<LegalPolicies initialTab="terms" />} />
+          <Route path="/terms-and-conditions" element={<LegalPolicies initialTab="terms" />} />
+          <Route path="/privacy" element={<LegalPolicies initialTab="privacy" />} />
+          <Route path="/privacy-policy" element={<LegalPolicies initialTab="privacy" />} />
+          <Route path="/refund-policy" element={<LegalPolicies initialTab="refund" />} />
+          <Route path="/cancellation-policy" element={<LegalPolicies initialTab="refund" />} />
+          <Route path="/shipping-policy" element={<LegalPolicies initialTab="shipping" />} />
+          <Route path="/delivery-policy" element={<LegalPolicies initialTab="shipping" />} />
+          <Route path="/contact" element={<LegalPolicies initialTab="contact" />} />
+          <Route path="/contact-us" element={<LegalPolicies initialTab="contact" />} />
+          <Route path="/legal" element={<LegalPolicies initialTab="terms" />} />
         </Routes>
       </main>
 
       {/* Footer */}
-      <footer className="w-full py-stack-lg border-t border-white/40 bg-white/30 backdrop-blur-md">
-        <div className="max-w-container-max mx-auto px-margin-mobile md:px-margin-desktop flex flex-col md:flex-row justify-between items-center gap-4">
-          <p className="font-label-sm text-label-sm text-text-muted">© 2026 CampusBites. Made for college canteens & university food courts.</p>
-          <div className="flex gap-6">
-            <Link className="font-label-sm text-label-sm text-text-muted hover:text-primary transition-colors" to="/c/mithibai-main-campus">Mithibai Campus</Link>
-            <Link className="font-label-sm text-label-sm text-text-muted hover:text-primary transition-colors" to="/c/downtown-diner">Downtown Diner</Link>
-            <Link className="font-label-sm text-label-sm text-text-muted hover:text-primary transition-colors" to="/staff">Staff Dashboard</Link>
+      <footer className="w-full py-8 border-t border-slate-200/80 bg-white/70 backdrop-blur-md mt-auto">
+        <div className="max-w-6xl mx-auto px-4 sm:px-8 space-y-6">
+          {/* Main Footer Links & Info */}
+          <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 border-b border-slate-200/60 pb-6">
+            <div className="space-y-1 max-w-sm">
+              <div className="flex items-center gap-2">
+                <div className="w-6 h-6 bg-indigo-600 rounded-lg flex items-center justify-center text-white">
+                  <UtensilsCrossed className="w-3.5 h-3.5" />
+                </div>
+                <span className="font-black text-slate-900 text-sm">CampusBites</span>
+              </div>
+              <p className="text-xs text-slate-500 leading-relaxed">
+                Smart food ordering & visual token ecosystem for college canteens and university diners.
+              </p>
+              <p className="text-[11px] text-slate-600 font-semibold pt-1">
+                Operated by: <span className="font-bold text-slate-900">MURTUZA ALI</span>
+              </p>
+            </div>
+
+            {/* Quick Links & Policies */}
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-6 text-xs">
+              <div className="space-y-2">
+                <p className="font-bold text-slate-900 uppercase tracking-wider text-[11px]">Campus Menus</p>
+                <ul className="space-y-1.5 text-slate-600">
+                  <li>
+                    <Link to="/c/mithibai-main-campus" className="hover:text-indigo-600 transition-colors">Mithibai Campus</Link>
+                  </li>
+                  <li>
+                    <Link to="/c/downtown-diner" className="hover:text-indigo-600 transition-colors">Downtown Diner</Link>
+                  </li>
+                  <li>
+                    <Link to="/staff" className="hover:text-indigo-600 transition-colors">Staff Terminal</Link>
+                  </li>
+                </ul>
+              </div>
+
+              <div className="space-y-2">
+                <p className="font-bold text-slate-900 uppercase tracking-wider text-[11px]">Legal & Policies</p>
+                <ul className="space-y-1.5 text-slate-600">
+                  <li>
+                    <Link to="/terms" className="hover:text-indigo-600 transition-colors">Terms & Conditions</Link>
+                  </li>
+                  <li>
+                    <Link to="/privacy" className="hover:text-indigo-600 transition-colors">Privacy Policy</Link>
+                  </li>
+                  <li>
+                    <Link to="/refund-policy" className="hover:text-indigo-600 transition-colors">Refund Policy</Link>
+                  </li>
+                  <li>
+                    <Link to="/shipping-policy" className="hover:text-indigo-600 transition-colors">Shipping Policy</Link>
+                  </li>
+                </ul>
+              </div>
+
+              <div className="space-y-2 col-span-2 sm:col-span-1">
+                <p className="font-bold text-slate-900 uppercase tracking-wider text-[11px]">Support & Grievance</p>
+                <ul className="space-y-1.5 text-slate-600">
+                  <li>
+                    <Link to="/contact" className="hover:text-indigo-600 transition-colors font-medium">Contact Us</Link>
+                  </li>
+                  <li className="flex items-center gap-1.5">
+                    <Mail className="w-3 h-3 text-indigo-600 shrink-0" />
+                    <a href="mailto:murtuzaali17th@gmail.com" className="hover:text-indigo-600 text-[11px] truncate">murtuzaali17th@gmail.com</a>
+                  </li>
+                  <li className="flex items-center gap-1.5">
+                    <Phone className="w-3 h-3 text-emerald-600 shrink-0" />
+                    <a href="tel:+918432123450" className="hover:text-indigo-600 text-[11px]">+91 8432123450</a>
+                  </li>
+                </ul>
+              </div>
+            </div>
+          </div>
+
+          {/* Bottom Copyright Bar */}
+          <div className="flex flex-col sm:flex-row items-center justify-between gap-3 text-[11px] text-slate-500">
+            <p>© 2026 CampusBites. All rights reserved. Platform owned and operated by MURTUZA ALI.</p>
+            <div className="flex items-center gap-4">
+              <Link to="/terms" className="hover:text-slate-800">Terms</Link>
+              <span>·</span>
+              <Link to="/privacy" className="hover:text-slate-800">Privacy</Link>
+              <span>·</span>
+              <Link to="/refund-policy" className="hover:text-slate-800">Refunds</Link>
+              <span>·</span>
+              <Link to="/contact" className="hover:text-slate-800">Contact</Link>
+            </div>
           </div>
         </div>
       </footer>

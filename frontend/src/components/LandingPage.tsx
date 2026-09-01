@@ -19,7 +19,10 @@ import {
   Check, 
   Smartphone, 
   Flame, 
-  CheckCheck 
+  CheckCheck,
+  Mail,
+  Phone,
+  Shield
 } from 'lucide-react';
 import { SpotlightCard } from './ui/SpotlightCard';
 import { ShinyBadge, ShinyText } from './ui/ShinyText';
@@ -577,6 +580,69 @@ export function LandingPage() {
             </p>
           </form>
         </div>
+      </section>
+
+      {/* 5. LEGAL ENTITY & COMPLIANCE SECTION (Direct Verification for Payment Aggregators) */}
+      <section className="max-w-4xl mx-auto w-full">
+        <SpotlightCard className="p-6 sm:p-8 bg-white border border-slate-200/90 rounded-3xl shadow-sm space-y-4">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 border-b border-slate-100 pb-4">
+            <div>
+              <div className="flex items-center gap-1.5 text-xs font-mono font-bold text-indigo-600 uppercase tracking-wider mb-1">
+                <Shield className="w-3.5 h-3.5" />
+                <span>Legal Entity & Operator Details</span>
+              </div>
+              <h3 className="text-lg font-black text-slate-900">CampusBites Platform Operator Information</h3>
+            </div>
+            <span className="px-3 py-1 rounded-full text-xs font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">
+              Verified Merchant
+            </span>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 text-xs">
+            <div className="p-3.5 rounded-xl bg-slate-50 border border-slate-200/80 space-y-1">
+              <span className="text-[10px] font-bold uppercase text-slate-400">Legal Entity / Proprietor</span>
+              <p className="font-bold text-slate-900 text-sm">MURTUZA ALI</p>
+              <p className="text-[11px] text-slate-500">Sole Proprietor · CampusBites</p>
+            </div>
+
+            <div className="p-3.5 rounded-xl bg-slate-50 border border-slate-200/80 space-y-1">
+              <span className="text-[10px] font-bold uppercase text-slate-400">Official Contact Email</span>
+              <p className="font-bold text-indigo-600 text-sm">
+                <a href="mailto:murtuzaali17th@gmail.com" className="hover:underline flex items-center gap-1.5">
+                  <Mail className="w-3.5 h-3.5" />
+                  murtuzaali17th@gmail.com
+                </a>
+              </p>
+              <p className="text-[11px] text-slate-500">Support & Grievances</p>
+            </div>
+
+            <div className="p-3.5 rounded-xl bg-slate-50 border border-slate-200/80 space-y-1">
+              <span className="text-[10px] font-bold uppercase text-slate-400">Official Phone / WhatsApp</span>
+              <p className="font-bold text-slate-900 text-sm">
+                <a href="tel:+918432123450" className="hover:underline flex items-center gap-1.5">
+                  <Phone className="w-3.5 h-3.5 text-emerald-600" />
+                  +91 8432123450
+                </a>
+              </p>
+              <p className="text-[11px] text-slate-500">Mon - Sat · 8:30 AM to 7:30 PM</p>
+            </div>
+          </div>
+
+          <div className="pt-2 flex flex-wrap items-center justify-between gap-3 text-xs text-slate-500">
+            <p>For detailed terms, privacy, refunds, and delivery guidelines:</p>
+            <div className="flex items-center gap-3 font-semibold text-indigo-600">
+              <Link to="/terms" className="hover:underline">Terms of Service</Link>
+              <span>·</span>
+              <Link to="/privacy" className="hover:underline">Privacy Policy</Link>
+              <span>·</span>
+              <Link to="/refund-policy" className="hover:underline">Refund Policy</Link>
+              <span>·</span>
+              <Link to="/shipping-policy" className="hover:underline">Shipping & Delivery</Link>
+              <span>·</span>
+              <Link to="/contact" className="hover:underline">Contact Us</Link>
+            </div>
+          </div>
+        </SpotlightCard>
       </section>
     </div>
   );
