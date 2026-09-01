@@ -27,8 +27,8 @@ export const createOrderSchema = z.object({
 });
 
 export const updateOrderStatusSchema = z.object({
-  status: z.enum(['PENDING', 'PREPARING', 'READY', 'COMPLETED'], {
-    errorMap: () => ({ message: 'Status must be PENDING, PREPARING, READY, or COMPLETED' })
+  status: z.enum(['PENDING', 'PREPARING', 'READY', 'COMPLETED', 'CANCELLED'], {
+    errorMap: () => ({ message: 'Status must be PENDING, PREPARING, READY, COMPLETED, or CANCELLED' })
   })
 });
 

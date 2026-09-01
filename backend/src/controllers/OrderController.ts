@@ -35,44 +35,17 @@ export class OrderController extends BaseController {
       const db = await getDb();
       const requestedCanteenId = req.query.canteenId as string | undefined;
 
-      // For non-admin staff, restrict orders to their specific campus group or assigned canteen
+      // For non-admin staff (cooks/managers), strictly lock orders to their assigned canteen
       if (authUser && authUser.role !== 'admin') {
-        let allowedCanteenIds: string[] = [];
-
-        if (authUser.canteenId) {
-          const userCanteenRes = await db.query('SELECT * FROM canteen WHERE id = $1', [authUser.canteenId]);
-          if (userCanteenRes.rows.length > 0) {
-            const userCanteen = userCanteenRes.rows[0];
-            if (userCanteen.group_name) {
-              // Campus Group (e.g., Mithibai Main Campus)
-              const sistersRes = await db.query('SELECT id FROM canteen WHERE group_name = $1', [userCanteen.group_name]);
-              allowedCanteenIds = sistersRes.rows.map((r: any) => r.id);
-            } else {
-              // Standalone Outlet (e.g., Downtown Diner)
-              allowedCanteenIds = [userCanteen.id];
-            }
-          }
-        }
-
-        if (allowedCanteenIds.length === 0 && authUser.canteenId) {
-          allowedCanteenIds = [authUser.canteenId];
-        }
-
-        if (requestedCanteenId) {
-          // If specific canteen is requested, verify it is within their allowed campus/venue
-          if (!allowedCanteenIds.includes(requestedCanteenId)) {
-            res.status(403).json({ error: 'Unauthorized: Cross-campus order access is strictly prohibited' });
-            return;
-          }
-          const orders = await this.orderService.getAllOrders(requestedCanteenId);
-          this.handleSuccess(res, orders);
-          return;
-        } else {
-          // Default to all canteens in their own campus/venue ONLY
-          const orders = await this.orderService.getAllOrders(allowedCanteenIds);
-          this.handleSuccess(res, orders);
+        const lockedCanteenId = authUser.canteenId;
+        if (!lockedCanteenId) {
+          res.status(403).json({ error: 'Unauthorized: No canteen assigned to this staff account' });
           return;
         }
+
+        const orders = await this.orderService.getAllOrders(lockedCanteenId);
+        this.handleSuccess(res, orders);
+        return;
       }
 
       // Admin has global multi-campus visibility

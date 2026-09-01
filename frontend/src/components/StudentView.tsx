@@ -49,7 +49,7 @@ interface Order {
   student_roll: string;
   items: CartItem[];
   total_price: number;
-  status: 'PENDING' | 'PREPARING' | 'READY' | 'COMPLETED';
+  status: 'PENDING' | 'PREPARING' | 'READY' | 'COMPLETED' | 'CANCELLED';
   pickup_code: string;
   created_at: string;
 }
@@ -816,15 +816,15 @@ export function StudentView() {
           ) : (
             <div className="space-y-4 sm:space-y-5">
               {/* Active Orders List */}
-              {myOrders.filter(o => o.status !== 'COMPLETED').length === 0 && myOrders.filter(o => o.status === 'COMPLETED').length > 0 && (
+              {myOrders.filter(o => o.status !== 'COMPLETED' && o.status !== 'CANCELLED').length === 0 && myOrders.filter(o => o.status === 'COMPLETED' || o.status === 'CANCELLED').length > 0 && (
                 <div className="bg-white border border-slate-200/90 rounded-2xl p-6 text-center shadow-xs">
                   <CheckCheck className="w-8 h-8 text-emerald-600 mx-auto mb-2" />
-                  <h3 className="text-sm font-black text-slate-800">All current orders completed!</h3>
-                  <p className="text-xs text-slate-500 mt-0.5">Check your completed orders history below or order fresh food from the menu.</p>
+                  <h3 className="text-sm font-black text-slate-800">No active cooking orders</h3>
+                  <p className="text-xs text-slate-500 mt-0.5">Check your order history below or order fresh food from the menu.</p>
                 </div>
               )}
 
-              {myOrders.filter(o => o.status !== 'COMPLETED').map((order) => {
+              {myOrders.filter(o => o.status !== 'COMPLETED' && o.status !== 'CANCELLED').map((order) => {
                 const isReady = order.status === 'READY';
                 const isPreparing = order.status === 'PREPARING';
                 return (
@@ -921,8 +921,8 @@ export function StudentView() {
                 );
               })}
 
-              {/* 📜 COLLAPSIBLE COMPLETED ORDERS ACCORDION */}
-              {myOrders.filter(o => o.status === 'COMPLETED').length > 0 && (
+              {/* 📜 COLLAPSIBLE COMPLETED & CANCELLED ORDERS ACCORDION */}
+              {myOrders.filter(o => o.status === 'COMPLETED' || o.status === 'CANCELLED').length > 0 && (
                 <div className="bg-white border border-slate-200/90 rounded-2xl overflow-hidden shadow-sm mt-6">
                   <button
                     onClick={() => setIsStudentHistoryExpanded(!isStudentHistoryExpanded)}
@@ -931,7 +931,7 @@ export function StudentView() {
                     <div className="flex items-center gap-2">
                       <CheckCheck className="w-4 h-4 text-slate-500" />
                       <h3 className="text-xs font-black text-slate-800 uppercase tracking-wider">
-                        Past Completed Orders ({myOrders.filter(o => o.status === 'COMPLETED').length})
+                        Past Completed & Cancelled Orders ({myOrders.filter(o => o.status === 'COMPLETED' || o.status === 'CANCELLED').length})
                       </h3>
                     </div>
                     <div className="flex items-center gap-1.5 text-xs font-bold text-slate-500">
@@ -942,32 +942,42 @@ export function StudentView() {
 
                   {isStudentHistoryExpanded && (
                     <div className="p-3 sm:p-4 divide-y divide-slate-100">
-                      {myOrders.filter(o => o.status === 'COMPLETED').map((order) => (
-                        <div key={order.id} className="py-3 flex items-center justify-between gap-3">
-                          <div className="flex-1 min-w-0">
-                            <div className="flex items-center gap-2">
-                              <span className="font-mono font-black text-sm text-slate-900">{order.order_number}</span>
-                              <span className="text-xs font-bold text-slate-700">₹{order.total_price}</span>
-                              <span className="text-[11px] font-mono text-slate-400">
-                                {new Date(order.created_at).toLocaleDateString([], { month: 'short', day: 'numeric' })}
-                              </span>
+                      {myOrders.filter(o => o.status === 'COMPLETED' || o.status === 'CANCELLED').map((order) => {
+                        const isCancelled = order.status === 'CANCELLED';
+                        return (
+                          <div key={order.id} className="py-3 flex items-center justify-between gap-3">
+                            <div className="flex-1 min-w-0">
+                              <div className="flex items-center gap-2 flex-wrap">
+                                <span className="font-mono font-black text-sm text-slate-900">{order.order_number}</span>
+                                <span className={`px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-wider ${
+                                  isCancelled 
+                                    ? 'bg-rose-50 text-rose-700 border border-rose-200' 
+                                    : 'bg-emerald-50 text-emerald-700 border border-emerald-200'
+                                }`}>
+                                  {isCancelled ? 'Cancelled by Canteen' : 'Completed'}
+                                </span>
+                                <span className="text-xs font-bold text-slate-700">₹{order.total_price}</span>
+                                <span className="text-[11px] font-mono text-slate-400">
+                                  {new Date(order.created_at).toLocaleDateString([], { month: 'short', day: 'numeric' })}
+                                </span>
+                              </div>
+                              <p className="text-xs text-slate-500 truncate mt-0.5">
+                                {order.items.map(i => `${i.name} ×${i.quantity}`).join(', ')}
+                              </p>
                             </div>
-                            <p className="text-xs text-slate-500 truncate mt-0.5">
-                              {order.items.map(i => `${i.name} ×${i.quantity}`).join(', ')}
-                            </p>
-                          </div>
 
-                          {/* 🗑️ BIG PROMINENT RED DELETE BUTTON (44px x 44px) */}
-                          <button
-                            onClick={() => removeOrderFromHistory(order.id)}
-                            className="w-11 h-11 rounded-xl bg-rose-50 hover:bg-rose-100 border border-rose-200 text-rose-600 hover:text-rose-700 flex items-center justify-center transition-all active:scale-90 shrink-0 shadow-xs"
-                            title="Delete completed order from history"
-                            aria-label="Delete order"
-                          >
-                            <Trash2 className="w-5 h-5" />
-                          </button>
-                        </div>
-                      ))}
+                            {/* 🗑️ BIG PROMINENT RED DELETE BUTTON (44px x 44px) */}
+                            <button
+                              onClick={() => removeOrderFromHistory(order.id)}
+                              className="w-11 h-11 rounded-xl bg-rose-50 hover:bg-rose-100 border border-rose-200 text-rose-600 hover:text-rose-700 flex items-center justify-center transition-all active:scale-90 shrink-0 shadow-xs"
+                              title="Delete order from history"
+                              aria-label="Delete order"
+                            >
+                              <Trash2 className="w-5 h-5" />
+                            </button>
+                          </div>
+                        );
+                      })}
                     </div>
                   )}
                 </div>

@@ -22,7 +22,7 @@ export interface Order {
   student_roll: string;
   items: string; // JSON string in DB, parsed in repository/service
   total_price: number;
-  status: 'PENDING' | 'PREPARING' | 'READY' | 'COMPLETED';
+  status: 'PENDING' | 'PREPARING' | 'READY' | 'COMPLETED' | 'CANCELLED';
   pickup_code: string;
   created_at: string;
   canteen_id: string;

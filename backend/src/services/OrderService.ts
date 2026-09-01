@@ -113,7 +113,7 @@ export class OrderService {
     }));
   }
 
-  async updateOrderStatus(id: string, status: 'PENDING' | 'PREPARING' | 'READY' | 'COMPLETED'): Promise<void> {
+  async updateOrderStatus(id: string, status: 'PENDING' | 'PREPARING' | 'READY' | 'COMPLETED' | 'CANCELLED'): Promise<void> {
     const existing = await this.orderRepository.findById(id);
     if (!existing) {
       const err = new Error('Order not found');
