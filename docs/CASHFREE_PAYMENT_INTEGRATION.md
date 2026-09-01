@@ -257,11 +257,20 @@ A detailed chronicle of everything completed during the Cashfree Payment Gateway
 * **Live Test Verified**: Confirmed Render webhook returns `{"status": "OK"}` (HTTP 200) to Cashfree server tests.
 
 ### 4. Step 4: Production Account Activation & Brand Assets
-* **Production Credentials**: Generated and activated live Production App ID & Secret Key (`1391868e54a4bff2786fe680ef08681931`).
-* **Vector Branding**: Designed and deployed vector SVG assets:
-  - `frontend/public/campusbites-logo-square.svg` (512x512 app icon).
-  - `frontend/public/campusbites-logo-wide.svg` (Horizontal banner logo).
-* **Live Merchant Dashboard**: Cashfree dashboard unlocked full live mode with banner: *"Congratulations! You can start transacting now"*.
+### 5. Step 5: Verification Feedback, Legal Policies & Entity Deployment
+* **Merchant Verification Requirement**: Cashfree compliance requested explicit display of legal entity name (**MURTUZA ALI**), official email (`murtuzaali17th@gmail.com`), phone (`+91 8432123450`), and missing statutory policies.
+* **Compliance Pages Deployed**:
+  - Implemented `frontend/src/components/LegalPolicies.tsx` covering **Terms & Conditions**, **Privacy Policy (DPDP Act 2023)**, **Refund & Cancellation Policy**, **Shipping & Delivery Policy (Counter Pickup)**, and **Contact Us & Grievance Redressal (Consumer Protection Rules 2020)**.
+  - Deployed dedicated routes (`/terms`, `/privacy`, `/refund-policy`, `/shipping-policy`, `/contact`) and verified merchant footer cards on Render.
+
+### 6. Step 6: Cashfree Feature Decision Record (Easy Split vs. Standard PG)
+* **Feature Decision Log (Ticket ID: 8324844)**:
+  - **Easy Split Request**: ❌ **Declined** by Cashfree underwriting due to internal risk and policy constraints for new individual/sole proprietorship accounts.
+  - **Core Payment Gateway**: ✅ **Approved & Moving to Live Activation**. Cashfree confirmed standard payment collection is active, and same-day / instant settlement will be provisioned upon completion of onboarding pendencies.
+* **Architectural Strategy**:
+  - CampusBites operates on the **Standard Payment Gateway** model where 100% of student order payments settle directly into the primary merchant account (`MURTUZA ALI`).
+  - Canteen ledger reconciliations and disbursements are managed internally through CampusBites order reporting / direct bank settlements.
+  - If instant marketplace splitting is required later, it can be re-evaluated with Cashfree after establishing processing history/GST, or via Easebuzz Slices.
 
 ---
 
@@ -277,9 +286,13 @@ A detailed chronicle of everything completed during the Cashfree Payment Gateway
 | [`backend/src/app.ts`](file:///e:/campusbites/backend/src/app.ts) | Application | Mounts payment routes onto the Express app |
 | [`frontend/index.html`](file:///e:/campusbites/frontend/index.html) | Frontend | Loads Cashfree Web SDK V3 |
 | [`frontend/src/components/StudentView.tsx`](file:///e:/campusbites/frontend/src/components/StudentView.tsx) | React UI | Triggers dynamic checkout popup & auto-verifies payments |
+| [`frontend/src/components/LegalPolicies.tsx`](file:///e:/campusbites/frontend/src/components/LegalPolicies.tsx) | Frontend UI | Mandatory compliance policies & grievance details for PG verification |
+| [`frontend/src/components/LandingPage.tsx`](file:///e:/campusbites/frontend/src/components/LandingPage.tsx) | Frontend UI | Verified merchant operator card & statutory links |
 | [`frontend/public/campusbites-logo-square.svg`](file:///e:/campusbites/frontend/public/campusbites-logo-square.svg) | Brand Asset | 512x512 vector squircle logo for Cashfree checkout |
 | [`frontend/public/campusbites-logo-wide.svg`](file:///e:/campusbites/frontend/public/campusbites-logo-wide.svg) | Brand Asset | Horizontal vector banner logo |
 | [`docs/CASHFREE_PAYMENT_INTEGRATION.md`](file:///e:/campusbites/docs/CASHFREE_PAYMENT_INTEGRATION.md) | Documentation | Comprehensive technical integration & architecture guide |
+| [`docs/GATEWAY_SPLIT_PAYMENT_ARCHITECTURE.md`](file:///e:/campusbites/docs/GATEWAY_SPLIT_PAYMENT_ARCHITECTURE.md) | Documentation | Multi-vendor vs single-merchant gateway architecture guide |
 | [`docs/API_DOCUMENTATION.md`](file:///e:/campusbites/docs/API_DOCUMENTATION.md) | Documentation | Updated with `/api/payments` endpoints |
 | [`README.md`](file:///e:/campusbites/README.md) | Documentation | Updated with Cashfree PG guide reference |
+
 

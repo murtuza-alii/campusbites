@@ -212,23 +212,29 @@ If the payment status is pending for more than 30 seconds, the frontend displays
 
 ---
 
-## 8. Gateway Comparison: Easebuzz Slices vs. Cashfree Easy Split
+## 8. Gateway Status & Decision Record: Easebuzz Slices vs. Cashfree Easy Split
 
 | Feature | Easebuzz Slices | Cashfree Easy Split |
 | :--- | :--- | :--- |
-| **Current Readiness** | **Ready immediately** (Active account under PIKS) | Requires fresh merchant application |
+| **Current Readiness** | **Ready immediately** (Active account under PIKS) | ❌ **Declined** (Ticket #8324844: Policy constraints on new individual accounts) |
+| **Standard PG Status** | Active | ✅ **Approved / Active** (Direct single-merchant collection to MURTUZA ALI) |
 | **TDR Fee Rate** | ~1.80% – 2.00% + GST | ~1.75% – 1.90% + GST |
-| **Unregistered Sub-Merchants** | Fully supported (PAN + Bank details) | Fully supported (API & Dashboard) |
-| **Settlement Timeline** | T+1 Banking Day | T+1 Banking Day |
+| **Unregistered Sub-Merchants** | Fully supported (PAN + Bank details) | Enterprise / High-volume merchants only |
+| **Settlement Timeline** | T+1 Banking Day | T+1 / Instant Same-Day (upon active PG request) |
 | **Automated Instant Refunds** | Fully supported via Refund API | Fully supported via Refund API |
 | **Webhooks & Signature Auth** | HMAC SHA-512 Verification | HMAC SHA-256 Verification |
+
+### Decision Summary:
+* **Production Operations**: Active on **Cashfree Standard Payment Gateway** (all customer orders collect into the primary account `MURTUZA ALI`).
+* **Multi-Vendor Splitting**: If automatic multi-submerchant bank routing is required, it can be routed via **Easebuzz Slices** or managed via CampusBites internal canteen disbursement reports until Cashfree Easy Split is re-evaluated.
 
 ---
 
 ## 9. Summary Checklist for Rollout
 
 - [x] **Parent Entity:** PIKS registered under Udyam (Micro Business) — 100% compliant under ₹20L exemption.
-- [x] **Gateway Selection:** Easebuzz Slices (ready) or Cashfree Easy Split.
+- [x] **Gateway Selection:** Cashfree Standard PG (Live collections) / Easebuzz Slices (Vendor splitting fallback).
+- [x] **Legal Entity & Compliance:** MURTUZA ALI entity details and Indian consumer/FSSAI/DPDP policies deployed live.
 - [x] **Vendor Onboarding:** Collect PAN, Aadhaar, and Bank Passbook (No GSTIN needed for street food vendors).
 - [x] **Pricing Formula:** Apply `(Base Price × 1.02) + ₹3.00` to all menu items.
 - [x] **Strict Kitchen Gatekeeping:** No ticket is printed/displayed until `PAYMENT_SUCCESS` is received.
