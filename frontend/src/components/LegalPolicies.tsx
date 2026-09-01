@@ -157,26 +157,38 @@ export function LegalPolicies({ initialTab }: LegalPoliciesProps) {
               </div>
 
               <div>
-                <h3 className="font-bold text-slate-900 text-base mb-1.5">4. Pricing & Payments</h3>
+                <h3 className="font-bold text-slate-900 text-base mb-1.5">4. Pricing, GST & Taxes (Consumer Protection Rules 2020)</h3>
                 <p>
-                  All menu item prices displayed on CampusBites are in Indian Rupees (INR / ₹) and are inclusive of applicable taxes unless stated otherwise. 
-                  Online payment processing is securely conducted through authorized Reserve Bank of India (RBI) compliant payment aggregators (such as Cashfree Payments). 
-                  We do not store or capture any sensitive credit card numbers or UPI PINs on our servers.
+                  All menu item prices displayed on CampusBites are listed in Indian Rupees (INR / ₹) and are inclusive of all applicable Goods and Services Tax (GST) and service charges where applicable, in accordance with the Consumer Protection (E-Commerce) Rules, 2020 and Legal Metrology Act.
+                  Online payment processing is securely conducted through authorized Reserve Bank of India (RBI) licensed payment aggregators (such as Cashfree Payments). We do not store customer debit/credit card numbers or UPI MPINs on our servers.
                 </p>
               </div>
 
               <div>
-                <h3 className="font-bold text-slate-900 text-base mb-1.5">5. Modifications to the Service</h3>
+                <h3 className="font-bold text-slate-900 text-base mb-1.5">5. Food Quality, Hygiene & FSSAI Disclaimer</h3>
                 <p>
-                  We reserve the right to modify or discontinue any feature, menu item, or pricing at any time without prior notice. 
-                  Your continued use of the platform constitutes acceptance of updated terms.
+                  CampusBites acts as a digital technology intermediary and ordering platform for college canteens and food outlets. The preparation, culinary quality, hygiene, ingredient sourcing, and packaging of food items are the direct responsibility of the respective canteen kitchens and dining establishments, which are required to maintain compliance with the Food Safety and Standards Authority of India (FSSAI) regulations and municipal health standards.
                 </p>
               </div>
 
               <div>
-                <h3 className="font-bold text-slate-900 text-base mb-1.5">6. Governing Law & Jurisdiction</h3>
+                <h3 className="font-bold text-slate-900 text-base mb-1.5">6. User Eligibility (Indian Contract Act, 1872)</h3>
                 <p>
-                  These Terms shall be governed by and construed in accordance with the laws of India. Any disputes arising in connection with these terms shall be subject to the exclusive jurisdiction of the courts in Mumbai, Maharashtra, India.
+                  By using this platform, you represent that you are at least 18 years of age or are accessing the platform with the consent and supervision of a parent, guardian, or institutional authority, and are legally competent to enter into a binding contract under the Indian Contract Act, 1872.
+                </p>
+              </div>
+
+              <div>
+                <h3 className="font-bold text-slate-900 text-base mb-1.5">7. Modifications to the Service</h3>
+                <p>
+                  We reserve the right to modify or discontinue any feature, menu item, or pricing at any time without prior notice. Your continued use of the platform constitutes acceptance of updated terms.
+                </p>
+              </div>
+
+              <div>
+                <h3 className="font-bold text-slate-900 text-base mb-1.5">8. Governing Law & Dispute Resolution</h3>
+                <p>
+                  These Terms shall be governed by and construed in accordance with the laws of the Republic of India. Any legal disputes or claims arising out of or in connection with the use of CampusBites shall be subject to the exclusive jurisdiction of the competent courts in Mumbai, Maharashtra, India.
                 </p>
               </div>
             </div>
@@ -236,9 +248,21 @@ export function LegalPolicies({ initialTab }: LegalPoliciesProps) {
               </div>
 
               <div>
-                <h3 className="font-bold text-slate-900 text-base mb-1.5">5. Data Retention & Contact</h3>
+                <h3 className="font-bold text-slate-900 text-base mb-1.5">5. Data Principal Rights (DPDP Act, 2023)</h3>
                 <p>
-                  Order records are retained only as long as necessary for operational settlement, accounting, and compliance. For queries regarding your data or to request data deletion, contact our Grievance Officer at <a href="mailto:murtuzaali17th@gmail.com" className="text-indigo-600 font-bold hover:underline">murtuzaali17th@gmail.com</a>.
+                  Under India’s Digital Personal Data Protection Act, 2023 (DPDP Act), you have the right to:
+                </p>
+                <ul className="list-disc list-inside space-y-1 mt-2 text-slate-700">
+                  <li><strong>Access & Summary:</strong> Request a summary of personal data being processed.</li>
+                  <li><strong>Correction & Erasure:</strong> Request the correction of inaccurate details or erasure of personal data no longer necessary for order fulfillment or regulatory record-keeping.</li>
+                  <li><strong>Grievance Redressal:</strong> Reach out to our Grievance Officer regarding any data processing inquiries.</li>
+                </ul>
+              </div>
+
+              <div>
+                <h3 className="font-bold text-slate-900 text-base mb-1.5">6. Data Retention & Contact</h3>
+                <p>
+                  Order records are retained only as long as necessary for operational settlement, accounting, and compliance under Indian taxation laws. For queries regarding your data or to exercise your rights under the DPDP Act, contact our Grievance Officer at <a href="mailto:murtuzaali17th@gmail.com" className="text-indigo-600 font-bold hover:underline">murtuzaali17th@gmail.com</a>.
                 </p>
               </div>
             </div>
@@ -462,10 +486,14 @@ export function LegalPolicies({ initialTab }: LegalPoliciesProps) {
                   </div>
 
                   <div className="pt-2 border-t border-indigo-100/80">
-                    <p className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Standard Turnaround</p>
+                    <p className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Redressal SLA (Consumer Protection Rules 2020)</p>
                     <p className="text-slate-700 mt-0.5">
-                      All payment queries, cancellation inquiries, and technical issues are responded to within <strong>24 to 48 business hours</strong>.
+                      In accordance with Rule 5(9) of the Consumer Protection (E-Commerce) Rules, 2020:
                     </p>
+                    <ul className="list-disc list-inside space-y-0.5 mt-1 text-[11px] text-slate-600">
+                      <li>Receipt of complaint is acknowledged within <strong>48 hours</strong> with a unique ticket number.</li>
+                      <li>Redressal and final resolution are provided within <strong>1 month (30 days)</strong> of receipt.</li>
+                    </ul>
                   </div>
                 </div>
               </div>
