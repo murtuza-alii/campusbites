@@ -6,14 +6,15 @@ import {
   ShieldCheck, 
   Lock, 
   ArrowRight, 
-  Delete,
-  Mail,
-  Eye,
-  EyeOff,
-  CheckCircle2,
-  AlertCircle,
-  Sparkles,
-  ChevronDown
+  Mail, 
+  Eye, 
+  EyeOff, 
+  CheckCircle2, 
+  AlertCircle, 
+  Sparkles, 
+  ChevronDown,
+  KeyRound,
+  X
 } from 'lucide-react';
 import { API_BASE_URL } from '../config.js';
 
@@ -37,8 +38,9 @@ export function StaffLogin() {
   const [selectedCanteen, setSelectedCanteen] = useState<Canteen | null>(null);
   const [isOutletDropdownOpen, setIsOutletDropdownOpen] = useState(false);
 
-  // Cook Mode PIN state
+  // Cook Mode Alphanumeric Passcode state
   const [pin, setPin] = useState('');
+  const [showCookPin, setShowCookPin] = useState(false);
 
   // Store Manager Mode Credentials
   const [managerEmail, setManagerEmail] = useState('');
@@ -76,20 +78,6 @@ export function StaffLogin() {
     loadCanteens();
   }, [queryCanteen]);
 
-  // Handle Numeric Keypad press for Kitchen Cooks
-  const handleKeypadPress = (val: string) => {
-    setError('');
-    if (val === 'backspace') {
-      setPin(prev => prev.slice(0, -1));
-    } else if (val === 'clear') {
-      setPin('');
-    } else {
-      if (pin.length < 6) {
-        setPin(prev => prev + val);
-      }
-    }
-  };
-
   // Handle Login submission
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -102,8 +90,8 @@ export function StaffLogin() {
         setError('Please select your shop/outlet');
         return;
       }
-      if (!pin || pin.length < 4) {
-        setError('Please enter your 4-digit kitchen PIN');
+      if (!pin || pin.trim().length < 3) {
+        setError('Please enter your alphanumeric kitchen passcode');
         return;
       }
       payload = {
@@ -135,7 +123,7 @@ export function StaffLogin() {
       const data = await res.json();
 
       if (!res.ok) {
-        throw new Error(data.error || 'Authentication failed. Please check your credentials.');
+        throw new Error(data.error || 'Authentication failed. Please check your passcode/credentials.');
       }
 
       if (data.token) {
@@ -264,71 +252,62 @@ export function StaffLogin() {
               </div>
             )}
 
-            {/* TAB 1: KITCHEN COOK NUMERIC PINPAD */}
+            {/* TAB 1: KITCHEN COOK ALPHANUMERIC PASSCODE */}
             {activeTab === 'cook' && (
               <div className="space-y-4">
-                {/* Visual PIN Dots Indicator */}
-                <div className="text-center py-2">
-                  <p className="text-[11px] font-bold text-slate-500 uppercase tracking-widest mb-3">
-                    Enter Kitchen Passcode
-                  </p>
-                  <div className="flex items-center justify-center gap-3">
-                    {[0, 1, 2, 3].map(idx => (
-                      <div
-                        key={idx}
-                        className={`w-4 h-4 rounded-full transition-all duration-300 ${
-                          pin.length > idx
-                            ? 'bg-indigo-600 scale-110 shadow-md shadow-indigo-600/30 ring-2 ring-indigo-200'
-                            : 'bg-slate-200 ring-1 ring-slate-300'
-                        }`}
-                      />
-                    ))}
+                <div className="space-y-1.5">
+                  <div className="flex items-center justify-between">
+                    <label className="text-[11px] font-bold text-slate-600 uppercase tracking-wider block">
+                      Kitchen Passcode / PIN
+                    </label>
+                    <span className="text-[10px] font-bold text-indigo-600 bg-indigo-50 px-2 py-0.5 rounded-md">
+                      Alphanumeric (e.g. CHEF50)
+                    </span>
                   </div>
-                </div>
-
-                {/* Tactile Hardware Numeric Keypad */}
-                <div className="grid grid-cols-3 gap-2.5 pt-1">
-                  {['1', '2', '3', '4', '5', '6', '7', '8', '9'].map(num => (
-                    <button
-                      key={num}
-                      type="button"
-                      onClick={() => handleKeypadPress(num)}
-                      className="h-12 sm:h-14 rounded-2xl bg-slate-50 hover:bg-slate-100 active:bg-indigo-50 border border-slate-200/80 text-lg font-black text-slate-800 shadow-sm active:scale-95 transition-all duration-150 flex items-center justify-center"
-                    >
-                      {num}
-                    </button>
-                  ))}
-                  <button
-                    type="button"
-                    onClick={() => handleKeypadPress('clear')}
-                    className="h-12 sm:h-14 rounded-2xl bg-rose-50 hover:bg-rose-100 text-rose-600 text-xs font-black border border-rose-200/60 active:scale-95 transition-all flex items-center justify-center"
-                  >
-                    Clear
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => handleKeypadPress('0')}
-                    className="h-12 sm:h-14 rounded-2xl bg-slate-50 hover:bg-slate-100 active:bg-indigo-50 border border-slate-200/80 text-lg font-black text-slate-800 shadow-sm active:scale-95 transition-all duration-150 flex items-center justify-center"
-                  >
-                    0
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => handleKeypadPress('backspace')}
-                    className="h-12 sm:h-14 rounded-2xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-sm font-bold border border-slate-200 active:scale-95 transition-all flex items-center justify-center"
-                    title="Delete last digit"
-                  >
-                    <Delete className="w-5 h-5" />
-                  </button>
+                  
+                  <div className="relative">
+                    <KeyRound className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
+                    <input
+                      type={showCookPin ? 'text' : 'password'}
+                      required
+                      autoComplete="off"
+                      placeholder="Enter Alphanumeric PIN (e.g. CHEF50)"
+                      value={pin}
+                      onChange={e => setPin(e.target.value)}
+                      className="w-full pl-10 pr-20 py-3.5 bg-slate-50 border border-slate-200 rounded-2xl text-sm font-mono font-black text-slate-900 tracking-wider focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all placeholder:text-xs placeholder:font-sans placeholder:font-normal placeholder:tracking-normal"
+                    />
+                    <div className="absolute right-2.5 top-1/2 -translate-y-1/2 flex items-center gap-1">
+                      {pin && (
+                        <button
+                          type="button"
+                          onClick={() => setPin('')}
+                          className="p-1 rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-200/60 transition-all"
+                          title="Clear passcode"
+                        >
+                          <X className="w-3.5 h-3.5" />
+                        </button>
+                      )}
+                      <button
+                        type="button"
+                        onClick={() => setShowCookPin(p => !p)}
+                        className="p-1.5 rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-200/60 transition-all"
+                      >
+                        {showCookPin ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                      </button>
+                    </div>
+                  </div>
+                  <p className="text-[10px] text-slate-400 font-medium pt-0.5">
+                    Supports letters & numbers for enhanced kitchen security.
+                  </p>
                 </div>
 
                 {/* Submit Action Button */}
                 <button
                   type="submit"
-                  disabled={isLoading || pin.length < 4}
+                  disabled={isLoading || pin.trim().length < 3}
                   className="w-full mt-2 py-3.5 px-6 rounded-full bg-indigo-600 hover:bg-indigo-700 disabled:bg-slate-300 text-white font-black text-xs uppercase tracking-wider shadow-lg shadow-indigo-600/25 active:scale-[0.98] transition-all flex items-center justify-center gap-2 group"
                 >
-                  <span>{isLoading ? 'Verifying Kitchen PIN...' : 'Enter Kitchen Display (KDS)'}</span>
+                  <span>{isLoading ? 'Verifying Passcode...' : 'Enter Kitchen Display (KDS)'}</span>
                   <div className="w-6 h-6 rounded-full bg-white/20 flex items-center justify-center group-hover:translate-x-0.5 transition-transform">
                     <ArrowRight className="w-3.5 h-3.5" />
                   </div>

@@ -214,12 +214,12 @@ export class AdminService {
       passwordHash = bcrypt.hashSync(data.password, 10);
     } else {
       // Cook account
-      if (!data.pin || !/^\d{4,6}$/.test(data.pin)) {
-        const err = new Error('A 4-6 digit numeric PIN is required for Cook accounts.');
+      if (!data.pin || data.pin.trim().length < 3) {
+        const err = new Error('An alphanumeric passcode/PIN of at least 3 characters is required for Cook accounts.');
         (err as any).statusCode = 400;
         throw err;
       }
-      pinHash = bcrypt.hashSync(data.pin, 10);
+      pinHash = bcrypt.hashSync(data.pin.trim(), 10);
     }
 
     await db.query(
@@ -282,13 +282,13 @@ export class AdminService {
     }
 
     if (data.pin) {
-      if (!/^\d{4,6}$/.test(data.pin)) {
-        const err = new Error('Cook PIN must be 4 to 6 digits.');
+      if (data.pin.trim().length < 3) {
+        const err = new Error('Cook alphanumeric passcode must be at least 3 characters.');
         (err as any).statusCode = 400;
         throw err;
       }
       updates.push(`pin_hash = $${idx++}`);
-      params.push(bcrypt.hashSync(data.pin, 10));
+      params.push(bcrypt.hashSync(data.pin.trim(), 10));
     }
 
     if (updates.length === 0) {

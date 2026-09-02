@@ -30,16 +30,16 @@ async function testAuth() {
   if (decodedMgr.role !== 'manager') throw new Error(`Expected manager role, got ${decodedMgr.role}`);
   console.log('✔ Store Manager login verified. Token payload:', { role: decodedMgr.role, canteenId: decodedMgr.canteenId, displayName: decodedMgr.displayName });
 
-  // 3. Test Cook Login (Canteen + PIN)
-  console.log('3. Testing Cook Login with 4-Digit PIN...');
+  // 3. Test Cook Login (Canteen + Alphanumeric Passcode)
+  console.log('3. Testing Cook Login with Alphanumeric Passcode (CHEF50)...');
   const cookToken = await authService.login({ 
     canteen_slug: 'mithibai-canteen-a', 
-    pin: '1234' 
+    pin: 'CHEF50' 
   });
-  if (!cookToken) throw new Error('Cook PIN login failed');
+  if (!cookToken) throw new Error('Cook alphanumeric PIN login failed');
   const decodedCook: any = jwt.verify(cookToken, config.auth.jwtSecret);
   if (decodedCook.role !== 'cook') throw new Error(`Expected cook role, got ${decodedCook.role}`);
-  console.log('✔ Cook PIN login verified. Token payload:', { role: decodedCook.role, canteenId: decodedCook.canteenId, displayName: decodedCook.displayName });
+  console.log('✔ Cook Alphanumeric PIN login verified. Token payload:', { role: decodedCook.role, canteenId: decodedCook.canteenId, displayName: decodedCook.displayName });
 
   // 4. Test Invalid PIN
   console.log('4. Testing Invalid Cook PIN (Should fail)...');

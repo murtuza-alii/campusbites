@@ -245,7 +245,7 @@ export async function initDb(): Promise<void> {
       username: 'canteen_a_cook', 
       email: null, 
       password: null, 
-      pin: '1234', 
+      pin: 'CHEF50', 
       role: 'cook', 
       canteen_id: 'c1', 
       display_name: 'Chef Ramesh (Master Cook)' 
@@ -265,7 +265,7 @@ export async function initDb(): Promise<void> {
       username: 'canteen_b_cook', 
       email: null, 
       password: null, 
-      pin: '1234', 
+      pin: 'COOKB2', 
       role: 'cook', 
       canteen_id: 'c2', 
       display_name: 'Chef Suresh' 
@@ -285,7 +285,7 @@ export async function initDb(): Promise<void> {
       username: 'canteen_c_cook', 
       email: null, 
       password: null, 
-      pin: '1234', 
+      pin: 'COOKC3', 
       role: 'cook', 
       canteen_id: 'c3', 
       display_name: 'Chef Amit' 
@@ -305,7 +305,7 @@ export async function initDb(): Promise<void> {
       username: 'canteen_d_cook', 
       email: null, 
       password: null, 
-      pin: '1234', 
+      pin: 'COOKD4', 
       role: 'cook', 
       canteen_id: 'c4', 
       display_name: 'Chef Vijay' 
@@ -325,7 +325,7 @@ export async function initDb(): Promise<void> {
       username: 'downtown_diner_cook', 
       email: null, 
       password: null, 
-      pin: '1234', 
+      pin: 'DINER5', 
       role: 'cook', 
       canteen_id: 'c5', 
       display_name: 'Chef Rajesh' 

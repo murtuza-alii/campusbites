@@ -204,10 +204,10 @@ export function AdminDashboard() {
     try {
       const payload: any = {};
       if (editingStaff.role === 'cook') {
-        if (!newPin || !/^\d{4,6}$/.test(newPin)) {
-          throw new Error('Cook PIN must be between 4 and 6 digits');
+        if (!newPin || newPin.trim().length < 3) {
+          throw new Error('Cook alphanumeric passcode must be at least 3 characters');
         }
-        payload.pin = newPin;
+        payload.pin = newPin.trim();
       } else {
         if (!newPassword || newPassword.length < 4) {
           throw new Error('Password must be at least 4 characters');
@@ -265,10 +265,10 @@ export function AdminDashboard() {
         payload.email = addStaffEmail.trim();
         payload.password = addStaffPassword;
       } else {
-        if (!addStaffPin || !/^\d{4,6}$/.test(addStaffPin)) {
-          throw new Error('A 4 to 6-digit numeric PIN is required for Kitchen Cooks');
+        if (!addStaffPin || addStaffPin.trim().length < 3) {
+          throw new Error('An alphanumeric passcode of at least 3 characters is required for Kitchen Cooks');
         }
-        payload.pin = addStaffPin;
+        payload.pin = addStaffPin.trim();
       }
 
       const res = await fetch(`${API_BASE_URL}/api/admin/staff`, {
@@ -762,17 +762,17 @@ export function AdminDashboard() {
               {editingStaff.role === 'cook' ? (
                 <div className="space-y-1.5">
                   <label className="text-[11px] font-bold text-slate-600 uppercase tracking-wider block">
-                    New 4-Digit PIN
+                    New Alphanumeric Passcode / PIN
                   </label>
                   <input
                     type="text"
-                    maxLength={6}
                     required
-                    placeholder="e.g. 4812"
+                    placeholder="e.g. CHEF50"
                     value={newPin}
                     onChange={e => setNewPin(e.target.value)}
-                    className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-2xl text-center text-lg font-mono font-black text-slate-900 tracking-widest focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                    className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-2xl text-center text-lg font-mono font-black text-slate-900 tracking-widest focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500 uppercase placeholder:normal-case placeholder:font-normal placeholder:text-sm placeholder:tracking-normal"
                   />
+                  <p className="text-[10px] text-slate-400 font-medium">Supports letters & numbers (e.g. CHEF50, KITCHEN1, 4812).</p>
                 </div>
               ) : (
                 <div className="space-y-1.5">
@@ -825,7 +825,7 @@ export function AdminDashboard() {
                     addStaffRole === 'cook' ? 'bg-white text-indigo-600 shadow-sm' : 'text-slate-600'
                   }`}
                 >
-                  Kitchen Cook (PIN)
+                  Kitchen Cook (Passcode)
                 </button>
                 <button
                   type="button"
@@ -867,15 +867,14 @@ export function AdminDashboard() {
 
               {addStaffRole === 'cook' ? (
                 <div className="space-y-1">
-                  <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider block">4-Digit Cook PIN</label>
+                  <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider block">Alphanumeric Passcode / PIN</label>
                   <input
                     type="text"
-                    maxLength={6}
                     required
-                    placeholder="1234"
+                    placeholder="e.g. CHEF50"
                     value={addStaffPin}
                     onChange={e => setAddStaffPin(e.target.value)}
-                    className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-mono font-bold text-center"
+                    className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-mono font-bold text-center uppercase placeholder:normal-case placeholder:font-sans"
                   />
                 </div>
               ) : (
