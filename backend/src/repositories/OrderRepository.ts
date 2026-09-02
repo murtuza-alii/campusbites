@@ -68,8 +68,12 @@ export class OrderRepository {
     }
   }
 
-  async updateStatus(id: string, status: string): Promise<void> {
+  async updateStatus(id: string, status: string, cancellationReason?: string): Promise<void> {
     const db = await getDb();
-    await db.query('UPDATE orders SET status = $1 WHERE id = $2', [status, id]);
+    if (cancellationReason !== undefined) {
+      await db.query('UPDATE orders SET status = $1, cancellation_reason = $2 WHERE id = $3', [status, cancellationReason, id]);
+    } else {
+      await db.query('UPDATE orders SET status = $1 WHERE id = $2', [status, id]);
+    }
   }
 }

@@ -43,14 +43,24 @@ interface Order {
   status: 'PENDING' | 'PREPARING' | 'READY' | 'COMPLETED' | 'CANCELLED';
   pickup_code: string;
   created_at: string;
+  canteen_id: string;
   building?: string;
   break_timing?: string;
   slot_number?: number;
+  cancellation_reason?: string;
 }
 
 const KNOWN_BUILDINGS: Record<string, string[]> = {
   Mithibai: ['9:00 - 9:30', '1:00 - 1:30', '1:30 - 1:50'],
 };
+
+const PRESET_CANCELLATION_REASONS = [
+  'Item(s) Out of Stock',
+  'Kitchen Over-Capacity / Long Delay',
+  'Break Slot Ended / Kitchen Closed',
+  'Customer Requested Cancellation',
+  'Payment / Order Discrepancy',
+];
 
 export function StaffOrders() {
   const [orders, setOrders] = useState<Order[]>([]);
@@ -76,6 +86,11 @@ export function StaffOrders() {
 
   // Hovering Confirmation Modal for Verified PIN Handover
   const [verifiedOrderModal, setVerifiedOrderModal] = useState<Order | null>(null);
+
+  // Cancellation Reason Modal State
+  const [cancellingOrderModal, setCancellingOrderModal] = useState<Order | null>(null);
+  const [cancellationReasonText, setCancellationReasonText] = useState<string>('');
+  const [isSubmittingCancellation, setIsSubmittingCancellation] = useState<boolean>(false);
 
   const navigate = useNavigate();
   
@@ -220,7 +235,11 @@ export function StaffOrders() {
     };
   }, []);
 
-  const updateOrderStatus = async (orderId: string, newStatus: 'PREPARING' | 'READY' | 'COMPLETED' | 'CANCELLED') => {
+  const updateOrderStatus = async (
+    orderId: string, 
+    newStatus: 'PREPARING' | 'READY' | 'COMPLETED' | 'CANCELLED',
+    cancellationReason?: string
+  ) => {
     const token = localStorage.getItem('staffToken');
     if (!token) return;
 
@@ -231,14 +250,23 @@ export function StaffOrders() {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${token}`
         },
-        body: JSON.stringify({ status: newStatus })
+        body: JSON.stringify({ 
+          status: newStatus,
+          cancellation_reason: cancellationReason 
+        })
       });
 
       if (response.ok) {
         playSuccessTone();
         setOrders(prevOrders => 
           prevOrders.map(order => 
-            order.id === orderId ? { ...order, status: newStatus } : order
+            order.id === orderId 
+              ? { 
+                  ...order, 
+                  status: newStatus, 
+                  cancellation_reason: cancellationReason || order.cancellation_reason 
+                } 
+              : order
           )
         );
       } else {
@@ -249,13 +277,28 @@ export function StaffOrders() {
     }
   };
 
-  // Cancel order (e.g. customer taking too long or abandoned order)
-  const handleCancelOrder = async (order: Order) => {
-    const confirmCancel = window.confirm(
-      `Cancel Order ${order.order_number} (${order.student_name})?\n\nThe student will immediately be notified that the order has been cancelled.`
-    );
-    if (!confirmCancel) return;
-    await updateOrderStatus(order.id, 'CANCELLED');
+  // Open structured Cancellation Reason Modal instead of raw window.confirm
+  const handleCancelOrder = (order: Order) => {
+    setCancellingOrderModal(order);
+    setCancellationReasonText('');
+  };
+
+  const handleConfirmCancellation = async () => {
+    if (!cancellingOrderModal) return;
+    const reason = cancellationReasonText.trim();
+    if (!reason) {
+      alert('Please select or type a cancellation reason for the customer.');
+      return;
+    }
+
+    try {
+      setIsSubmittingCancellation(true);
+      await updateOrderStatus(cancellingOrderModal.id, 'CANCELLED', reason);
+      setCancellingOrderModal(null);
+      setCancellationReasonText('');
+    } finally {
+      setIsSubmittingCancellation(false);
+    }
   };
 
   // Strictly authenticate handover using alphanumeric pickup code with Modal confirmation cue
@@ -1120,6 +1163,12 @@ export function StaffOrders() {
                           <p className="text-xs text-slate-500 truncate mt-0.5">
                             {order.items.map(i => `${i.name} ×${i.quantity}`).join(', ')}
                           </p>
+                          {isCancelled && order.cancellation_reason && (
+                            <div className="mt-1 inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-lg bg-rose-50 border border-rose-200/80 text-[11px] font-bold text-rose-800">
+                              <Ban className="w-3 h-3 text-rose-600 shrink-0" />
+                              <span>Reason: <span className="font-semibold text-rose-900">{order.cancellation_reason}</span></span>
+                            </div>
+                          )}
                         </div>
 
                         {/* 🔒 IMMUTABLE PERMANENT RECORD BADGE */}
@@ -1134,6 +1183,120 @@ export function StaffOrders() {
             )}
           </div>
 
+        </div>
+      )}
+
+      {/* 🛑 MODAL: STRUCTURED CANCELLATION REASON FOR COOK / STAFF */}
+      {cancellingOrderModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs animate-in fade-in duration-200">
+          <div className="bg-white rounded-3xl p-5 sm:p-7 max-w-md w-full shadow-2xl border border-rose-100 flex flex-col space-y-4 animate-in zoom-in-95 duration-200 text-left">
+            
+            {/* Header */}
+            <div className="flex items-center gap-3">
+              <div className="w-12 h-12 rounded-2xl bg-rose-50 border-2 border-rose-200 text-rose-600 flex items-center justify-center shrink-0">
+                <Ban className="w-6 h-6" />
+              </div>
+              <div className="min-w-0 flex-1">
+                <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-rose-100 text-rose-800 text-[10px] font-black uppercase tracking-wider">
+                  <span>Cancel Order</span>
+                </div>
+                <h2 className="text-lg sm:text-xl font-black text-slate-900 tracking-tight mt-0.5 truncate">
+                  Order {cancellingOrderModal.order_number}
+                </h2>
+                <p className="text-xs text-slate-500 font-bold truncate">
+                  {cancellingOrderModal.student_name} {cancellingOrderModal.student_roll ? `• ${cancellingOrderModal.student_roll}` : ''}
+                </p>
+              </div>
+              <button
+                onClick={() => setCancellingOrderModal(null)}
+                className="text-slate-400 hover:text-slate-700 p-1.5 rounded-xl hover:bg-slate-100 transition-colors shrink-0"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            {/* Items Summary */}
+            <div className="bg-slate-50 border border-slate-200/80 rounded-2xl p-3 text-xs space-y-1">
+              <span className="text-[10px] font-mono font-black text-slate-400 uppercase tracking-wider block">
+                Ordered Items ({cancellingOrderModal.items.reduce((acc, i) => acc + i.quantity, 0)}):
+              </span>
+              <p className="font-bold text-slate-700">
+                {cancellingOrderModal.items.map(i => `${i.name} ×${i.quantity}`).join(', ')}
+              </p>
+            </div>
+
+            {/* Quick Reason Preset Chips */}
+            <div className="space-y-1.5">
+              <label className="text-xs font-black text-slate-800 flex items-center gap-1">
+                <span>Select or Type Cancellation Reason:</span>
+                <span className="text-rose-600 text-[10px] font-bold">*Required</span>
+              </label>
+              <div className="flex flex-wrap gap-1.5">
+                {PRESET_CANCELLATION_REASONS.map((preset) => {
+                  const isSelected = cancellationReasonText === preset;
+                  return (
+                    <button
+                      key={preset}
+                      type="button"
+                      onClick={() => setCancellationReasonText(preset)}
+                      className={`px-2.5 py-1 rounded-xl text-xs font-bold transition-all border ${
+                        isSelected
+                          ? 'bg-rose-600 text-white border-rose-600 shadow-xs font-black'
+                          : 'bg-slate-100 hover:bg-slate-200/90 text-slate-700 border-slate-200/80'
+                      }`}
+                    >
+                      {preset}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* Textarea for custom explanation */}
+            <div className="space-y-1">
+              <textarea
+                rows={3}
+                placeholder="Explain why this order is cancelled (the student will see this on their screen)..."
+                value={cancellationReasonText}
+                onChange={(e) => setCancellationReasonText(e.target.value)}
+                className="w-full p-3 bg-white border border-slate-200 rounded-2xl text-xs font-bold text-slate-900 focus:ring-2 focus:ring-rose-500/20 focus:border-rose-500 outline-none transition-all placeholder:text-slate-400 placeholder:font-normal resize-none shadow-xs"
+              />
+              <p className="text-[10px] text-slate-400 font-semibold">
+                ℹ️ The student will receive an instant notification with this exact reason.
+              </p>
+            </div>
+
+            {/* Action Buttons */}
+            <div className="flex items-center gap-2 pt-1">
+              <button
+                type="button"
+                onClick={() => setCancellingOrderModal(null)}
+                className="flex-1 py-3 rounded-2xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs transition-colors"
+              >
+                Keep Order
+              </button>
+
+              <button
+                type="button"
+                disabled={!cancellationReasonText.trim() || isSubmittingCancellation}
+                onClick={handleConfirmCancellation}
+                className="flex-1 py-3 rounded-2xl bg-rose-600 hover:bg-rose-700 disabled:opacity-50 text-white font-black text-xs shadow-lg shadow-rose-600/20 active:scale-95 transition-all flex items-center justify-center gap-1.5"
+              >
+                {isSubmittingCancellation ? (
+                  <>
+                    <RotateCw className="w-3.5 h-3.5 animate-spin" />
+                    <span>Cancelling...</span>
+                  </>
+                ) : (
+                  <>
+                    <Ban className="w-3.5 h-3.5" />
+                    <span>Confirm & Notify</span>
+                  </>
+                )}
+              </button>
+            </div>
+
+          </div>
         </div>
       )}
 

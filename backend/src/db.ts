@@ -124,6 +124,7 @@ export async function initDb(): Promise<void> {
     await db.query('ALTER TABLE orders ADD COLUMN IF NOT EXISTS building TEXT');
     await db.query('ALTER TABLE orders ADD COLUMN IF NOT EXISTS break_timing TEXT');
     await db.query('ALTER TABLE orders ADD COLUMN IF NOT EXISTS slot_number INTEGER');
+    await db.query('ALTER TABLE orders ADD COLUMN IF NOT EXISTS cancellation_reason TEXT');
     await db.query('CREATE INDEX IF NOT EXISTS idx_orders_canteen_status ON orders (canteen_id, status)');
     await db.query('CREATE INDEX IF NOT EXISTS idx_orders_created_at ON orders (created_at DESC)');
     await db.query('CREATE INDEX IF NOT EXISTS idx_orders_student_roll ON orders (student_roll)');

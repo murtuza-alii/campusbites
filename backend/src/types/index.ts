@@ -29,6 +29,7 @@ export interface Order {
   building?: string;
   break_timing?: string;
   slot_number?: number;
+  cancellation_reason?: string;
 }
 
 export interface ParsedOrder extends Omit<Order, 'items'> {

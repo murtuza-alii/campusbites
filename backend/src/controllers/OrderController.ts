@@ -59,10 +59,11 @@ export class OrderController extends BaseController {
   async updateOrderStatus(req: Request, res: Response): Promise<void> {
     try {
       const { id } = req.params;
-      const { status } = req.body;
+      const { status, cancellation_reason, cancellationReason } = req.body;
+      const reason = cancellation_reason || cancellationReason;
 
-      await this.orderService.updateOrderStatus(id, status);
-      this.handleSuccess(res, { success: true, id, status });
+      await this.orderService.updateOrderStatus(id, status, reason);
+      this.handleSuccess(res, { success: true, id, status, cancellation_reason: reason });
     } catch (error) {
       this.handleError(error, res, 'updateOrderStatus');
     }

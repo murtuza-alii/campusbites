@@ -19,7 +19,8 @@ import {
   Lock,
   ChevronDown,
   ChevronUp,
-  CheckCheck
+  CheckCheck,
+  AlertCircle
 } from 'lucide-react';
 import { SpotlightCard } from './ui/SpotlightCard';
 import { socket } from '../utils/socket.js';
@@ -72,6 +73,7 @@ interface Order {
   building?: string;
   break_timing?: string;
   slot_number?: number;
+  cancellation_reason?: string;
 }
 
 export function StudentView() {
@@ -1172,6 +1174,18 @@ export function StudentView() {
                               <p className="text-xs text-slate-500 truncate mt-0.5">
                                 {order.items.map(i => `${i.name} ×${i.quantity}`).join(', ')}
                               </p>
+                              {isCancelled && (
+                                <div className="mt-1.5 p-2.5 rounded-xl bg-rose-50 border border-rose-200 text-xs text-rose-900 space-y-0.5">
+                                  <div className="font-bold flex items-center gap-1.5 text-rose-700">
+                                    <AlertCircle className="w-3.5 h-3.5 shrink-0" />
+                                    <span>Cancellation Reason:</span>
+                                    <span className="font-black text-rose-950">{order.cancellation_reason || 'Cancelled by canteen kitchen'}</span>
+                                  </div>
+                                  <p className="text-[10px] text-rose-600 font-medium">
+                                    If paid online, refund will be processed to your original payment method in 2-3 business days.
+                                  </p>
+                                </div>
+                              )}
                             </div>
 
                             {/* 🗑️ BIG PROMINENT RED DELETE BUTTON (44px x 44px) */}
