@@ -13,9 +13,14 @@ export class OrderService {
     canteenId: string;
     items: any[];
     totalPrice: number;
+    building?: string;
+    breakTiming?: string;
+    break_timing?: string;
   }): Promise<ParsedOrder> {
     const id = `ord_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
     const pickupCode = generatePickupCode(4);
+    const building = data.building;
+    const break_timing = data.breakTiming || data.break_timing;
 
     try {
       // Direct fast-path via Redis Bull Queue
@@ -23,6 +28,8 @@ export class OrderService {
         id,
         pickupCode,
         ...data,
+        building,
+        break_timing,
       });
 
       console.log(`Enqueued checkout job for order ID: ${id}`);
@@ -39,6 +46,8 @@ export class OrderService {
         status: 'PENDING',
         pickup_code: pickupCode,
         created_at: new Date().toISOString(),
+        building,
+        break_timing,
       };
     } catch (queueError) {
       console.warn('Redis queue unavailable, falling back to direct database write:', queueError);
@@ -59,6 +68,8 @@ export class OrderService {
         total_price: data.totalPrice,
         status: 'PENDING',
         pickup_code: pickupCode,
+        building,
+        break_timing,
       });
 
       const parsedOrder: ParsedOrder = {
@@ -72,6 +83,8 @@ export class OrderService {
         status: 'PENDING',
         pickup_code: pickupCode,
         created_at: new Date().toISOString(),
+        building,
+        break_timing,
         qr_payload: buildQRPayload({ id, order_number: orderNumber, canteen_id: data.canteenId, pickup_code: pickupCode })
       };
 

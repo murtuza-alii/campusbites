@@ -19,7 +19,8 @@ import {
   User,
   Phone,
   Sparkles,
-  Ban
+  Ban,
+  Building2
 } from 'lucide-react';
 import { SpotlightCard } from './ui/SpotlightCard';
 import { decodeToken, type DecodedToken } from '../utils/jwt.js';
@@ -42,6 +43,8 @@ interface Order {
   status: 'PENDING' | 'PREPARING' | 'READY' | 'COMPLETED' | 'CANCELLED';
   pickup_code: string;
   created_at: string;
+  building?: string;
+  break_timing?: string;
 }
 
 export function StaffOrders() {
@@ -560,6 +563,12 @@ export function StaffOrders() {
                           <span className="px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-wider bg-amber-50 text-amber-700 border border-amber-200">
                             New Order
                           </span>
+                          {(order.building || order.break_timing) && (
+                            <span className="px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-wider bg-orange-100 text-orange-800 border border-orange-200 flex items-center gap-1">
+                              <Building2 className="w-2.5 h-2.5 text-orange-600" />
+                              <span>{order.building ? order.building : ''}{order.building && order.break_timing ? ' • ' : ''}{order.break_timing ? `Break: ${order.break_timing}` : ''}</span>
+                            </span>
+                          )}
                         </div>
                         <div className="flex flex-wrap items-center gap-1.5 pt-0.5">
                           {order.items.map((item, idx) => (
@@ -631,7 +640,7 @@ export function StaffOrders() {
                       className="bg-white border border-l-4 border-l-indigo-600 border-slate-200/90 p-3 sm:p-3.5 rounded-xl shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-3"
                     >
                       <div className="flex-1 min-w-0 space-y-1">
-                        <div className="flex items-center gap-2">
+                        <div className="flex items-center gap-2 flex-wrap">
                           <span className="font-mono font-black text-base text-slate-900">{order.order_number}</span>
                           <span className="text-[11px] font-mono text-slate-400 flex items-center gap-1">
                             <Clock className="w-3 h-3" />
@@ -640,6 +649,12 @@ export function StaffOrders() {
                           <span className="px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-wider bg-indigo-50 text-indigo-700 border border-indigo-200">
                             Cooking
                           </span>
+                          {(order.building || order.break_timing) && (
+                            <span className="px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-wider bg-orange-100 text-orange-800 border border-orange-200 flex items-center gap-1">
+                              <Building2 className="w-2.5 h-2.5 text-orange-600" />
+                              <span>{order.building ? order.building : ''}{order.building && order.break_timing ? ' • ' : ''}{order.break_timing ? `Break: ${order.break_timing}` : ''}</span>
+                            </span>
+                          )}
                         </div>
                         <div className="flex flex-wrap items-center gap-1.5 pt-0.5">
                           {order.items.map((item, idx) => (
@@ -729,19 +744,39 @@ export function StaffOrders() {
                       </div>
 
                       {/* Customer Name & Phone */}
-                      <div className="pt-2 flex items-center gap-2">
-                        <div className="w-7 h-7 rounded-full bg-indigo-50 text-indigo-600 flex items-center justify-center">
-                          <User className="w-3.5 h-3.5" />
+                      <div className="pt-2 flex items-center justify-between gap-2 flex-wrap">
+                        <div className="flex items-center gap-2">
+                          <div className="w-7 h-7 rounded-full bg-indigo-50 text-indigo-600 flex items-center justify-center">
+                            <User className="w-3.5 h-3.5" />
+                          </div>
+                          <div>
+                            <p className="text-xs font-black text-slate-900">{order.student_name}</p>
+                            {order.student_roll && (
+                              <p className="text-[11px] font-mono text-slate-500 flex items-center gap-1 mt-0.5">
+                                <Phone className="w-3 h-3 text-slate-400" />
+                                <span>{order.student_roll}</span>
+                              </p>
+                            )}
+                          </div>
                         </div>
-                        <div>
-                          <p className="text-xs font-black text-slate-900">{order.student_name}</p>
-                          {order.student_roll && (
-                            <p className="text-[11px] font-mono text-slate-500 flex items-center gap-1 mt-0.5">
-                              <Phone className="w-3 h-3 text-slate-400" />
-                              <span>{order.student_roll}</span>
-                            </p>
-                          )}
-                        </div>
+
+                        {(order.building || order.break_timing) && (
+                          <div className="flex items-center gap-1 text-[10px] font-bold text-orange-800 bg-orange-50 border border-orange-200 px-2 py-0.5 rounded-md">
+                            {order.building && (
+                              <span className="flex items-center gap-0.5">
+                                <Building2 className="w-3 h-3 text-orange-600" />
+                                <span>{order.building}</span>
+                              </span>
+                            )}
+                            {order.building && order.break_timing && <span>•</span>}
+                            {order.break_timing && (
+                              <span className="flex items-center gap-0.5">
+                                <Clock className="w-3 h-3 text-orange-600" />
+                                <span>Break: {order.break_timing}</span>
+                              </span>
+                            )}
+                          </div>
+                        )}
                       </div>
 
                       {/* Dishes List */}
@@ -896,6 +931,23 @@ export function StaffOrders() {
                 Customer: <span className="text-slate-900">{verifiedOrderModal.student_name}</span>
                 {verifiedOrderModal.student_roll && ` (${verifiedOrderModal.student_roll})`}
               </p>
+              {(verifiedOrderModal.building || verifiedOrderModal.break_timing) && (
+                <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-orange-100 text-orange-900 text-xs font-bold border border-orange-200 mt-1">
+                  {verifiedOrderModal.building && (
+                    <span className="flex items-center gap-1">
+                      <Building2 className="w-3.5 h-3.5 text-orange-600" />
+                      <span>{verifiedOrderModal.building}</span>
+                    </span>
+                  )}
+                  {verifiedOrderModal.building && verifiedOrderModal.break_timing && <span>•</span>}
+                  {verifiedOrderModal.break_timing && (
+                    <span className="flex items-center gap-1">
+                      <Clock className="w-3.5 h-3.5 text-orange-600" />
+                      <span>Break: {verifiedOrderModal.break_timing}</span>
+                    </span>
+                  )}
+                </div>
+              )}
             </div>
 
             {/* Meal Items Summary */}

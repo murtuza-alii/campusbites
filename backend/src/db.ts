@@ -109,6 +109,8 @@ export async function initDb(): Promise<void> {
     await db.query('ALTER TABLE orders ADD COLUMN IF NOT EXISTS payment_status TEXT DEFAULT \'PAID\'');
     await db.query('ALTER TABLE orders ADD COLUMN IF NOT EXISTS payment_session_id TEXT');
     await db.query('ALTER TABLE orders ADD COLUMN IF NOT EXISTS cf_order_id TEXT');
+    await db.query('ALTER TABLE orders ADD COLUMN IF NOT EXISTS building TEXT');
+    await db.query('ALTER TABLE orders ADD COLUMN IF NOT EXISTS break_timing TEXT');
     await db.query('CREATE INDEX IF NOT EXISTS idx_orders_canteen_status ON orders (canteen_id, status)');
     await db.query('CREATE INDEX IF NOT EXISTS idx_orders_created_at ON orders (created_at DESC)');
     await db.query('CREATE INDEX IF NOT EXISTS idx_orders_student_roll ON orders (student_roll)');

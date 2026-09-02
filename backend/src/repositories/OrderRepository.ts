@@ -18,11 +18,13 @@ export class OrderRepository {
     status: string;
     pickup_code: string;
     canteen_id: string;
+    building?: string;
+    break_timing?: string;
   }): Promise<void> {
     const db = await getDb();
     await db.query(
-      `INSERT INTO orders (id, order_number, student_name, student_roll, items, total_price, status, pickup_code, canteen_id)
-       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)`,
+      `INSERT INTO orders (id, order_number, student_name, student_roll, items, total_price, status, pickup_code, canteen_id, building, break_timing)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)`,
       [
         order.id,
         order.order_number,
@@ -32,7 +34,9 @@ export class OrderRepository {
         order.total_price,
         order.status,
         order.pickup_code,
-        order.canteen_id
+        order.canteen_id,
+        order.building || null,
+        order.break_timing || null
       ]
     );
   }

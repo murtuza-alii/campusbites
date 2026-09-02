@@ -26,6 +26,8 @@ export interface Order {
   pickup_code: string;
   created_at: string;
   canteen_id: string;
+  building?: string;
+  break_timing?: string;
 }
 
 export interface ParsedOrder extends Omit<Order, 'items'> {

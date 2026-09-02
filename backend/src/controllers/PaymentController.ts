@@ -21,12 +21,15 @@ export class PaymentController extends BaseController {
    */
   async createPaymentSession(req: Request, res: Response): Promise<void> {
     try {
-      const { name, rollNumber, canteenId, items, totalPrice, phone, email } = req.body;
+      const { name, rollNumber, canteenId, items, totalPrice, phone, email, building, breakTiming, break_timing } = req.body;
 
       if (!name || !rollNumber || !canteenId || !items || !Array.isArray(items) || items.length === 0 || !totalPrice) {
         res.status(400).json({ error: 'Missing required order details' });
         return;
       }
+
+      const orderBuilding = building || null;
+      const orderBreakTiming = breakTiming || break_timing || null;
 
       // Generate order ID
       const orderId = 'ord_' + Math.random().toString(36).substring(2, 11);
@@ -52,8 +55,8 @@ export class PaymentController extends BaseController {
       // 3. Persist order with initial payment_status
       const db = await getDb();
       await db.query(
-        `INSERT INTO orders (id, order_number, student_name, student_roll, items, total_price, status, pickup_code, canteen_id, payment_status, payment_session_id, cf_order_id)
-         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)`,
+        `INSERT INTO orders (id, order_number, student_name, student_roll, items, total_price, status, pickup_code, canteen_id, payment_status, payment_session_id, cf_order_id, building, break_timing)
+         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14)`,
         [
           orderId,
           orderNumber,
@@ -67,6 +70,8 @@ export class PaymentController extends BaseController {
           'PENDING',
           cfOrder.payment_session_id,
           cfOrder.cf_order_id?.toString() || '',
+          orderBuilding,
+          orderBreakTiming,
         ]
       );
 
