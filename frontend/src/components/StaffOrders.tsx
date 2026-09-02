@@ -11,7 +11,6 @@ import {
   PackageCheck, 
   Store, 
   Link as LinkIcon, 
-  Trash2, 
   ChevronDown, 
   ChevronUp, 
   Flame, 
@@ -293,12 +292,7 @@ export function StaffOrders() {
     }, 400);
   };
 
-  const deletePastOrder = async (orderId: string) => {
-    const confirmDelete = window.confirm('Are you sure you want to remove this order history record?');
-    if (!confirmDelete) return;
-
-    setOrders(prev => prev.filter(o => o.id !== orderId));
-  };
+  // Permanent Immutability: Deletion is strictly prohibited for staff accounts.
 
   const formatElapsed = (dateStr: string) => {
     const diffMs = Date.now() - new Date(dateStr).getTime();
@@ -867,15 +861,10 @@ export function StaffOrders() {
                           </p>
                         </div>
 
-                        {/* 🗑️ BIG PROMINENT DELETE BUTTON (44px x 44px) */}
-                        <button
-                          onClick={() => deletePastOrder(order.id)}
-                          className="w-11 h-11 rounded-xl bg-rose-50 hover:bg-rose-100 border border-rose-200 text-rose-600 hover:text-rose-700 flex items-center justify-center transition-all active:scale-90 shrink-0 shadow-xs"
-                          title="Delete order record"
-                          aria-label="Delete order"
-                        >
-                          <Trash2 className="w-5 h-5" />
-                        </button>
+                        {/* 🔒 IMMUTABLE PERMANENT RECORD BADGE */}
+                        <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-100 border border-slate-200/80 text-[10px] font-bold text-slate-500 shrink-0">
+                          <span>{formatElapsed(order.created_at)}</span>
+                        </div>
                       </div>
                     );
                   })
