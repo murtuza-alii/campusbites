@@ -117,6 +117,34 @@ export class MenuController extends BaseController {
     }
   }
 
+  async toggleAvailability(req: Request, res: Response): Promise<void> {
+    try {
+      const { id } = req.params;
+      const { is_available } = req.body;
+      const authUser = (req as any).user;
+
+      if (authUser) {
+        if (authUser.role === 'cook' || authUser.role === 'delivery') {
+          const err = new Error('Cooks and delivery staff are not authorized to modify menu availability');
+          (err as any).statusCode = 403;
+          throw err;
+        }
+      }
+
+      if (typeof is_available !== 'boolean' && typeof is_available !== 'number') {
+        const err = new Error('is_available boolean field is required');
+        (err as any).statusCode = 400;
+        throw err;
+      }
+
+      const restrictCanteenId = authUser && authUser.role !== 'admin' ? authUser.canteenId : undefined;
+      const updatedItem = await this.menuService.toggleAvailability(id, Boolean(is_available), restrictCanteenId);
+      this.handleSuccess(res, updatedItem);
+    } catch (error) {
+      this.handleError(error, res, 'toggleAvailability');
+    }
+  }
+
   async deleteMenuItem(req: Request, res: Response): Promise<void> {
     try {
       const { id } = req.params;

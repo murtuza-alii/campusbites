@@ -102,10 +102,25 @@ router.put(
   asyncErrorWrapper((req, res) => menuController.editMenuItem(req, res))
 );
 
+router.patch(
+  '/menu/:id/availability', 
+  requireRole(['admin', 'manager']), 
+  asyncErrorWrapper((req, res) => menuController.toggleAvailability(req, res))
+);
+
 router.delete(
   '/menu/:id', 
   requireRole(['admin', 'manager']), 
   asyncErrorWrapper((req, res) => menuController.deleteMenuItem(req, res))
+);
+
+// ==============================================================================
+// 4. Sales & Monthly Revenue Analytics (Admin & Store Managers)
+// ==============================================================================
+router.get(
+  '/sales', 
+  requireRole(['admin', 'manager']), 
+  asyncErrorWrapper((req, res) => adminController.getSalesAnalytics(req, res))
 );
 
 export default router;

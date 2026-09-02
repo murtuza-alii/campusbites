@@ -32,6 +32,52 @@ export interface StaffUserSummary {
   createdAt: string;
 }
 
+export interface MonthlySalesSummary {
+  monthKey: string;
+  monthLabel: string;
+  year: number;
+  month: number;
+  totalRevenue: number;
+  totalOrders: number;
+  completedOrders: number;
+  cancelledOrders: number;
+  activeOrders: number;
+  avgOrderValue: number;
+  totalItemsSold: number;
+  topItems: Array<{
+    name: string;
+    quantity: number;
+    revenue: number;
+  }>;
+  dailyStats: Array<{
+    date: string;
+    dayLabel: string;
+    revenue: number;
+    orders: number;
+  }>;
+}
+
+export interface MonthlySalesResponse {
+  canteen: {
+    id: string | null;
+    name: string | null;
+    slug: string | null;
+  } | null;
+  allTimeSummary: {
+    totalRevenue: number;
+    totalOrders: number;
+    completedOrders: number;
+    cancelledOrders: number;
+    activeOrders: number;
+    avgOrderValue: number;
+    totalItemsSold: number;
+  };
+  months: MonthlySalesSummary[];
+  selectedMonth: MonthlySalesSummary | null;
+  orders: any[];
+  totalOrdersCount: number;
+}
+
 export class AdminService {
   async getOverview(): Promise<OverviewMetrics> {
     const db = await getDb();
@@ -306,6 +352,270 @@ export class AdminService {
     return {
       success: true,
       message: `Staff credentials for ${user.display_name || user.username} updated successfully!`
+    };
+  }
+
+  async getMonthlySalesAnalytics(filters?: {
+    canteenId?: string;
+    month?: string;
+    status?: string;
+    search?: string;
+    limit?: number;
+    offset?: number;
+  }): Promise<MonthlySalesResponse> {
+    const db = await getDb();
+    const canteenId = filters?.canteenId || null;
+
+    // 1. Fetch Canteen Info
+    let canteenInfo: any = null;
+    if (canteenId) {
+      const cRes = await db.query('SELECT id, name, slug FROM canteen WHERE id = $1', [canteenId]);
+      if (cRes.rows.length > 0) {
+        canteenInfo = cRes.rows[0];
+      }
+    }
+
+    // 2. Fetch all orders matching the canteen filter
+    let orderQuery = `
+      SELECT 
+        o.*,
+        c.name as canteen_name,
+        c.slug as canteen_slug
+      FROM orders o
+      LEFT JOIN canteen c ON c.id = o.canteen_id
+      WHERE 1=1
+    `;
+    const queryParams: any[] = [];
+    let paramIdx = 1;
+
+    if (canteenId) {
+      orderQuery += ` AND o.canteen_id = $${paramIdx++}`;
+      queryParams.push(canteenId);
+    }
+
+    orderQuery += ` ORDER BY o.created_at DESC`;
+
+    const allOrdersRes = await db.query(orderQuery, queryParams);
+    const rawOrders = allOrdersRes.rows;
+
+    // 3. Compute All-Time Summary & Monthly Buckets
+    const monthMap = new Map<string, {
+      monthKey: string;
+      year: number;
+      month: number;
+      totalRevenue: number;
+      totalOrders: number;
+      completedOrders: number;
+      cancelledOrders: number;
+      activeOrders: number;
+      totalItemsSold: number;
+      itemMap: Map<string, { name: string; quantity: number; revenue: number }>;
+      dailyMap: Map<string, { date: string; revenue: number; orders: number }>;
+    }>();
+
+    let allTimeRevenue = 0;
+    let allTimeOrders = 0;
+    let allTimeCompleted = 0;
+    let allTimeCancelled = 0;
+    let allTimeActive = 0;
+    let allTimeItemsSold = 0;
+
+    const monthNames = [
+      'January', 'February', 'March', 'April', 'May', 'June',
+      'July', 'August', 'September', 'October', 'November', 'December'
+    ];
+
+    for (const order of rawOrders) {
+      const createdAt = new Date(order.created_at);
+      const year = createdAt.getFullYear();
+      const monthNum = createdAt.getMonth() + 1;
+      const monthKey = `${year}-${String(monthNum).padStart(2, '0')}`;
+      const dateKey = createdAt.toISOString().split('T')[0];
+
+      const price = parseFloat(order.total_price || '0');
+      const isCancelled = order.status === 'CANCELLED';
+      const isCompleted = order.status === 'COMPLETED';
+      const isActive = ['PLACED', 'PREPARING', 'READY'].includes(order.status);
+
+      allTimeOrders++;
+      if (!isCancelled) allTimeRevenue += price;
+      if (isCompleted) allTimeCompleted++;
+      if (isCancelled) allTimeCancelled++;
+      if (isActive) allTimeActive++;
+
+      // Parse items
+      let parsedItems: any[] = [];
+      try {
+        parsedItems = typeof order.items === 'string' ? JSON.parse(order.items) : order.items;
+        if (!Array.isArray(parsedItems)) parsedItems = [];
+      } catch {
+        parsedItems = [];
+      }
+
+      let orderItemCount = 0;
+      parsedItems.forEach((i: any) => {
+        const q = parseInt(i.quantity || '1', 10);
+        orderItemCount += q;
+      });
+      if (!isCancelled) {
+        allTimeItemsSold += orderItemCount;
+      }
+
+      // Monthly bucket
+      if (!monthMap.has(monthKey)) {
+        monthMap.set(monthKey, {
+          monthKey,
+          year,
+          month: monthNum,
+          totalRevenue: 0,
+          totalOrders: 0,
+          completedOrders: 0,
+          cancelledOrders: 0,
+          activeOrders: 0,
+          totalItemsSold: 0,
+          itemMap: new Map(),
+          dailyMap: new Map()
+        });
+      }
+
+      const m = monthMap.get(monthKey)!;
+      m.totalOrders++;
+      if (!isCancelled) {
+        m.totalRevenue += price;
+        m.totalItemsSold += orderItemCount;
+      }
+      if (isCompleted) m.completedOrders++;
+      if (isCancelled) m.cancelledOrders++;
+      if (isActive) m.activeOrders++;
+
+      // Item sales tracking for month
+      if (!isCancelled) {
+        parsedItems.forEach((item: any) => {
+          const name = item.name || 'Dish';
+          const qty = parseInt(item.quantity || '1', 10);
+          const itemPrice = parseFloat(item.price || '0') * qty;
+          
+          const existing = m.itemMap.get(name) || { name, quantity: 0, revenue: 0 };
+          existing.quantity += qty;
+          existing.revenue += itemPrice;
+          m.itemMap.set(name, existing);
+        });
+
+        // Daily stats tracking for month
+        const dayExisting = m.dailyMap.get(dateKey) || { date: dateKey, revenue: 0, orders: 0 };
+        dayExisting.orders++;
+        dayExisting.revenue += price;
+        m.dailyMap.set(dateKey, dayExisting);
+      }
+    }
+
+    // Format monthly bucket list
+    const months: MonthlySalesSummary[] = Array.from(monthMap.values())
+      .sort((a, b) => b.monthKey.localeCompare(a.monthKey))
+      .map(m => {
+        const monthLabel = `${monthNames[m.month - 1]} ${m.year}`;
+        const nonCancelledOrders = m.totalOrders - m.cancelledOrders;
+        const avgOrderValue = nonCancelledOrders > 0 ? Math.round((m.totalRevenue / nonCancelledOrders) * 100) / 100 : 0;
+        
+        const topItems = Array.from(m.itemMap.values())
+          .sort((a, b) => b.quantity - a.quantity || b.revenue - a.revenue)
+          .slice(0, 10);
+
+        const dailyStats = Array.from(m.dailyMap.values())
+          .sort((a, b) => a.date.localeCompare(b.date))
+          .map(d => {
+            const dObj = new Date(d.date);
+            const dayLabel = dObj.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
+            return {
+              date: d.date,
+              dayLabel,
+              revenue: Math.round(d.revenue * 100) / 100,
+              orders: d.orders
+            };
+          });
+
+        return {
+          monthKey: m.monthKey,
+          monthLabel,
+          year: m.year,
+          month: m.month,
+          totalRevenue: Math.round(m.totalRevenue * 100) / 100,
+          totalOrders: m.totalOrders,
+          completedOrders: m.completedOrders,
+          cancelledOrders: m.cancelledOrders,
+          activeOrders: m.activeOrders,
+          avgOrderValue,
+          totalItemsSold: m.totalItemsSold,
+          topItems,
+          dailyStats
+        };
+      });
+
+    // Selected month determination
+    const targetMonthKey = filters?.month && filters.month !== 'ALL' 
+      ? filters.month 
+      : (months.length > 0 ? months[0].monthKey : null);
+
+    const selectedMonth = targetMonthKey ? (months.find(m => m.monthKey === targetMonthKey) || null) : null;
+
+    // Filter orders for return based on selected month, search, and status
+    let filteredOrders = rawOrders;
+
+    if (targetMonthKey && filters?.month !== 'ALL') {
+      filteredOrders = filteredOrders.filter(o => {
+        const d = new Date(o.created_at);
+        const mKey = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
+        return mKey === targetMonthKey;
+      });
+    }
+
+    if (filters?.status && filters.status !== 'ALL') {
+      filteredOrders = filteredOrders.filter(o => o.status === filters.status!.toUpperCase());
+    }
+
+    if (filters?.search && filters.search.trim()) {
+      const q = filters.search.toLowerCase().trim();
+      filteredOrders = filteredOrders.filter(o => {
+        const numMatch = o.order_number?.toLowerCase().includes(q);
+        const nameMatch = o.student_name?.toLowerCase().includes(q);
+        const rollMatch = o.student_roll?.toLowerCase().includes(q);
+        const pinMatch = o.pickup_code?.toLowerCase().includes(q);
+        let itemMatch = false;
+        try {
+          const items = typeof o.items === 'string' ? JSON.parse(o.items) : o.items;
+          itemMatch = items.some((i: any) => i.name?.toLowerCase().includes(q));
+        } catch {}
+        return numMatch || nameMatch || rollMatch || pinMatch || itemMatch;
+      });
+    }
+
+    const totalOrdersCount = filteredOrders.length;
+    const limit = filters?.limit || 250;
+    const offset = filters?.offset || 0;
+    const paginatedOrders = filteredOrders.slice(offset, offset + limit);
+
+    const allTimeNonCancelled = allTimeOrders - allTimeCancelled;
+    const allTimeAOV = allTimeNonCancelled > 0 ? Math.round((allTimeRevenue / allTimeNonCancelled) * 100) / 100 : 0;
+
+    return {
+      canteen: canteenInfo ? {
+        id: canteenInfo.id,
+        name: canteenInfo.name,
+        slug: canteenInfo.slug
+      } : null,
+      allTimeSummary: {
+        totalRevenue: Math.round(allTimeRevenue * 100) / 100,
+        totalOrders: allTimeOrders,
+        completedOrders: allTimeCompleted,
+        cancelledOrders: allTimeCancelled,
+        activeOrders: allTimeActive,
+        avgOrderValue: allTimeAOV,
+        totalItemsSold: allTimeItemsSold
+      },
+      months,
+      selectedMonth,
+      orders: paginatedOrders,
+      totalOrdersCount
     };
   }
 }

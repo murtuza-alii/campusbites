@@ -303,6 +303,10 @@ export function StudentView() {
   }, [myOrders]);
 
   const addToCart = (item: MenuItem) => {
+    if (item.is_available === 0) {
+      alert(`"${item.name}" is currently sold out and unavailable to order.`);
+      return;
+    }
     setCart((prevCart) => {
       const existing = prevCart.find((i) => i.id === item.id);
       if (existing) {
@@ -400,6 +404,17 @@ export function StudentView() {
   const handleCheckout = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!studentName.trim() || !studentPhone.trim() || cart.length === 0 || !selectedCanteenId) return;
+
+    // Guard against any item that went out of stock
+    const soldOutItem = cart.find(cartItem => {
+      const match = menu.find(m => m.id === cartItem.id);
+      return match && match.is_available === 0;
+    });
+
+    if (soldOutItem) {
+      alert(`"${soldOutItem.name}" is currently sold out and unavailable. Please remove it from your cart before proceeding with payment.`);
+      return;
+    }
 
     if (isAnand) {
       if (!selectedBuilding) {
@@ -719,10 +734,10 @@ export function StudentView() {
                   return (
                     <SpotlightCard 
                       key={item.id} 
-                      className={`p-4 sm:p-5 rounded-2xl sm:rounded-3xl flex flex-col justify-between group transition-all border border-slate-200/90 shadow-xs bg-white ${
+                      className={`p-4 sm:p-5 rounded-2xl sm:rounded-3xl flex flex-col justify-between group transition-all border shadow-xs bg-white ${
                         isAvailable 
-                          ? 'hover:border-indigo-500/50 hover:shadow-md' 
-                          : 'opacity-60 bg-slate-50'
+                          ? 'border-slate-200/90 hover:border-indigo-500/50 hover:shadow-md' 
+                          : 'border-rose-200/60 bg-slate-50/80'
                       }`}
                     >
                       <div className="space-y-3">
@@ -735,13 +750,25 @@ export function StudentView() {
                               {item.category}
                             </span>
                           </div>
-                          <span className="text-base sm:text-lg font-black text-indigo-600 tracking-tight shrink-0">
-                            ₹{item.price}
-                          </span>
+                          
+                          <div className="flex items-center gap-2 shrink-0">
+                            {!isAvailable && (
+                              <span className="px-2 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-rose-50 text-rose-700 border border-rose-200/80 animate-pulse">
+                                Sold Out
+                              </span>
+                            )}
+                            <span className={`text-base sm:text-lg font-black tracking-tight ${isAvailable ? 'text-indigo-600' : 'text-slate-400'}`}>
+                              ₹{item.price}
+                            </span>
+                          </div>
                         </div>
 
                         <div>
-                          <h3 className="font-black text-sm sm:text-base text-slate-900 leading-snug group-hover:text-indigo-600 transition-colors">
+                          <h3 className={`font-black text-sm sm:text-base leading-snug transition-colors ${
+                            isAvailable 
+                              ? 'text-slate-900 group-hover:text-indigo-600' 
+                              : 'text-slate-500 line-through decoration-slate-300'
+                          }`}>
                             {item.name}
                           </h3>
                         </div>
@@ -749,8 +776,9 @@ export function StudentView() {
 
                       <div className="pt-3.5 mt-2 border-t border-slate-100/90">
                         {!isAvailable ? (
-                          <div className="w-full py-2 bg-slate-100 border border-slate-200 rounded-xl text-[11px] font-bold text-slate-400 text-center select-none uppercase tracking-wider">
-                            Out of Stock
+                          <div className="w-full py-2.5 bg-rose-50/70 border border-rose-200/80 rounded-xl text-[11px] font-bold text-rose-700 text-center select-none flex items-center justify-center gap-1.5 shadow-2xs">
+                            <span className="w-1.5 h-1.5 rounded-full bg-rose-500"></span>
+                            <span>Currently Sold Out</span>
                           </div>
                         ) : qty > 0 ? (
                           <div className="flex items-center justify-between bg-slate-100 border border-slate-200 p-1 select-none rounded-xl">
@@ -813,26 +841,44 @@ export function StudentView() {
               ) : (
                 <div className="flex flex-col space-y-4">
                   <div className="space-y-2.5 max-h-60 overflow-y-auto pr-1 no-scrollbar">
-                    {cart.map((item) => (
-                      <div key={item.id} className="flex justify-between items-center bg-slate-50 border border-slate-100 p-2.5 rounded-xl">
-                        <div className="flex-1 min-w-0 pr-2">
-                          <h4 className="text-xs font-black text-slate-900 truncate">{item.name}</h4>
-                          <span className="text-[11px] text-slate-500 font-semibold">₹{item.price} each</span>
-                        </div>
-                        <div className="flex items-center gap-2 shrink-0">
-                          <div className="flex items-center bg-white rounded-lg border border-slate-200 p-0.5">
-                            <button onClick={() => removeFromCart(item.id)} className="w-5 h-5 flex items-center justify-center text-slate-600 hover:text-slate-900">
-                              <Minus className="w-3 h-3" />
-                            </button>
-                            <span className="text-xs font-black text-slate-900 w-5 text-center">{item.quantity}</span>
-                            <button onClick={() => addToCart(item as any)} className="w-5 h-5 flex items-center justify-center text-slate-600 hover:text-slate-900">
-                              <Plus className="w-3 h-3" />
-                            </button>
+                    {cart.map((item) => {
+                      const isItemUnavailable = menu.find(m => m.id === item.id)?.is_available === 0;
+                      return (
+                        <div key={item.id} className={`flex justify-between items-center p-2.5 rounded-xl border ${
+                          isItemUnavailable ? 'bg-rose-50/70 border-rose-200' : 'bg-slate-50 border-slate-100'
+                        }`}>
+                          <div className="flex-1 min-w-0 pr-2">
+                            <div className="flex items-center gap-1.5 flex-wrap">
+                              <h4 className={`text-xs font-black truncate ${isItemUnavailable ? 'text-rose-900 line-through' : 'text-slate-900'}`}>
+                                {item.name}
+                              </h4>
+                              {isItemUnavailable && (
+                                <span className="px-1.5 py-0.5 rounded text-[9px] font-black uppercase tracking-wider bg-rose-200 text-rose-800">
+                                  Sold Out
+                                </span>
+                              )}
+                            </div>
+                            <span className="text-[11px] text-slate-500 font-semibold">₹{item.price} each</span>
                           </div>
-                          <span className="text-xs font-black text-slate-900 w-10 text-right">₹{item.price * item.quantity}</span>
+                          <div className="flex items-center gap-2 shrink-0">
+                            <div className="flex items-center bg-white rounded-lg border border-slate-200 p-0.5">
+                              <button onClick={() => removeFromCart(item.id)} className="w-5 h-5 flex items-center justify-center text-slate-600 hover:text-slate-900">
+                                <Minus className="w-3 h-3" />
+                              </button>
+                              <span className="text-xs font-black text-slate-900 w-5 text-center">{item.quantity}</span>
+                              <button 
+                                onClick={() => addToCart(item as any)} 
+                                disabled={isItemUnavailable}
+                                className={`w-5 h-5 flex items-center justify-center ${isItemUnavailable ? 'text-slate-300 cursor-not-allowed' : 'text-slate-600 hover:text-slate-900'}`}
+                              >
+                                <Plus className="w-3 h-3" />
+                              </button>
+                            </div>
+                            <span className="text-xs font-black text-slate-900 w-10 text-right">₹{item.price * item.quantity}</span>
+                          </div>
                         </div>
-                      </div>
-                    ))}
+                      );
+                    })}
                   </div>
 
                   <hr className="border-slate-100" />
@@ -1265,26 +1311,44 @@ export function StudentView() {
             </div>
 
             <div className="flex-1 overflow-y-auto py-1 space-y-2.5 max-h-56 pr-1 no-scrollbar">
-              {cart.map((item) => (
-                <div key={item.id} className="flex justify-between items-center bg-slate-50 border border-slate-200/80 p-2.5 rounded-2xl">
-                  <div className="flex-1 min-w-0 pr-2">
-                    <h4 className="text-xs font-black text-slate-900 truncate">{item.name}</h4>
-                    <span className="text-[11px] text-slate-500 font-semibold">₹{item.price} each</span>
-                  </div>
-                  <div className="flex items-center gap-2 shrink-0">
-                    <div className="flex items-center bg-white rounded-xl border border-slate-200 p-0.5">
-                      <button onClick={() => removeFromCart(item.id)} className="w-6 h-6 flex items-center justify-center text-slate-700">
-                        <Minus className="w-3.5 h-3.5" />
-                      </button>
-                      <span className="text-xs font-black text-slate-900 w-5 text-center">{item.quantity}</span>
-                      <button onClick={() => addToCart(item as any)} className="w-6 h-6 flex items-center justify-center text-slate-700">
-                        <Plus className="w-3.5 h-3.5" />
-                      </button>
+              {cart.map((item) => {
+                const isItemUnavailable = menu.find(m => m.id === item.id)?.is_available === 0;
+                return (
+                  <div key={item.id} className={`flex justify-between items-center p-2.5 rounded-2xl border ${
+                    isItemUnavailable ? 'bg-rose-50/70 border-rose-200' : 'bg-slate-50 border-slate-200/80'
+                  }`}>
+                    <div className="flex-1 min-w-0 pr-2">
+                      <div className="flex items-center gap-1.5 flex-wrap">
+                        <h4 className={`text-xs font-black truncate ${isItemUnavailable ? 'text-rose-900 line-through' : 'text-slate-900'}`}>
+                          {item.name}
+                        </h4>
+                        {isItemUnavailable && (
+                          <span className="px-1.5 py-0.5 rounded text-[9px] font-black uppercase tracking-wider bg-rose-200 text-rose-800">
+                            Sold Out
+                          </span>
+                        )}
+                      </div>
+                      <span className="text-[11px] text-slate-500 font-semibold">₹{item.price} each</span>
                     </div>
-                    <span className="text-xs font-black text-slate-900 w-12 text-right">₹{item.price * item.quantity}</span>
+                    <div className="flex items-center gap-2 shrink-0">
+                      <div className="flex items-center bg-white rounded-xl border border-slate-200 p-0.5">
+                        <button onClick={() => removeFromCart(item.id)} className="w-6 h-6 flex items-center justify-center text-slate-700">
+                          <Minus className="w-3.5 h-3.5" />
+                        </button>
+                        <span className="text-xs font-black text-slate-900 w-5 text-center">{item.quantity}</span>
+                        <button 
+                          onClick={() => addToCart(item as any)} 
+                          disabled={isItemUnavailable}
+                          className={`w-6 h-6 flex items-center justify-center ${isItemUnavailable ? 'text-slate-300 cursor-not-allowed' : 'text-slate-700'}`}
+                        >
+                          <Plus className="w-3.5 h-3.5" />
+                        </button>
+                      </div>
+                      <span className="text-xs font-black text-slate-900 w-12 text-right">₹{item.price * item.quantity}</span>
+                    </div>
                   </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
 
             <hr className="border-slate-100" />

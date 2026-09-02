@@ -6,12 +6,12 @@ export class MenuRepository {
     const db = await getDb();
     if (canteenIdOrSlug) {
       const result = await db.query<MenuItem>(
-        'SELECT * FROM menu WHERE is_available = 1 AND (canteen_id = $1 OR canteen_id = (SELECT id FROM canteen WHERE slug = $1 LIMIT 1))',
+        'SELECT * FROM menu WHERE (canteen_id = $1 OR canteen_id = (SELECT id FROM canteen WHERE slug = $1 LIMIT 1)) ORDER BY category ASC, name ASC',
         [canteenIdOrSlug]
       );
       return result.rows;
     } else {
-      const result = await db.query<MenuItem>('SELECT * FROM menu WHERE is_available = 1');
+      const result = await db.query<MenuItem>('SELECT * FROM menu ORDER BY category ASC, name ASC');
       return result.rows;
     }
   }
@@ -65,6 +65,11 @@ export class MenuRepository {
         [item.name, item.price, item.category, item.is_available, item.image, id]
       );
     }
+  }
+
+  async updateAvailability(id: string, isAvailable: number): Promise<void> {
+    const db = await getDb();
+    await db.query('UPDATE menu SET is_available = $1 WHERE id = $2', [isAvailable, id]);
   }
 
   async delete(id: string): Promise<void> {

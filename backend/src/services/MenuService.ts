@@ -125,6 +125,37 @@ export class MenuService {
     return updated;
   }
 
+  async toggleAvailability(id: string, isAvailable: boolean, restrictCanteenId?: string): Promise<MenuItem> {
+    const existing = await this.menuRepository.findById(id);
+    if (!existing) {
+      const err = new Error('Menu item not found');
+      (err as any).statusCode = 404;
+      throw err;
+    }
+
+    if (restrictCanteenId && existing.canteen_id !== restrictCanteenId) {
+      const err = new Error('Unauthorized to modify availability for this canteen');
+      (err as any).statusCode = 403;
+      throw err;
+    }
+
+    const isAvailableInt = isAvailable ? 1 : 0;
+    await this.menuRepository.updateAvailability(id, isAvailableInt);
+
+    const updated = await this.menuRepository.findById(id);
+    if (!updated) {
+      throw new Error('Failed to retrieve updated menu item');
+    }
+
+    // Invalidate Redis caches
+    await this.invalidateCache(existing.canteen_id);
+
+    // Trigger real-time WebSocket update for all connected students
+    broadcastMenuUpdate();
+
+    return updated;
+  }
+
   async deleteMenuItem(id: string, restrictCanteenId?: string): Promise<void> {
     const existing = await this.menuRepository.findById(id);
     if (!existing) {

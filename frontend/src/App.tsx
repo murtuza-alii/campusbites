@@ -6,6 +6,7 @@ import { StaffView } from './components/StaffView';
 import { StaffLogin } from './components/StaffLogin';
 import { StaffOrders } from './components/StaffOrders';
 import { StaffMenu } from './components/StaffMenu';
+import { StaffSales } from './components/StaffSales';
 import { AdminLogin } from './components/AdminLogin';
 import { AdminDashboard } from './components/AdminDashboard';
 import { SmoothCursor } from './components/ui/SmoothCursor';
@@ -104,16 +105,28 @@ export default function App() {
                     Orders
                   </Link>
                   {userRole !== 'cook' && userRole !== 'delivery' && (
-                    <Link 
-                      to="/staff/menu" 
-                      className={`transition-colors ${
-                        location.pathname === '/staff/menu' 
-                          ? 'text-indigo-600 font-bold' 
-                          : 'text-slate-600 hover:text-slate-900'
-                      }`}
-                    >
-                      Menu
-                    </Link>
+                    <>
+                      <Link 
+                        to="/staff/menu" 
+                        className={`transition-colors ${
+                          location.pathname === '/staff/menu' 
+                            ? 'text-indigo-600 font-bold' 
+                            : 'text-slate-600 hover:text-slate-900'
+                        }`}
+                      >
+                        Menu
+                      </Link>
+                      <Link 
+                        to="/staff/sales" 
+                        className={`transition-colors ${
+                          location.pathname === '/staff/sales' 
+                            ? 'text-indigo-600 font-bold' 
+                            : 'text-slate-600 hover:text-slate-900'
+                        }`}
+                      >
+                        Sales
+                      </Link>
+                    </>
                   )}
                 </nav>
               )}
@@ -183,6 +196,7 @@ export default function App() {
           <Route path="/staff" element={<StaffView />}>
             <Route index element={<StaffOrders />} />
             <Route path="menu" element={<StaffMenu />} />
+            <Route path="sales" element={<StaffSales />} />
           </Route>
           <Route path="/staff/login" element={<StaffLogin />} />
           <Route path="/staff/login/:slug" element={<StaffLogin />} />

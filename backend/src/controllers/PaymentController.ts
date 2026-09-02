@@ -29,6 +29,22 @@ export class PaymentController extends BaseController {
         return;
       }
 
+      // Check if any ordered items are out of stock
+      const db = await getDb();
+      const itemIds = items.map((i: any) => i.id).filter(Boolean);
+      if (itemIds.length > 0) {
+        const placeholders = itemIds.map((_: any, idx: number) => `$${idx + 1}`).join(',');
+        const stockRes = await db.query(
+          `SELECT id, name, is_available FROM menu WHERE id IN (${placeholders}) AND is_available = 0`,
+          itemIds
+        );
+        if (stockRes.rows.length > 0) {
+          const outOfStockNames = stockRes.rows.map((r: any) => r.name).join(', ');
+          res.status(400).json({ error: `The following dish(es) are currently sold out: ${outOfStockNames}. Please remove them from your cart.` });
+          return;
+        }
+      }
+
       const orderBuilding = building || null;
       const orderBreakTiming = breakTiming || break_timing || null;
 
@@ -53,7 +69,6 @@ export class PaymentController extends BaseController {
       const pickupCode = generatePickupCode(4);
 
       // 3. Persist order with initial payment_status and slot_number
-      const db = await getDb();
       await db.query(
         `INSERT INTO orders (id, order_number, student_name, student_roll, items, total_price, status, pickup_code, canteen_id, payment_status, payment_session_id, cf_order_id, building, break_timing, slot_number)
          VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15)`,

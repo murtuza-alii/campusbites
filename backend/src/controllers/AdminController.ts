@@ -59,4 +59,35 @@ export class AdminController extends BaseController {
       this.handleError(error, res, 'updateStaffCredentials');
     }
   }
+
+  async getSalesAnalytics(req: Request, res: Response): Promise<void> {
+    try {
+      const authUser = (req as any).user;
+      let targetCanteenId = req.query.canteenId as string | undefined;
+
+      // For store managers, strictly restrict sales data to their assigned outlet
+      if (authUser && authUser.role !== 'admin') {
+        if (!authUser.canteenId) {
+          res.status(403).json({ error: 'Unauthorized: No canteen assigned to this store manager' });
+          return;
+        }
+        targetCanteenId = authUser.canteenId;
+      }
+
+      const { month, status, search, limit, offset } = req.query;
+
+      const salesData = await this.adminService.getMonthlySalesAnalytics({
+        canteenId: targetCanteenId,
+        month: month as string | undefined,
+        status: status as string | undefined,
+        search: search as string | undefined,
+        limit: limit ? parseInt(limit as string, 10) : 250,
+        offset: offset ? parseInt(offset as string, 10) : 0
+      });
+
+      this.handleSuccess(res, salesData);
+    } catch (error) {
+      this.handleError(error, res, 'getSalesAnalytics');
+    }
+  }
 }
