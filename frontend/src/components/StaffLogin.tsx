@@ -1,6 +1,7 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { useNavigate, useParams, useSearchParams, Link } from 'react-router-dom';
 import { 
+  Building2,
   Store, 
   ChefHat, 
   ShieldCheck, 
@@ -28,6 +29,12 @@ interface Canteen {
   image?: string;
 }
 
+interface CampusGroup {
+  name: string;
+  slug: string;
+  canteens: Canteen[];
+}
+
 export function StaffLogin() {
   const { slug } = useParams<{ slug?: string }>();
   const [searchParams] = useSearchParams();
@@ -35,8 +42,12 @@ export function StaffLogin() {
 
   const [activeTab, setActiveTab] = useState<'cook' | 'manager'>('cook');
   const [canteens, setCanteens] = useState<Canteen[]>([]);
+  
+  // Hierarchical Campus -> Canteen Selection
+  const [selectedCampus, setSelectedCampus] = useState<CampusGroup | null>(null);
   const [selectedCanteen, setSelectedCanteen] = useState<Canteen | null>(null);
-  const [isOutletDropdownOpen, setIsOutletDropdownOpen] = useState(false);
+  const [isCampusDropdownOpen, setIsCampusDropdownOpen] = useState(false);
+  const [isCanteenDropdownOpen, setIsCanteenDropdownOpen] = useState(false);
 
   // Cook Mode Alphanumeric Passcode state
   const [pin, setPin] = useState('');
@@ -51,7 +62,25 @@ export function StaffLogin() {
   const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
 
-  // 1. Fetch available outlets
+  // Group canteens by Campus / Group
+  const campusGroups = useMemo(() => {
+    const map = new Map<string, CampusGroup>();
+    canteens.forEach(c => {
+      const campusName = c.group_name || c.name || 'Individual Campus / Diner';
+      const campusSlug = c.group_slug || c.slug || 'campus';
+      if (!map.has(campusSlug)) {
+        map.set(campusSlug, {
+          name: campusName,
+          slug: campusSlug,
+          canteens: []
+        });
+      }
+      map.get(campusSlug)!.canteens.push(c);
+    });
+    return Array.from(map.values());
+  }, [canteens]);
+
+  // 1. Fetch available outlets and initialize selection
   useEffect(() => {
     async function loadCanteens() {
       try {
@@ -60,16 +89,37 @@ export function StaffLogin() {
         if (Array.isArray(data) && data.length > 0) {
           setCanteens(data);
 
+          // Build initial groups
+          const map = new Map<string, CampusGroup>();
+          data.forEach(c => {
+            const campusName = c.group_name || c.name || 'Individual Campus / Diner';
+            const campusSlug = c.group_slug || c.slug || 'campus';
+            if (!map.has(campusSlug)) {
+              map.set(campusSlug, {
+                name: campusName,
+                slug: campusSlug,
+                canteens: []
+              });
+            }
+            map.get(campusSlug)!.canteens.push(c);
+          });
+          const groups = Array.from(map.values());
+
           if (queryCanteen) {
-            const matched = data.find(
+            const matchedCanteen = data.find(
               c => c.slug === queryCanteen || c.id === queryCanteen || c.group_slug === queryCanteen
             );
-            if (matched) {
-              setSelectedCanteen(matched);
+            if (matchedCanteen) {
+              const matchedGroup = groups.find(g => g.canteens.some(ct => ct.id === matchedCanteen.id)) || groups[0];
+              setSelectedCampus(matchedGroup);
+              setSelectedCanteen(matchedCanteen);
               return;
             }
           }
-          setSelectedCanteen(data[0]);
+          if (groups.length > 0) {
+            setSelectedCampus(groups[0]);
+            setSelectedCanteen(groups[0].canteens[0] || null);
+          }
         }
       } catch (err) {
         console.error('Failed to load canteens', err);
@@ -87,7 +137,7 @@ export function StaffLogin() {
 
     if (activeTab === 'cook') {
       if (!selectedCanteen) {
-        setError('Please select your shop/outlet');
+        setError('Please select your campus and canteen outlet');
         return;
       }
       if (!pin || pin.trim().length < 3) {
@@ -197,64 +247,134 @@ export function StaffLogin() {
           )}
 
           {/* Form Content */}
-          <form onSubmit={handleSubmit} className="space-y-5">
+          <form onSubmit={handleSubmit} className="space-y-4">
             
-            {/* 1. Outlet / Shop Selector (Crucial for Kitchen Cooks) */}
+            {/* HIERARCHICAL CAMPUS -> CANTEEN SELECTOR (For Kitchen Cooks) */}
             {activeTab === 'cook' && (
-              <div className="space-y-1.5 relative">
-                <label className="text-[11px] font-bold text-slate-600 uppercase tracking-wider block">
-                  Select Shop / Outlet
-                </label>
-                <button
-                  type="button"
-                  onClick={() => setIsOutletDropdownOpen(prev => !prev)}
-                  className="w-full flex items-center justify-between px-4 py-3 bg-slate-50 hover:bg-slate-100 border border-slate-200 rounded-2xl text-left transition-all active:scale-[0.99]"
-                >
-                  <div className="flex items-center gap-3 truncate">
-                    <div className="w-8 h-8 rounded-xl bg-indigo-100 text-indigo-700 flex items-center justify-center shrink-0">
-                      <Store className="w-4 h-4" />
+              <div className="space-y-3.5">
+                
+                {/* 1. SELECT COLLEGE / CAMPUS */}
+                <div className="space-y-1.5 relative">
+                  <label className="text-[11px] font-bold text-slate-600 uppercase tracking-wider block">
+                    1. Select College / Campus
+                  </label>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setIsCampusDropdownOpen(prev => !prev);
+                      setIsCanteenDropdownOpen(false);
+                    }}
+                    className="w-full flex items-center justify-between px-4 py-3 bg-slate-50 hover:bg-slate-100 border border-slate-200 rounded-2xl text-left transition-all active:scale-[0.99]"
+                  >
+                    <div className="flex items-center gap-3 truncate">
+                      <div className="w-8 h-8 rounded-xl bg-indigo-100 text-indigo-700 flex items-center justify-center shrink-0">
+                        <Building2 className="w-4 h-4" />
+                      </div>
+                      <div className="truncate">
+                        <p className="text-xs font-black text-slate-900 truncate">
+                          {selectedCampus?.name || 'Choose College / Campus'}
+                        </p>
+                        <p className="text-[10px] text-slate-500 font-medium">
+                          {selectedCampus?.canteens.length 
+                            ? `${selectedCampus.canteens.length} Outlet${selectedCampus.canteens.length > 1 ? 's' : ''} available` 
+                            : 'Select campus'}
+                        </p>
+                      </div>
                     </div>
-                    <div className="truncate">
-                      <p className="text-xs font-black text-slate-900 truncate">
-                        {selectedCanteen?.name || 'Choose Outlet'}
-                      </p>
-                      <p className="text-[10px] text-slate-500 font-medium">
-                        {selectedCanteen?.group_name || 'Individual Diner'}
-                      </p>
-                    </div>
-                  </div>
-                  <ChevronDown className={`w-4 h-4 text-slate-400 transition-transform ${isOutletDropdownOpen ? 'rotate-180' : ''}`} />
-                </button>
+                    <ChevronDown className={`w-4 h-4 text-slate-400 transition-transform ${isCampusDropdownOpen ? 'rotate-180' : ''}`} />
+                  </button>
 
-                {/* Dropdown Menu */}
-                {isOutletDropdownOpen && (
-                  <div className="absolute top-full left-0 right-0 mt-1.5 bg-white border border-slate-200 rounded-2xl shadow-xl z-30 max-h-48 overflow-y-auto p-1.5 space-y-1">
-                    {canteens.map(c => (
-                      <button
-                        key={c.id}
-                        type="button"
-                        onClick={() => {
-                          setSelectedCanteen(c);
-                          setIsOutletDropdownOpen(false);
-                        }}
-                        className={`w-full flex items-center justify-between p-2.5 rounded-xl text-left text-xs font-bold transition-all ${
-                          selectedCanteen?.id === c.id 
-                            ? 'bg-indigo-50 text-indigo-700' 
-                            : 'hover:bg-slate-50 text-slate-700'
-                        }`}
-                      >
-                        <span className="truncate">{c.name}</span>
-                        {selectedCanteen?.id === c.id && <CheckCircle2 className="w-4 h-4 text-indigo-600 shrink-0" />}
-                      </button>
-                    ))}
-                  </div>
-                )}
+                  {/* Campus Dropdown Menu */}
+                  {isCampusDropdownOpen && (
+                    <div className="absolute top-full left-0 right-0 mt-1.5 bg-white border border-slate-200 rounded-2xl shadow-xl z-40 max-h-48 overflow-y-auto p-1.5 space-y-1">
+                      {campusGroups.map(campus => (
+                        <button
+                          key={campus.slug}
+                          type="button"
+                          onClick={() => {
+                            setSelectedCampus(campus);
+                            setSelectedCanteen(campus.canteens[0] || null);
+                            setIsCampusDropdownOpen(false);
+                          }}
+                          className={`w-full flex items-center justify-between p-2.5 rounded-xl text-left text-xs font-bold transition-all ${
+                            selectedCampus?.slug === campus.slug 
+                              ? 'bg-indigo-50 text-indigo-700' 
+                              : 'hover:bg-slate-50 text-slate-700'
+                          }`}
+                        >
+                          <div className="truncate">
+                            <span className="block truncate">{campus.name}</span>
+                            <span className="text-[10px] font-normal text-slate-400">
+                              {campus.canteens.length} outlet{campus.canteens.length > 1 ? 's' : ''}
+                            </span>
+                          </div>
+                          {selectedCampus?.slug === campus.slug && <CheckCircle2 className="w-4 h-4 text-indigo-600 shrink-0" />}
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </div>
+
+                {/* 2. SELECT CANTEEN / OUTLET (Under Selected Campus) */}
+                <div className="space-y-1.5 relative">
+                  <label className="text-[11px] font-bold text-slate-600 uppercase tracking-wider block">
+                    2. Select Canteen / Kitchen Outlet
+                  </label>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setIsCanteenDropdownOpen(prev => !prev);
+                      setIsCampusDropdownOpen(false);
+                    }}
+                    className="w-full flex items-center justify-between px-4 py-3 bg-slate-50 hover:bg-slate-100 border border-slate-200 rounded-2xl text-left transition-all active:scale-[0.99]"
+                  >
+                    <div className="flex items-center gap-3 truncate">
+                      <div className="w-8 h-8 rounded-xl bg-amber-100 text-amber-700 flex items-center justify-center shrink-0">
+                        <Store className="w-4 h-4" />
+                      </div>
+                      <div className="truncate">
+                        <p className="text-xs font-black text-slate-900 truncate">
+                          {selectedCanteen?.name || 'Choose Canteen'}
+                        </p>
+                        <p className="text-[10px] text-slate-500 font-medium truncate">
+                          {selectedCampus?.name || 'Assigned Diner'}
+                        </p>
+                      </div>
+                    </div>
+                    <ChevronDown className={`w-4 h-4 text-slate-400 transition-transform ${isCanteenDropdownOpen ? 'rotate-180' : ''}`} />
+                  </button>
+
+                  {/* Canteen Dropdown Menu (Filtered to Selected Campus) */}
+                  {isCanteenDropdownOpen && selectedCampus && (
+                    <div className="absolute top-full left-0 right-0 mt-1.5 bg-white border border-slate-200 rounded-2xl shadow-xl z-30 max-h-48 overflow-y-auto p-1.5 space-y-1">
+                      {selectedCampus.canteens.map(c => (
+                        <button
+                          key={c.id}
+                          type="button"
+                          onClick={() => {
+                            setSelectedCanteen(c);
+                            setIsCanteenDropdownOpen(false);
+                          }}
+                          className={`w-full flex items-center justify-between p-2.5 rounded-xl text-left text-xs font-bold transition-all ${
+                            selectedCanteen?.id === c.id 
+                              ? 'bg-indigo-50 text-indigo-700' 
+                              : 'hover:bg-slate-50 text-slate-700'
+                          }`}
+                        >
+                          <span className="truncate">{c.name}</span>
+                          {selectedCanteen?.id === c.id && <CheckCircle2 className="w-4 h-4 text-indigo-600 shrink-0" />}
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </div>
+
               </div>
             )}
 
             {/* TAB 1: KITCHEN COOK ALPHANUMERIC PASSCODE */}
             {activeTab === 'cook' && (
-              <div className="space-y-4">
+              <div className="space-y-4 pt-1">
                 <div className="space-y-1.5">
                   <div className="flex items-center justify-between">
                     <label className="text-[11px] font-bold text-slate-600 uppercase tracking-wider block">
