@@ -1101,6 +1101,9 @@ export function StaffOrders() {
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center gap-2 flex-wrap">
                             <span className="font-mono font-black text-sm text-slate-900">{order.order_number}</span>
+                            <span className="px-2 py-0.5 rounded-md text-[10px] font-mono font-black bg-indigo-50 text-indigo-700 border border-indigo-200">
+                              Slot {order.slot_number || (order.order_number.includes('-') ? order.order_number.split('-')[0] : 1)}
+                            </span>
                             <span className="text-xs font-bold text-slate-700">{order.student_name}</span>
                             {order.student_roll && (
                               <span className="text-[11px] font-mono text-slate-400">({order.student_roll})</span>
