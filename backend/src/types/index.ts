@@ -28,6 +28,7 @@ export interface Order {
   canteen_id: string;
   building?: string;
   break_timing?: string;
+  slot_number?: number;
 }
 
 export interface ParsedOrder extends Omit<Order, 'items'> {

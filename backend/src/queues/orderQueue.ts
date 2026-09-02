@@ -3,6 +3,7 @@ import { redisConnectionOptions } from '../config/redis.js';
 import { OrderRepository } from '../repositories/OrderRepository.js';
 import { emitOrderCreated, emitOrderStatusChanged } from '../utils/websocket.js';
 import { generatePickupCode } from '../utils/qrSigner.js';
+import { generateSlotOrderNumber } from '../utils/orderNumber.js';
 
 const QUEUE_NAME = 'order-queue';
 
@@ -24,13 +25,12 @@ export function initOrderWorker(): Worker {
     async (job: Job) => {
       console.log(`Processing checkout job ${job.id} for order ${job.data.id}...`);
 
-      const { id, student_name, student_roll, canteen_id, items, total_price, pickupCode } = job.data;
+      const { id, student_name, student_roll, canteen_id, items, total_price, pickupCode, building, break_timing } = job.data;
 
       try {
-        // Calculate order number sequentially
+        // Calculate slot and alphanumeric order number
         const totalOrders = await orderRepository.countAll();
-        const orderNum = 1001 + totalOrders;
-        const orderNumber = `#${orderNum}`;
+        const { orderNumber, slotNumber } = generateSlotOrderNumber(totalOrders);
 
         // Alphanumeric pickup code
         const finalPickupCode = pickupCode || generatePickupCode(4);
@@ -46,6 +46,9 @@ export function initOrderWorker(): Worker {
           total_price,
           status: 'PENDING',
           pickup_code: finalPickupCode,
+          building,
+          break_timing,
+          slot_number: slotNumber,
         });
 
         // Retrieve and notify

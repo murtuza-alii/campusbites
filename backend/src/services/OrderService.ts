@@ -3,6 +3,7 @@ import { ParsedOrder } from '../types/index.js';
 import { emitOrderCreated, emitOrderStatusChanged } from '../utils/websocket.js';
 import { orderQueue } from '../queues/orderQueue.js';
 import { buildQRPayload, generatePickupCode } from '../utils/qrSigner.js';
+import { generateSlotOrderNumber } from '../utils/orderNumber.js';
 
 export class OrderService {
   constructor(private readonly orderRepository: OrderRepository) {}
@@ -52,10 +53,9 @@ export class OrderService {
     } catch (queueError) {
       console.warn('Redis queue unavailable, falling back to direct database write:', queueError);
 
-      // Calculate order number sequentially
+      // Calculate slot and alphanumeric order number
       const totalOrders = await this.orderRepository.countAll();
-      const orderNum = 1001 + totalOrders;
-      const orderNumber = `#${orderNum}`;
+      const { orderNumber, slotNumber } = generateSlotOrderNumber(totalOrders);
 
       // Write order directly to PostgreSQL
       await this.orderRepository.create({
@@ -70,6 +70,7 @@ export class OrderService {
         pickup_code: pickupCode,
         building,
         break_timing,
+        slot_number: slotNumber,
       });
 
       const parsedOrder: ParsedOrder = {
@@ -85,6 +86,7 @@ export class OrderService {
         created_at: new Date().toISOString(),
         building,
         break_timing,
+        slot_number: slotNumber,
         qr_payload: buildQRPayload({ id, order_number: orderNumber, canteen_id: data.canteenId, pickup_code: pickupCode })
       };
 

@@ -45,7 +45,12 @@ interface Order {
   created_at: string;
   building?: string;
   break_timing?: string;
+  slot_number?: number;
 }
+
+const KNOWN_BUILDINGS: Record<string, string[]> = {
+  Mithibai: ['9:00 - 9:30', '1:00 - 1:30', '1:30 - 1:50'],
+};
 
 export function StaffOrders() {
   const [orders, setOrders] = useState<Order[]>([]);
@@ -55,6 +60,13 @@ export function StaffOrders() {
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [error, setError] = useState<string>('');
   
+  // Building & Break Timing Slot Filter for Cooking Schedule
+  const [selectedBuildingFilter, setSelectedBuildingFilter] = useState<string>('ALL');
+  const [selectedBreakTimingFilter, setSelectedBreakTimingFilter] = useState<string>('ALL');
+
+  // 25-Order Batch Slot Filter (Slot 1: Orders 1-25, Slot 2: Orders 26-50...)
+  const [selectedBatchSlotFilter, setSelectedBatchSlotFilter] = useState<'ALL' | number>('ALL');
+
   // Collapsible Kitchen Sections
   const [isToPrepareOpen, setIsToPrepareOpen] = useState<boolean>(true);
   const [isCookingOpen, setIsCookingOpen] = useState<boolean>(true);
@@ -309,25 +321,109 @@ export function StaffOrders() {
   const userCanteen = canteens.find(c => c.id === userProfile?.canteenId);
   const currentCanteenObj = canteens.find(c => c.id === selectedAdminCanteenId) || userCanteen;
 
-  // Split kitchen orders into PENDING (To Prepare) and PREPARING (Cooking in Progress)
-  const pendingOrders = useMemo(() => {
-    return orders.filter(o => o.status === 'PENDING');
+  // Extract unique buildings from orders + known buildings
+  const availableBuildings = useMemo(() => {
+    const bSet = new Set<string>(['ALL', 'Mithibai']);
+    orders.forEach(o => {
+      if (o.building?.trim()) bSet.add(o.building.trim());
+    });
+    return Array.from(bSet);
   }, [orders]);
+
+  // Extract break timings based on selected building
+  const availableBreakTimings = useMemo(() => {
+    const tSet = new Set<string>();
+    if (selectedBuildingFilter === 'ALL' || selectedBuildingFilter === 'Mithibai') {
+      KNOWN_BUILDINGS.Mithibai.forEach(t => tSet.add(t));
+    } else if (KNOWN_BUILDINGS[selectedBuildingFilter]) {
+      KNOWN_BUILDINGS[selectedBuildingFilter].forEach(t => tSet.add(t));
+    }
+
+    // Also collect any actual break timings present in loaded orders
+    orders.forEach(o => {
+      if (selectedBuildingFilter === 'ALL' || o.building?.toLowerCase() === selectedBuildingFilter.toLowerCase()) {
+        if (o.break_timing?.trim()) tSet.add(o.break_timing.trim());
+      }
+    });
+
+    return ['ALL', ...Array.from(tSet)];
+  }, [orders, selectedBuildingFilter]);
+
+  // Live count of active tickets in each break timing slot
+  const timingCounts = useMemo(() => {
+    const counts: Record<string, number> = { ALL: 0 };
+    const targetOrders = activeTab === 'KITCHEN' 
+      ? orders.filter(o => o.status === 'PENDING' || o.status === 'PREPARING')
+      : orders.filter(o => o.status === 'READY');
+
+    targetOrders.forEach(o => {
+      if (selectedBuildingFilter !== 'ALL' && o.building?.toLowerCase() !== selectedBuildingFilter.toLowerCase()) {
+        return;
+      }
+      counts.ALL = (counts.ALL || 0) + 1;
+      if (o.break_timing) {
+        counts[o.break_timing] = (counts[o.break_timing] || 0) + 1;
+      }
+    });
+    return counts;
+  }, [orders, activeTab, selectedBuildingFilter]);
+
+  // Extract active 25-order batch slots (e.g. Slot 1, Slot 2, Slot 3...)
+  const activeBatchSlots = useMemo(() => {
+    const sSet = new Set<number>();
+    orders.forEach(o => {
+      if (o.slot_number) {
+        sSet.add(o.slot_number);
+      } else if (o.order_number && o.order_number.includes('-')) {
+        const parsed = parseInt(o.order_number.split('-')[0], 10);
+        if (!isNaN(parsed) && parsed > 0) sSet.add(parsed);
+      }
+    });
+    return Array.from(sSet).sort((a, b) => a - b);
+  }, [orders]);
+
+  // Filter orders by Building, Break Timing slot, and 25-Order Batch Slot
+  const slotFilteredOrders = useMemo(() => {
+    return orders.filter(o => {
+      if (selectedBuildingFilter !== 'ALL') {
+        if (!o.building || o.building.toLowerCase() !== selectedBuildingFilter.toLowerCase()) {
+          return false;
+        }
+      }
+      if (selectedBreakTimingFilter !== 'ALL') {
+        if (o.break_timing !== selectedBreakTimingFilter) {
+          return false;
+        }
+      }
+      if (selectedBatchSlotFilter !== 'ALL') {
+        const slot = o.slot_number || (o.order_number.includes('-') ? parseInt(o.order_number.split('-')[0], 10) : undefined);
+        if (slot !== selectedBatchSlotFilter) {
+          return false;
+        }
+      }
+      return true;
+    });
+  }, [orders, selectedBuildingFilter, selectedBreakTimingFilter, selectedBatchSlotFilter]);
+
+  // Split filtered kitchen orders into PENDING, PREPARING, READY, HISTORY
+  const pendingOrders = useMemo(() => {
+    return slotFilteredOrders.filter(o => o.status === 'PENDING');
+  }, [slotFilteredOrders]);
 
   const preparingOrders = useMemo(() => {
-    return orders.filter(o => o.status === 'PREPARING');
-  }, [orders]);
+    return slotFilteredOrders.filter(o => o.status === 'PREPARING');
+  }, [slotFilteredOrders]);
 
   const readyOrders = useMemo(() => {
-    return orders.filter(o => o.status === 'READY');
-  }, [orders]);
+    return slotFilteredOrders.filter(o => o.status === 'READY');
+  }, [slotFilteredOrders]);
 
   // Combined completed and cancelled orders for history
   const historyOrders = useMemo(() => {
-    return orders.filter(o => o.status === 'COMPLETED' || o.status === 'CANCELLED');
-  }, [orders]);
+    return slotFilteredOrders.filter(o => o.status === 'COMPLETED' || o.status === 'CANCELLED');
+  }, [slotFilteredOrders]);
 
-  // 🍳 LIVE AGGREGATED BATCH PREP SUMMARY (Aggregated across both pending & preparing)
+  // 🍳 LIVE AGGREGATED BATCH PREP SUMMARY (Aggregated across filtered pending & preparing)
   const batchPrepSummary = useMemo(() => {
     const summary: Record<string, number> = {};
     let totalItemCount = 0;
@@ -491,6 +587,124 @@ export function StaffOrders() {
         </div>
       </div>
 
+      {/* 3. BREAK TIMINGS & BUILDING PELLET BUTTONS BAR */}
+      <div className="bg-white border border-slate-200/90 rounded-2xl p-2.5 sm:p-3 shadow-xs flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5">
+        
+        {/* Building Dropdown */}
+        <div className="flex items-center gap-2 shrink-0">
+          <div className="flex items-center gap-1.5 px-3 py-1.5 bg-slate-50 hover:bg-slate-100 border border-slate-200 rounded-xl transition-colors w-full sm:w-auto">
+            <Building2 className="w-3.5 h-3.5 text-orange-600 shrink-0" />
+            <span className="text-[11px] font-black text-slate-500 uppercase tracking-wider">Building:</span>
+            <select
+              value={selectedBuildingFilter}
+              onChange={(e) => {
+                setSelectedBuildingFilter(e.target.value);
+                setSelectedBreakTimingFilter('ALL');
+              }}
+              className="bg-transparent border-none text-xs font-bold text-slate-900 focus:outline-none cursor-pointer pr-1 flex-1 sm:flex-none"
+            >
+              <option value="ALL">All Buildings</option>
+              {availableBuildings.filter(b => b !== 'ALL').map(b => (
+                <option key={b} value={b}>{b}</option>
+              ))}
+            </select>
+          </div>
+        </div>
+
+        {/* Divider */}
+        <div className="hidden sm:block w-px h-6 bg-slate-200 shrink-0"></div>
+
+        {/* Break Timing Pellet Buttons */}
+        <div className="flex-1 flex items-center gap-1.5 overflow-x-auto no-scrollbar py-0.5">
+          <span className="text-[11px] font-black text-slate-400 uppercase tracking-wider shrink-0 flex items-center gap-1 mr-0.5">
+            <Clock className="w-3.5 h-3.5 text-slate-400" />
+            <span>Break Slot:</span>
+          </span>
+
+          {availableBreakTimings.map((timing) => {
+            const isSelected = selectedBreakTimingFilter === timing;
+            const count = timingCounts[timing] || 0;
+            const label = timing === 'ALL' ? 'All Slots' : timing;
+
+            return (
+              <button
+                key={timing}
+                onClick={() => setSelectedBreakTimingFilter(timing)}
+                className={`px-3 py-1.5 rounded-xl text-xs font-bold whitespace-nowrap transition-all flex items-center gap-1.5 active:scale-95 shrink-0 ${
+                  isSelected
+                    ? 'bg-amber-500 text-white shadow-md ring-2 ring-amber-400/30 font-black'
+                    : 'bg-slate-100 hover:bg-slate-200/90 text-slate-700 border border-slate-200/80'
+                }`}
+              >
+                <span>{label}</span>
+                <span
+                  className={`px-1.5 py-0.2 rounded-full text-[10px] font-black ${
+                    isSelected
+                      ? 'bg-white/25 text-white'
+                      : count > 0
+                      ? 'bg-amber-200/90 text-amber-950 font-black'
+                      : 'bg-slate-200 text-slate-500'
+                  }`}
+                >
+                  {count}
+                </span>
+              </button>
+            );
+          })}
+        </div>
+      </div>
+
+      {/* 4. 25-ORDER BATCH SLOT FILTER BAR (Slot 1: 1-25, Slot 2: 26-50...) */}
+      {activeBatchSlots.length > 0 && (
+        <div className="bg-white border border-slate-200/90 rounded-2xl p-2.5 sm:p-3 shadow-xs flex items-center gap-2 overflow-x-auto no-scrollbar select-none">
+          <div className="flex items-center gap-1.5 shrink-0 pr-2 border-r border-slate-200">
+            <span className="w-2 h-2 rounded-full bg-indigo-600"></span>
+            <span className="text-[11px] font-black uppercase tracking-wider text-slate-700">25-Order Batches:</span>
+          </div>
+          <button
+            onClick={() => setSelectedBatchSlotFilter('ALL')}
+            className={`px-3 py-1.5 rounded-xl text-xs font-bold whitespace-nowrap transition-all shrink-0 ${
+              selectedBatchSlotFilter === 'ALL'
+                ? 'bg-indigo-600 text-white shadow-xs font-black'
+                : 'bg-slate-100 text-slate-700 hover:bg-slate-200/90 border border-slate-200/80'
+            }`}
+          >
+            All Batches
+          </button>
+          {activeBatchSlots.map((slotNum) => {
+            const isSelected = selectedBatchSlotFilter === slotNum;
+            const startOrder = (slotNum - 1) * 25 + 1;
+            const endOrder = slotNum * 25;
+            const countInSlot = orders.filter(o => {
+              const s = o.slot_number || (o.order_number.includes('-') ? parseInt(o.order_number.split('-')[0], 10) : undefined);
+              return s === slotNum && (activeTab === 'KITCHEN' ? (o.status === 'PENDING' || o.status === 'PREPARING') : o.status === 'READY');
+            }).length;
+
+            return (
+              <button
+                key={slotNum}
+                onClick={() => setSelectedBatchSlotFilter(slotNum)}
+                className={`px-3 py-1.5 rounded-xl text-xs font-bold whitespace-nowrap transition-all flex items-center gap-1.5 shrink-0 ${
+                  isSelected
+                    ? 'bg-indigo-600 text-white shadow-xs font-black'
+                    : 'bg-slate-100 text-slate-700 hover:bg-slate-200/90 border border-slate-200/80'
+                }`}
+              >
+                <span>Slot {slotNum}</span>
+                <span className="text-[10px] font-mono opacity-80 font-normal">({startOrder}–{endOrder})</span>
+                {countInSlot > 0 && (
+                  <span className={`px-1.5 py-0.2 rounded-full text-[10px] font-black ${
+                    isSelected ? 'bg-white/25 text-white' : 'bg-indigo-100 text-indigo-800'
+                  }`}>
+                    {countInSlot}
+                  </span>
+                )}
+              </button>
+            );
+          })}
+        </div>
+      )}
+
       {isLoading ? (
         <div className="flex-1 flex flex-col items-center justify-center py-20 text-slate-400 gap-3">
           <RotateCw className="w-7 h-7 animate-spin text-indigo-600" />
@@ -554,8 +768,11 @@ export function StaffOrders() {
                       className="bg-white border border-l-4 border-l-amber-500 border-slate-200/90 p-3 sm:p-3.5 rounded-xl shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-3"
                     >
                       <div className="flex-1 min-w-0 space-y-1">
-                        <div className="flex items-center gap-2">
+                        <div className="flex items-center gap-2 flex-wrap">
                           <span className="font-mono font-black text-base text-slate-900">{order.order_number}</span>
+                          <span className="px-2 py-0.5 rounded-md text-[10px] font-mono font-black bg-indigo-50 text-indigo-700 border border-indigo-200">
+                            Slot {order.slot_number || (order.order_number.includes('-') ? order.order_number.split('-')[0] : 1)}
+                          </span>
                           <span className="text-[11px] font-mono text-slate-400 flex items-center gap-1">
                             <Clock className="w-3 h-3" />
                             {formatElapsed(order.created_at)}
@@ -642,6 +859,9 @@ export function StaffOrders() {
                       <div className="flex-1 min-w-0 space-y-1">
                         <div className="flex items-center gap-2 flex-wrap">
                           <span className="font-mono font-black text-base text-slate-900">{order.order_number}</span>
+                          <span className="px-2 py-0.5 rounded-md text-[10px] font-mono font-black bg-indigo-50 text-indigo-700 border border-indigo-200">
+                            Slot {order.slot_number || (order.order_number.includes('-') ? order.order_number.split('-')[0] : 1)}
+                          </span>
                           <span className="text-[11px] font-mono text-slate-400 flex items-center gap-1">
                             <Clock className="w-3 h-3" />
                             {formatElapsed(order.created_at)}
@@ -725,8 +945,11 @@ export function StaffOrders() {
                     <div>
                       {/* Top: Ticket #, Time and Cancel Action */}
                       <div className="flex justify-between items-start pb-2 border-b border-slate-100">
-                        <div className="flex items-center gap-2">
+                        <div className="flex items-center gap-2 flex-wrap">
                           <span className="font-mono font-black text-lg text-slate-900">{order.order_number}</span>
+                          <span className="px-2 py-0.5 rounded-md text-[10px] font-mono font-black bg-indigo-50 text-indigo-700 border border-indigo-200">
+                            Slot {order.slot_number || (order.order_number.includes('-') ? order.order_number.split('-')[0] : 1)}
+                          </span>
                           <span className="px-2 py-0.5 bg-emerald-50 text-emerald-700 border border-emerald-200 rounded-full text-[10px] font-black uppercase tracking-wider">
                             Ready
                           </span>

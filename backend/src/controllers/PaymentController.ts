@@ -4,6 +4,7 @@ import { PaymentService } from '../services/PaymentService.js';
 import { OrderRepository } from '../repositories/OrderRepository.js';
 import { emitOrderCreated, emitOrderStatusChanged } from '../utils/websocket.js';
 import { buildQRPayload, generatePickupCode } from '../utils/qrSigner.js';
+import { generateSlotOrderNumber } from '../utils/orderNumber.js';
 import { getDb } from '../db.js';
 import { config } from '../config/unifiedConfig.js';
 
@@ -44,19 +45,18 @@ export class PaymentController extends BaseController {
         customerEmail: email,
       });
 
-      // 2. Count existing orders to allocate sequential order number
+      // 2. Calculate slot and alphanumeric order number
       const totalOrders = await this.orderRepository.countAll();
-      const orderNum = 1001 + totalOrders;
-      const orderNumber = `#${orderNum}`;
+      const { orderNumber, slotNumber } = generateSlotOrderNumber(totalOrders);
 
       // Generate alphanumeric pickup code
       const pickupCode = generatePickupCode(4);
 
-      // 3. Persist order with initial payment_status
+      // 3. Persist order with initial payment_status and slot_number
       const db = await getDb();
       await db.query(
-        `INSERT INTO orders (id, order_number, student_name, student_roll, items, total_price, status, pickup_code, canteen_id, payment_status, payment_session_id, cf_order_id, building, break_timing)
-         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14)`,
+        `INSERT INTO orders (id, order_number, student_name, student_roll, items, total_price, status, pickup_code, canteen_id, payment_status, payment_session_id, cf_order_id, building, break_timing, slot_number)
+         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15)`,
         [
           orderId,
           orderNumber,
@@ -72,6 +72,7 @@ export class PaymentController extends BaseController {
           cfOrder.cf_order_id?.toString() || '',
           orderBuilding,
           orderBreakTiming,
+          slotNumber,
         ]
       );
 
@@ -80,6 +81,7 @@ export class PaymentController extends BaseController {
         {
           orderId,
           orderNumber,
+          slotNumber,
           paymentSessionId: cfOrder.payment_session_id,
           cfOrderId: cfOrder.cf_order_id,
           orderAmount: cfOrder.order_amount,

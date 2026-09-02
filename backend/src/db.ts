@@ -104,7 +104,8 @@ export async function initDb(): Promise<void> {
       status TEXT NOT NULL,
       pickup_code TEXT NOT NULL,
       created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-      canteen_id TEXT REFERENCES canteen(id)
+      canteen_id TEXT REFERENCES canteen(id),
+      slot_number INTEGER
     )
   `);
 
@@ -122,10 +123,12 @@ export async function initDb(): Promise<void> {
     await db.query('ALTER TABLE orders ADD COLUMN IF NOT EXISTS cf_order_id TEXT');
     await db.query('ALTER TABLE orders ADD COLUMN IF NOT EXISTS building TEXT');
     await db.query('ALTER TABLE orders ADD COLUMN IF NOT EXISTS break_timing TEXT');
+    await db.query('ALTER TABLE orders ADD COLUMN IF NOT EXISTS slot_number INTEGER');
     await db.query('CREATE INDEX IF NOT EXISTS idx_orders_canteen_status ON orders (canteen_id, status)');
     await db.query('CREATE INDEX IF NOT EXISTS idx_orders_created_at ON orders (created_at DESC)');
     await db.query('CREATE INDEX IF NOT EXISTS idx_orders_student_roll ON orders (student_roll)');
     await db.query('CREATE INDEX IF NOT EXISTS idx_orders_pickup_code ON orders (pickup_code)');
+    await db.query('CREATE INDEX IF NOT EXISTS idx_orders_slot_number ON orders (slot_number)');
   } catch (e) {
     console.log('Could not alter orders table or create indexes');
   }
