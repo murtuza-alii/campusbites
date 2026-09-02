@@ -13,6 +13,9 @@ export async function getDb(): Promise<pg.Pool> {
     pool = new pg.Pool({
       connectionString: dbConfig.connectionString,
       ssl: isLocal ? false : { rejectUnauthorized: false },
+      max: 25, // Scaled for high-concurrency surge traffic
+      idleTimeoutMillis: 30000, // Close idle connections after 30s
+      connectionTimeoutMillis: 5000, // 5s timeout on connection acquisition
     });
   } else {
     pool = new pg.Pool({
@@ -21,14 +24,22 @@ export async function getDb(): Promise<pg.Pool> {
       password: dbConfig.password,
       database: dbConfig.database,
       port: dbConfig.port,
+      max: 25,
+      idleTimeoutMillis: 30000,
+      connectionTimeoutMillis: 5000,
     });
   }
+
+  // Gracefully handle background idle connection errors without crashing
+  pool.on('error', (err) => {
+    console.error('Unexpected idle PostgreSQL client error (recovered):', err.message);
+  });
 
   // Verify connection
   try {
     const client = await pool.connect();
     client.release();
-    console.log('PostgreSQL connection pool established successfully.');
+    console.log('PostgreSQL connection pool established (capacity: 25 connections).');
   } catch (error) {
     console.error('Failed to connect to PostgreSQL database:', error);
     throw error;

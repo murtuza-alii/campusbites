@@ -1,6 +1,7 @@
 import express from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
+import compression from 'compression';
 import rateLimit from 'express-rate-limit';
 
 import authRoutes from './routes/authRoutes.js';
@@ -15,11 +16,19 @@ import { errorMiddleware } from './middleware/errorMiddleware.js';
 
 const app = express();
  
-// Trust reverse proxy (Render / Cloudflare) for accurate rate limiting
+// Trust reverse proxy (Render / Cloudflare) for accurate client identification
 app.set('trust proxy', 1);
 
+// Enable HTTP Gzip / Brotli compression (>1KB payloads compressed by ~80%)
+app.use(compression({
+  threshold: 1024,
+  level: 6
+}));
+
 // Apply security headers
-app.use(helmet());
+app.use(helmet({
+  crossOriginResourcePolicy: { policy: "cross-origin" }
+}));
 
 // Enable CORS
 app.use(cors());
@@ -28,15 +37,35 @@ app.use(cors());
 app.use('/health', healthRoutes);
 app.use('/api/health', healthRoutes);
 
-// Limit requests to prevent brute force / DoS
-const limiter = rateLimit({
+// 🌐 1. Campus-Wide Wi-Fi Friendly General API Limiter (Accommodates 1,000+ students on shared NAT IP)
+const campusApiLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 200, // Limit each IP to 200 requests per windowMs
-  standardHeaders: true, // Return rate limit info in the `RateLimit-*` headers
-  legacyHeaders: false, // Disable the `X-RateLimit-*` headers
-  message: { error: 'Too many requests from this IP, please try again after 15 minutes' }
+  max: 15000, // High capacity for college Wi-Fi subnets
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { error: 'Campus network traffic limit reached. Please try again shortly.' }
 });
-app.use('/api', limiter);
+app.use('/api', campusApiLimiter);
+
+// 🔒 2. Strict Auth Limiter (Prevents brute-force on staff/admin passwords & PINs)
+const authLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 50, // 50 attempts per 15 min
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { error: 'Too many login attempts. Please try again after 15 minutes.' }
+});
+app.use('/api/auth', authLimiter);
+
+// 💳 3. Payment Gateway Order Creation Limiter
+const paymentLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 3000,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { error: 'Payment gateway is busy processing orders. Please retry in a few seconds.' }
+});
+app.use('/api/payments/create-order', paymentLimiter);
 
 // Parse JSON request bodies
 app.use(express.json());

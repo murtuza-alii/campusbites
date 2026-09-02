@@ -10,6 +10,7 @@ export class MenuController extends BaseController {
 
   async getPublicMenu(req: Request, res: Response): Promise<void> {
     try {
+      res.setHeader('Cache-Control', 'public, max-age=15, stale-while-revalidate=60');
       const canteenId = req.query.canteenId as string | undefined;
       const items = await this.menuService.getPublicMenu(canteenId);
       this.handleSuccess(res, items);

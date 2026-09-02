@@ -9,7 +9,14 @@ export function initSocket(httpServer: HttpServer): Server {
     cors: {
       origin: '*', // Allow all origins for the prototype/college environment
       methods: ['GET', 'POST']
-    }
+    },
+    transports: ['websocket', 'polling'], // Prioritize direct persistent WebSockets
+    pingInterval: 25000,
+    pingTimeout: 20000,
+    perMessageDeflate: {
+      threshold: 1024, // Deflate compress socket packets > 1KB
+    },
+    maxHttpBufferSize: 1e6 // 1MB buffer cap to protect memory under 1,000 connections
   });
 
   io.on('connection', (socket: Socket) => {
