@@ -1,0 +1,23 @@
+name: Keep Render Backend Warm (24/7)
+
+on:
+  schedule:
+    # Run every 10 minutes to reset Render's 15-minute inactivity timer
+    - cron: '*/10 * * * *'
+  workflow_dispatch: # Allows manual trigger from GitHub Actions UI
+
+jobs:
+  ping-health:
+    name: Ping Render Health Check
+    runs-on: ubuntu-latest
+    steps:
+      - name: Send Keep-Alive HTTP Request
+        run: |
+          echo "Sending keep-alive ping to CampusBites Render backend..."
+          STATUS=$(curl -s -o /dev/null -w "%{http_code}" --max-time 45 https://campusbites-4dch.onrender.com/api/health)
+          echo "Render Health Endpoint HTTP Status: $STATUS"
+          if [ "$STATUS" -ge 200 ] && [ "$STATUS" -lt 400 ]; then
+            echo "✅ CampusBites backend is awake and healthy!"
+          else
+            echo "⚠️ Non-2xx response received: $STATUS. Server may be spinning up."
+          fi

@@ -20,7 +20,7 @@ export function startKeepAliveService(options?: KeepAliveOptions) {
     process.env.API_URL ||
     'https://campusbites-4dch.onrender.com';
 
-  const intervalMinutes = options?.intervalMinutes || parseInt(process.env.KEEP_ALIVE_INTERVAL_MINUTES || '10', 10);
+  const intervalMinutes = options?.intervalMinutes || parseInt(process.env.KEEP_ALIVE_INTERVAL_MINUTES || '4', 10);
   const intervalMs = Math.max(intervalMinutes, 1) * 60 * 1000;
   const endpoint = `${externalUrl.replace(/\/$/, '')}/api/health`;
 
