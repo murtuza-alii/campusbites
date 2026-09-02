@@ -57,9 +57,14 @@ export async function initDb(): Promise<void> {
     CREATE TABLE IF NOT EXISTS users (
       id TEXT PRIMARY KEY,
       username TEXT NOT NULL UNIQUE,
-      password_hash TEXT NOT NULL,
+      email TEXT UNIQUE,
+      password_hash TEXT,
+      pin_hash TEXT,
       role TEXT NOT NULL,
-      canteen_id TEXT REFERENCES canteen(id)
+      canteen_id TEXT REFERENCES canteen(id),
+      display_name TEXT NOT NULL DEFAULT 'Staff Member',
+      created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+      updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
     )
   `);
 
@@ -112,6 +117,18 @@ export async function initDb(): Promise<void> {
     console.log('Could not alter orders table or create indexes');
   }
 
+
+  try {
+    await db.query('ALTER TABLE users ADD COLUMN IF NOT EXISTS email TEXT UNIQUE');
+    await db.query('ALTER TABLE users ADD COLUMN IF NOT EXISTS pin_hash TEXT');
+    await db.query('ALTER TABLE users ADD COLUMN IF NOT EXISTS display_name TEXT DEFAULT \'Staff Member\'');
+    await db.query('ALTER TABLE users ADD COLUMN IF NOT EXISTS created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()');
+    await db.query('ALTER TABLE users ADD COLUMN IF NOT EXISTS updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()');
+    await db.query('CREATE INDEX IF NOT EXISTS idx_users_canteen_role ON users(canteen_id, role)');
+    await db.query('CREATE INDEX IF NOT EXISTS idx_users_email ON users(email)');
+  } catch (e) {
+    console.log('Could not alter users table or create users indexes');
+  }
 
   // Create restaurant partner registrations table
   await db.query(`
@@ -194,34 +211,139 @@ export async function initDb(): Promise<void> {
   }
   console.log('Database seeded with Mithibai Main Campus canteens and standalone diner.');
 
-  // Seed initial users
+  // Seed initial users with roles, emails, passwords, and cook PINs
   const users = [
-    { id: 'u1', username: 'admin', password: 'adminpassword', role: 'admin', canteen_id: null },
-    { id: 'u2', username: 'canteen_a_mgr', password: '1234', role: 'manager', canteen_id: 'c1' },
-    { id: 'u3', username: 'canteen_a_cook', password: '1234', role: 'cook', canteen_id: 'c1' },
-    { id: 'u4', username: 'canteen_b_mgr', password: '1234', role: 'manager', canteen_id: 'c2' },
-    { id: 'u5', username: 'canteen_b_cook', password: '1234', role: 'cook', canteen_id: 'c2' },
-    { id: 'u6', username: 'canteen_c_mgr', password: '1234', role: 'manager', canteen_id: 'c3' },
-    { id: 'u7', username: 'canteen_c_cook', password: '1234', role: 'cook', canteen_id: 'c3' },
-    { id: 'u8', username: 'canteen_d_mgr', password: '1234', role: 'manager', canteen_id: 'c4' },
-    { id: 'u9', username: 'canteen_d_cook', password: '1234', role: 'cook', canteen_id: 'c4' },
-    { id: 'u10', username: 'downtown_diner_mgr', password: '1234', role: 'manager', canteen_id: 'c5' },
-    { id: 'u11', username: 'downtown_diner_cook', password: '1234', role: 'cook', canteen_id: 'c5' }
+    { 
+      id: 'u1', 
+      username: 'admin', 
+      email: 'admin@campusbites.com', 
+      password: 'adminpassword', 
+      pin: null, 
+      role: 'admin', 
+      canteen_id: null, 
+      display_name: 'Platform Administrator' 
+    },
+    { 
+      id: 'u2', 
+      username: 'canteen_a_mgr', 
+      email: 'manager@heritage50.com', 
+      password: 'manager123', 
+      pin: null, 
+      role: 'manager', 
+      canteen_id: 'c1', 
+      display_name: 'Store Manager (Lead)' 
+    },
+    { 
+      id: 'u3', 
+      username: 'canteen_a_cook', 
+      email: null, 
+      password: null, 
+      pin: '1234', 
+      role: 'cook', 
+      canteen_id: 'c1', 
+      display_name: 'Chef Ramesh (Master Cook)' 
+    },
+    { 
+      id: 'u4', 
+      username: 'canteen_b_mgr', 
+      email: 'manager_b@campusbites.com', 
+      password: 'manager123', 
+      pin: null, 
+      role: 'manager', 
+      canteen_id: 'c2', 
+      display_name: 'Canteen B Manager' 
+    },
+    { 
+      id: 'u5', 
+      username: 'canteen_b_cook', 
+      email: null, 
+      password: null, 
+      pin: '1234', 
+      role: 'cook', 
+      canteen_id: 'c2', 
+      display_name: 'Chef Suresh' 
+    },
+    { 
+      id: 'u6', 
+      username: 'canteen_c_mgr', 
+      email: 'manager_c@campusbites.com', 
+      password: 'manager123', 
+      pin: null, 
+      role: 'manager', 
+      canteen_id: 'c3', 
+      display_name: 'Canteen C Manager' 
+    },
+    { 
+      id: 'u7', 
+      username: 'canteen_c_cook', 
+      email: null, 
+      password: null, 
+      pin: '1234', 
+      role: 'cook', 
+      canteen_id: 'c3', 
+      display_name: 'Chef Amit' 
+    },
+    { 
+      id: 'u8', 
+      username: 'canteen_d_mgr', 
+      email: 'manager_d@campusbites.com', 
+      password: 'manager123', 
+      pin: null, 
+      role: 'manager', 
+      canteen_id: 'c4', 
+      display_name: 'Canteen D Manager' 
+    },
+    { 
+      id: 'u9', 
+      username: 'canteen_d_cook', 
+      email: null, 
+      password: null, 
+      pin: '1234', 
+      role: 'cook', 
+      canteen_id: 'c4', 
+      display_name: 'Chef Vijay' 
+    },
+    { 
+      id: 'u10', 
+      username: 'downtown_diner_mgr', 
+      email: 'manager@downtowndiner.com', 
+      password: 'manager123', 
+      pin: null, 
+      role: 'manager', 
+      canteen_id: 'c5', 
+      display_name: 'Downtown Diner Manager' 
+    },
+    { 
+      id: 'u11', 
+      username: 'downtown_diner_cook', 
+      email: null, 
+      password: null, 
+      pin: '1234', 
+      role: 'cook', 
+      canteen_id: 'c5', 
+      display_name: 'Chef Rajesh' 
+    }
   ];
+
   for (const u of users) {
-    const passwordHash = bcrypt.hashSync(u.password, 10);
+    const passwordHash = u.password ? bcrypt.hashSync(u.password, 10) : null;
+    const pinHash = u.pin ? bcrypt.hashSync(u.pin, 10) : null;
     await db.query(
-      `INSERT INTO users (id, username, password_hash, role, canteen_id) 
-       VALUES ($1, $2, $3, $4, $5)
+      `INSERT INTO users (id, username, email, password_hash, pin_hash, role, canteen_id, display_name) 
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
        ON CONFLICT (id) DO UPDATE SET 
          username = EXCLUDED.username,
+         email = EXCLUDED.email,
          password_hash = EXCLUDED.password_hash,
+         pin_hash = EXCLUDED.pin_hash,
          role = EXCLUDED.role,
-         canteen_id = EXCLUDED.canteen_id`,
-      [u.id, u.username, passwordHash, u.role, u.canteen_id]
+         canteen_id = EXCLUDED.canteen_id,
+         display_name = EXCLUDED.display_name,
+         updated_at = NOW()`,
+      [u.id, u.username, u.email, passwordHash, pinHash, u.role, u.canteen_id, u.display_name]
     );
   }
-  console.log('Database seeded with simplified staff users.');
+  console.log('Database seeded with enhanced multi-tier role users (Cook PINs & Manager/Admin Passwords).');
 
   // Seed initial menu if empty
   const countRes = await db.query('SELECT COUNT(*) as count FROM menu');
