@@ -15,7 +15,8 @@ import {
   ArrowLeft,
   ChefHat,
   Sparkles,
-  FileSpreadsheet
+  FileSpreadsheet,
+  X
 } from 'lucide-react';
 import { API_BASE_URL } from '../config.js';
 import { decodeToken, type DecodedToken } from '../utils/jwt.js';
@@ -133,7 +134,6 @@ export function StaffSales() {
 
     const decoded = decodeToken(token);
     if (!decoded || (decoded.role !== 'manager' && decoded.role !== 'admin')) {
-      // If cook or delivery tries to access financial sales, redirect to orders
       if (decoded && (decoded.role === 'cook' || decoded.role === 'delivery')) {
         navigate('/staff');
         return;
@@ -221,10 +221,9 @@ export function StaffSales() {
   const currentMonthSummary = useMemo(() => {
     if (!salesData) return null;
     if (selectedMonthKey === 'ALL') {
-      // Synthesize all-time as selected summary
       return {
         monthKey: 'ALL',
-        monthLabel: 'All-Time Cumulative',
+        monthLabel: 'All-Time Total',
         year: new Date().getFullYear(),
         month: 0,
         totalRevenue: salesData.allTimeSummary.totalRevenue,
@@ -316,7 +315,6 @@ export function StaffSales() {
     document.body.removeChild(link);
   };
 
-  // Trigger Print Report
   const handlePrint = () => {
     window.print();
   };
@@ -325,57 +323,50 @@ export function StaffSales() {
 
   if (isLoading && !salesData) {
     return (
-      <div className="min-h-[70vh] flex flex-col items-center justify-center gap-3">
-        <RotateCw className="w-8 h-8 text-indigo-600 animate-spin" />
-        <p className="text-xs font-bold text-slate-500 uppercase tracking-widest">
-          Loading Monthly Sales Ledger...
-        </p>
+      <div className="flex-1 flex flex-col items-center justify-center py-16 text-slate-400 gap-2">
+        <RotateCw className="w-5 h-5 animate-spin text-indigo-600" />
+        <span className="text-[11px] font-medium">Syncing monthly sales ledger...</span>
       </div>
     );
   }
 
   return (
-    <div className="max-w-7xl mx-auto space-y-5 pb-16 animate-in">
+    <div className="flex-1 flex flex-col gap-2.5 animate-in pb-10">
       
-      {/* 1. Header Bar: Outlet Identity & Actions */}
-      <div className="bg-white border border-slate-200/90 rounded-2xl p-4 sm:p-5 shadow-xs flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-        <div className="space-y-1 min-w-0">
-          <div className="flex items-center gap-2 flex-wrap">
-            <Link 
-              to="/staff"
-              className="inline-flex items-center gap-1 text-xs font-semibold text-slate-500 hover:text-indigo-600 transition-colors mr-1"
-            >
-              <ArrowLeft className="w-3.5 h-3.5" />
-              <span>Back to Orders</span>
-            </Link>
-            <span className="text-slate-300">·</span>
-            <div className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-emerald-50 border border-emerald-200 text-emerald-800 text-[10px] font-bold uppercase tracking-wider">
-              <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-              <span>Monthly Sales Ledger</span>
-            </div>
+      {/* 1. Terminal Top Bar: Outlet Identity & Actions */}
+      <div className="bg-white border border-slate-200/90 rounded-lg px-3 py-2 shadow-2xs flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+        <div className="flex items-center gap-1.5 flex-wrap min-w-0">
+          <Link 
+            to="/staff"
+            className="flex items-center gap-1 text-[11px] font-medium text-slate-500 hover:text-indigo-600 transition-colors mr-1 shrink-0"
+          >
+            <ArrowLeft className="w-3 h-3" />
+            <span>Orders</span>
+          </Link>
+          <span className="text-slate-300 text-xs">·</span>
+          <div className="flex items-center gap-1.5 truncate">
+            <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse shrink-0" />
+            <h1 className="text-xs sm:text-[13px] font-bold text-slate-900 tracking-tight truncate">
+              {outletDisplayName}
+            </h1>
           </div>
-
-          <h1 className="text-xl sm:text-2xl font-black text-slate-900 tracking-tight flex items-center gap-2">
-            <Store className="w-6 h-6 text-indigo-600 shrink-0" />
-            <span className="truncate">{outletDisplayName}</span>
-          </h1>
-
-          <p className="text-xs text-slate-500">
-            Official monthly revenue reports, volume analytics, and itemized transaction ledger.
-          </p>
+          <span className="text-slate-300 text-xs">·</span>
+          <span className="px-1.5 py-0.5 bg-emerald-50 text-emerald-800 border border-emerald-200/80 rounded text-[10px] font-medium shrink-0">
+            Monthly Sales
+          </span>
         </div>
 
-        {/* Header Action Buttons & Outlet Switcher for Admin */}
-        <div className="flex items-center gap-2 flex-wrap w-full md:w-auto justify-between md:justify-end">
+        {/* Actions & Outlet Switcher */}
+        <div className="flex items-center gap-1.5 shrink-0 flex-wrap justify-between sm:justify-end">
           {userProfile?.role === 'admin' && canteens.length > 1 && (
-            <div className="flex items-center gap-1.5 bg-slate-50 border border-slate-200 px-3 py-1.5 rounded-xl text-xs font-bold text-slate-700">
-              <Store className="w-3.5 h-3.5 text-slate-400" />
+            <div className="flex items-center gap-1 bg-slate-50 border border-slate-200 px-1.5 py-0.5 rounded-md">
+              <Store className="w-3 h-3 text-slate-400 shrink-0" />
               <select
                 value={selectedAdminCanteenId}
                 onChange={(e) => setSelectedAdminCanteenId(e.target.value)}
-                className="bg-transparent border-none text-xs font-bold text-slate-800 focus:outline-none cursor-pointer"
+                className="bg-transparent border-none text-[11px] font-medium text-slate-800 focus:outline-none cursor-pointer"
               >
-                <option value="">All Canteens & Diners</option>
+                <option value="">All Outlets</option>
                 {canteens.map(c => (
                   <option key={c.id} value={c.id}>{c.name}</option>
                 ))}
@@ -386,46 +377,44 @@ export function StaffSales() {
           <button
             onClick={() => fetchSalesData(true)}
             disabled={isRefreshing}
-            className="flex items-center gap-1.5 px-3.5 py-2 bg-slate-50 hover:bg-slate-100 text-slate-700 active:scale-95 text-xs font-bold rounded-xl border border-slate-200 transition-all shadow-2xs"
+            className="flex items-center gap-1 px-2 py-0.5 rounded-md text-[11px] font-medium text-slate-700 bg-slate-50 hover:bg-slate-100 border border-slate-200 transition-colors shadow-2xs active:scale-[0.98]"
             title="Refresh sales data"
           >
-            <RotateCw className={`w-3.5 h-3.5 text-indigo-600 ${isRefreshing ? 'animate-spin' : ''}`} />
+            <RotateCw className={`w-2.5 h-2.5 text-indigo-600 ${isRefreshing ? 'animate-spin' : ''}`} />
             <span className="hidden sm:inline">{isRefreshing ? 'Syncing...' : 'Refresh'}</span>
           </button>
 
           <button
             onClick={handlePrint}
-            className="flex items-center gap-1.5 px-3.5 py-2 bg-slate-50 hover:bg-slate-100 text-slate-700 active:scale-95 text-xs font-bold rounded-xl border border-slate-200 transition-all shadow-2xs"
-            title="Print monthly statement"
+            className="flex items-center gap-1 px-2 py-0.5 rounded-md text-[11px] font-medium text-slate-700 bg-slate-50 hover:bg-slate-100 border border-slate-200 transition-colors shadow-2xs active:scale-[0.98]"
+            title="Print statement"
           >
-            <Printer className="w-3.5 h-3.5 text-slate-600" />
+            <Printer className="w-2.5 h-2.5 text-slate-600" />
             <span className="hidden sm:inline">Print</span>
           </button>
 
           <button
             onClick={handleExportCSV}
-            className="flex items-center gap-1.5 px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white active:scale-95 text-xs font-bold rounded-xl transition-all shadow-xs shadow-indigo-600/20"
+            className="flex items-center gap-1 px-2.5 py-0.5 rounded-md text-[11px] font-semibold text-white bg-indigo-600 hover:bg-indigo-700 border border-indigo-700 transition-all shadow-2xs active:scale-[0.98]"
             title="Download CSV spreadsheet"
           >
-            <Download className="w-3.5 h-3.5" />
+            <Download className="w-2.5 h-2.5" />
             <span>Export CSV</span>
           </button>
         </div>
       </div>
 
       {error && (
-        <div className="p-4 rounded-2xl bg-rose-50 border border-rose-200 text-rose-700 text-xs font-bold flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <AlertCircle className="w-4 h-4 shrink-0" />
-            <span>{error}</span>
-          </div>
+        <div className="flex items-center gap-1 px-2.5 py-1 bg-rose-50 border border-rose-200 text-rose-700 rounded-md text-[11px] font-medium">
+          <AlertCircle className="w-3 h-3 shrink-0 text-rose-600" />
+          <span>{error}</span>
         </div>
       )}
 
       {/* 2. Month Selector Horizontal Strip */}
-      <div className="bg-white border border-slate-200/90 rounded-2xl p-2 sm:p-2.5 shadow-2xs flex items-center gap-2 overflow-x-auto no-scrollbar">
-        <div className="flex items-center gap-1.5 text-xs font-bold text-slate-500 uppercase tracking-wider px-2 shrink-0">
-          <Calendar className="w-3.5 h-3.5 text-indigo-600" />
+      <div className="bg-white border border-slate-200/90 rounded-lg p-1.5 shadow-2xs flex items-center gap-1.5 overflow-x-auto no-scrollbar">
+        <div className="flex items-center gap-1 text-[10px] font-semibold text-slate-400 uppercase tracking-wider px-1 shrink-0">
+          <Calendar className="w-2.5 h-2.5 text-slate-400" />
           <span>Month:</span>
         </div>
 
@@ -437,15 +426,15 @@ export function StaffSales() {
                 <button
                   key={m.monthKey}
                   onClick={() => setSelectedMonthKey(m.monthKey)}
-                  className={`px-3.5 py-1.5 rounded-xl text-xs font-bold whitespace-nowrap transition-all flex items-center gap-2 shrink-0 ${
+                  className={`px-2 py-0.5 rounded text-[11px] font-medium whitespace-nowrap transition-all flex items-center gap-1 shrink-0 active:scale-[0.98] ${
                     isSelected
-                      ? 'bg-slate-900 text-white shadow-xs'
-                      : 'bg-slate-50 hover:bg-slate-100 text-slate-700 border border-slate-200/70'
+                      ? 'bg-slate-900 text-white font-semibold shadow-2xs'
+                      : 'bg-slate-100 hover:bg-slate-200/80 text-slate-700'
                   }`}
                 >
                   <span>{m.monthLabel}</span>
-                  <span className={`px-2 py-0.5 rounded-full text-[10px] font-mono font-bold ${
-                    isSelected ? 'bg-white/20 text-white' : 'bg-emerald-50 text-emerald-700 border border-emerald-200/80'
+                  <span className={`px-1 py-0.2 rounded font-mono font-bold text-[9px] ${
+                    isSelected ? 'bg-white/20 text-white' : 'bg-emerald-100 text-emerald-900'
                   }`}>
                     ₹{m.totalRevenue.toLocaleString()}
                   </span>
@@ -455,14 +444,14 @@ export function StaffSales() {
 
             <button
               onClick={() => setSelectedMonthKey('ALL')}
-              className={`px-3.5 py-1.5 rounded-xl text-xs font-bold whitespace-nowrap transition-all flex items-center gap-2 shrink-0 ${
+              className={`px-2 py-0.5 rounded text-[11px] font-medium whitespace-nowrap transition-all flex items-center gap-1 shrink-0 active:scale-[0.98] ${
                 selectedMonthKey === 'ALL'
-                  ? 'bg-indigo-600 text-white shadow-xs'
-                  : 'bg-indigo-50 hover:bg-indigo-100/80 text-indigo-700 border border-indigo-200/80'
+                  ? 'bg-indigo-600 text-white font-semibold shadow-2xs'
+                  : 'bg-indigo-50 hover:bg-indigo-100 text-indigo-700 border border-indigo-200/70'
               }`}
             >
-              <span>All-Time Total</span>
-              <span className={`px-2 py-0.5 rounded-full text-[10px] font-mono font-bold ${
+              <span>All-Time</span>
+              <span className={`px-1 py-0.2 rounded font-mono font-bold text-[9px] ${
                 selectedMonthKey === 'ALL' ? 'bg-white/25 text-white' : 'bg-white text-indigo-900 border border-indigo-200'
               }`}>
                 ₹{salesData?.allTimeSummary.totalRevenue.toLocaleString()}
@@ -470,89 +459,89 @@ export function StaffSales() {
             </button>
           </>
         ) : (
-          <span className="text-xs text-slate-400 font-medium px-2">No monthly history recorded yet.</span>
+          <span className="text-[11px] text-slate-400 font-medium px-1">No monthly history recorded yet.</span>
         )}
       </div>
 
-      {/* 3. Executive KPI Bento Cards for the Active Period */}
+      {/* 3. Executive KPI Cards (High-Density Double-Bezel) */}
       {currentMonthSummary && (
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-2">
           
-          {/* Card 1: Total Sales Revenue */}
-          <div className="bg-white p-4 sm:p-5 rounded-3xl border border-slate-200/90 shadow-xs flex flex-col justify-between">
-            <div className="flex items-center justify-between text-slate-500 mb-2">
-              <span className="text-[11px] font-black uppercase tracking-wider">
-                {selectedMonthKey === 'ALL' ? 'All-Time Revenue' : `${currentMonthSummary.monthLabel} Revenue`}
+          {/* Card 1: Revenue */}
+          <div className="bg-white border border-slate-200/90 rounded-lg p-2.5 shadow-2xs flex flex-col justify-between gap-1">
+            <div className="flex items-center justify-between text-slate-500">
+              <span className="text-[10px] font-semibold uppercase tracking-wider text-slate-500">
+                {selectedMonthKey === 'ALL' ? 'All-Time Sales' : `${currentMonthSummary.monthLabel} Sales`}
               </span>
-              <div className="w-8 h-8 rounded-2xl bg-emerald-50 text-emerald-600 flex items-center justify-center font-bold text-sm">
+              <div className="w-5 h-5 rounded bg-emerald-50 text-emerald-700 border border-emerald-200/60 flex items-center justify-center font-bold text-[10px]">
                 ₹
               </div>
             </div>
             <div>
-              <p className="text-2xl sm:text-3xl font-black text-slate-900">
+              <p className="text-sm sm:text-base font-bold font-mono text-slate-900">
                 ₹{currentMonthSummary.totalRevenue.toLocaleString()}
               </p>
-              <div className="flex items-center gap-1.5 text-[10px] font-bold text-emerald-700 mt-1">
-                <TrendingUp className="w-3 h-3" />
+              <p className="text-[10px] text-emerald-700 font-medium flex items-center gap-0.5 mt-0.5">
+                <TrendingUp className="w-2.5 h-2.5" />
                 <span>
                   {currentMonthSummary.totalOrders > 0 
                     ? `${Math.round((currentMonthSummary.completedOrders / currentMonthSummary.totalOrders) * 100)}% Fulfilled` 
                     : 'No orders'}
                 </span>
-              </div>
+              </p>
             </div>
           </div>
 
-          {/* Card 2: Total Orders Volume */}
-          <div className="bg-white p-4 sm:p-5 rounded-3xl border border-slate-200/90 shadow-xs flex flex-col justify-between">
-            <div className="flex items-center justify-between text-slate-500 mb-2">
-              <span className="text-[11px] font-black uppercase tracking-wider">Orders Volume</span>
-              <div className="w-8 h-8 rounded-2xl bg-indigo-50 text-indigo-600 flex items-center justify-center">
-                <ShoppingBag className="w-4 h-4" />
+          {/* Card 2: Orders Volume */}
+          <div className="bg-white border border-slate-200/90 rounded-lg p-2.5 shadow-2xs flex flex-col justify-between gap-1">
+            <div className="flex items-center justify-between text-slate-500">
+              <span className="text-[10px] font-semibold uppercase tracking-wider text-slate-500">Orders Volume</span>
+              <div className="w-5 h-5 rounded bg-indigo-50 text-indigo-700 border border-indigo-200/60 flex items-center justify-center">
+                <ShoppingBag className="w-2.5 h-2.5" />
               </div>
             </div>
             <div>
-              <p className="text-2xl sm:text-3xl font-black text-slate-900">
+              <p className="text-sm sm:text-base font-bold font-mono text-slate-900">
                 {currentMonthSummary.totalOrders}
               </p>
-              <p className="text-[10px] text-slate-500 font-bold mt-1">
-                <span className="text-emerald-600 font-bold">{currentMonthSummary.completedOrders} completed</span> · <span className="text-rose-600">{currentMonthSummary.cancelledOrders} cancelled</span>
+              <p className="text-[10px] text-slate-500 mt-0.5">
+                <span className="text-emerald-700 font-medium">{currentMonthSummary.completedOrders} done</span> · <span className="text-rose-600">{currentMonthSummary.cancelledOrders} void</span>
               </p>
             </div>
           </div>
 
-          {/* Card 3: Average Order Value (AOV) */}
-          <div className="bg-white p-4 sm:p-5 rounded-3xl border border-slate-200/90 shadow-xs flex flex-col justify-between">
-            <div className="flex items-center justify-between text-slate-500 mb-2">
-              <span className="text-[11px] font-black uppercase tracking-wider">Avg Ticket Size</span>
-              <div className="w-8 h-8 rounded-2xl bg-amber-50 text-amber-600 flex items-center justify-center">
-                <Sparkles className="w-4 h-4" />
+          {/* Card 3: Avg Order Value (AOV) */}
+          <div className="bg-white border border-slate-200/90 rounded-lg p-2.5 shadow-2xs flex flex-col justify-between gap-1">
+            <div className="flex items-center justify-between text-slate-500">
+              <span className="text-[10px] font-semibold uppercase tracking-wider text-slate-500">Avg Ticket Size</span>
+              <div className="w-5 h-5 rounded bg-amber-50 text-amber-700 border border-amber-200/60 flex items-center justify-center">
+                <Sparkles className="w-2.5 h-2.5" />
               </div>
             </div>
             <div>
-              <p className="text-2xl sm:text-3xl font-black text-slate-900">
+              <p className="text-sm sm:text-base font-bold font-mono text-slate-900">
                 ₹{currentMonthSummary.avgOrderValue}
               </p>
-              <p className="text-[10px] text-slate-500 font-bold mt-1">
-                Average spend per ticket
+              <p className="text-[10px] text-slate-500 mt-0.5">
+                Per completed order
               </p>
             </div>
           </div>
 
-          {/* Card 4: Dishes Prepared & Served */}
-          <div className="bg-white p-4 sm:p-5 rounded-3xl border border-slate-200/90 shadow-xs flex flex-col justify-between">
-            <div className="flex items-center justify-between text-slate-500 mb-2">
-              <span className="text-[11px] font-black uppercase tracking-wider">Dishes Served</span>
-              <div className="w-8 h-8 rounded-2xl bg-orange-50 text-orange-600 flex items-center justify-center">
-                <ChefHat className="w-4 h-4" />
+          {/* Card 4: Dishes Served */}
+          <div className="bg-white border border-slate-200/90 rounded-lg p-2.5 shadow-2xs flex flex-col justify-between gap-1">
+            <div className="flex items-center justify-between text-slate-500">
+              <span className="text-[10px] font-semibold uppercase tracking-wider text-slate-500">Dishes Served</span>
+              <div className="w-5 h-5 rounded bg-orange-50 text-orange-700 border border-orange-200/60 flex items-center justify-center">
+                <ChefHat className="w-2.5 h-2.5" />
               </div>
             </div>
             <div>
-              <p className="text-2xl sm:text-3xl font-black text-slate-900">
-                {currentMonthSummary.totalItemsSold} <span className="text-xs font-normal text-slate-400">items</span>
+              <p className="text-sm sm:text-base font-bold font-mono text-slate-900">
+                {currentMonthSummary.totalItemsSold} <span className="text-[10px] font-normal text-slate-400 font-sans">portions</span>
               </p>
-              <p className="text-[10px] text-slate-500 font-bold mt-1 truncate">
-                {currentMonthSummary.topItems.length > 0 ? `Top: ${currentMonthSummary.topItems[0].name}` : 'Fresh kitchen output'}
+              <p className="text-[10px] text-slate-500 mt-0.5 truncate">
+                {currentMonthSummary.topItems.length > 0 ? `Top: ${currentMonthSummary.topItems[0].name}` : 'Fresh output'}
               </p>
             </div>
           </div>
@@ -560,96 +549,106 @@ export function StaffSales() {
         </div>
       )}
 
-      {/* 4. Sub-Navigation Tabs */}
-      <div className="flex items-center gap-1 p-1 bg-slate-100 rounded-2xl border border-slate-200/80">
+      {/* 4. Sub-Navigation Switcher (High-Density Segmented) */}
+      <div className="inline-flex p-0.5 bg-slate-200/70 rounded-lg select-none">
         <button
           onClick={() => setActiveTab('overview')}
-          className={`flex-1 py-2 px-3 rounded-xl text-xs font-black transition-all flex items-center justify-center gap-1.5 ${
+          className={`flex-1 sm:flex-none px-3 py-1 rounded-md text-[11px] font-semibold transition-all flex items-center justify-center gap-1.5 active:scale-[0.98] ${
             activeTab === 'overview'
-              ? 'bg-white text-indigo-600 shadow-2xs border border-slate-200/60'
+              ? 'bg-white text-slate-900 shadow-2xs'
               : 'text-slate-600 hover:text-slate-900'
           }`}
         >
-          <TrendingUp className="w-3.5 h-3.5" />
+          <TrendingUp className={`w-3 h-3 ${activeTab === 'overview' ? 'text-indigo-600' : 'text-slate-400'}`} />
           <span>Monthly Overview</span>
         </button>
 
         <button
           onClick={() => setActiveTab('ledger')}
-          className={`flex-1 py-2 px-3 rounded-xl text-xs font-black transition-all flex items-center justify-center gap-1.5 ${
+          className={`flex-1 sm:flex-none px-3 py-1 rounded-md text-[11px] font-semibold transition-all flex items-center justify-center gap-1.5 active:scale-[0.98] ${
             activeTab === 'ledger'
-              ? 'bg-white text-indigo-600 shadow-2xs border border-slate-200/60'
+              ? 'bg-white text-slate-900 shadow-2xs'
               : 'text-slate-600 hover:text-slate-900'
           }`}
         >
-          <FileSpreadsheet className="w-3.5 h-3.5" />
-          <span>Orders Ledger ({salesData?.totalOrdersCount || 0})</span>
+          <FileSpreadsheet className={`w-3 h-3 ${activeTab === 'ledger' ? 'text-indigo-600' : 'text-slate-400'}`} />
+          <span>Orders Ledger</span>
+          <span className={`px-1.5 py-0.2 rounded-full text-[9px] font-bold ${
+            activeTab === 'ledger' ? 'bg-indigo-100 text-indigo-900' : 'bg-slate-300 text-slate-700'
+          }`}>
+            {salesData?.totalOrdersCount || 0}
+          </span>
         </button>
 
         <button
           onClick={() => setActiveTab('dishes')}
-          className={`flex-1 py-2 px-3 rounded-xl text-xs font-black transition-all flex items-center justify-center gap-1.5 ${
+          className={`flex-1 sm:flex-none px-3 py-1 rounded-md text-[11px] font-semibold transition-all flex items-center justify-center gap-1.5 active:scale-[0.98] ${
             activeTab === 'dishes'
-              ? 'bg-white text-indigo-600 shadow-2xs border border-slate-200/60'
+              ? 'bg-white text-slate-900 shadow-2xs'
               : 'text-slate-600 hover:text-slate-900'
           }`}
         >
-          <Utensils className="w-3.5 h-3.5" />
-          <span>Top Selling Dishes ({currentMonthSummary?.topItems.length || 0})</span>
+          <Utensils className={`w-3 h-3 ${activeTab === 'dishes' ? 'text-indigo-600' : 'text-slate-400'}`} />
+          <span>Bestselling Dishes</span>
+          <span className={`px-1.5 py-0.2 rounded-full text-[9px] font-bold ${
+            activeTab === 'dishes' ? 'bg-amber-100 text-amber-900' : 'bg-slate-300 text-slate-700'
+          }`}>
+            {currentMonthSummary?.topItems.length || 0}
+          </span>
         </button>
 
         <button
           onClick={() => setActiveTab('all-months')}
-          className={`flex-1 py-2 px-3 rounded-xl text-xs font-black transition-all flex items-center justify-center gap-1.5 ${
+          className={`flex-1 sm:flex-none px-3 py-1 rounded-md text-[11px] font-semibold transition-all flex items-center justify-center gap-1.5 active:scale-[0.98] ${
             activeTab === 'all-months'
-              ? 'bg-white text-indigo-600 shadow-2xs border border-slate-200/60'
+              ? 'bg-white text-slate-900 shadow-2xs'
               : 'text-slate-600 hover:text-slate-900'
           }`}
         >
-          <Calendar className="w-3.5 h-3.5" />
-          <span>All Months Comparison</span>
+          <Calendar className={`w-3 h-3 ${activeTab === 'all-months' ? 'text-indigo-600' : 'text-slate-400'}`} />
+          <span>Monthly Comparison</span>
         </button>
       </div>
 
       {/* ================= TAB 1: MONTHLY OVERVIEW ================= */}
       {activeTab === 'overview' && (
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-2.5">
           
           {/* Left 2 Cols: Daily Timeline / Trend for the month */}
-          <div className="lg:col-span-2 bg-white p-5 rounded-3xl border border-slate-200/90 shadow-xs space-y-4">
-            <div className="flex items-center justify-between">
+          <div className="lg:col-span-2 bg-white border border-slate-200/90 rounded-lg p-2.5 shadow-2xs space-y-2">
+            <div className="flex items-center justify-between pb-1.5 border-b border-slate-100">
               <div>
-                <h3 className="text-sm font-black text-slate-900">Daily Revenue Timeline</h3>
-                <p className="text-[11px] text-slate-500">Day-by-day sales performance for {currentMonthSummary?.monthLabel || 'selected period'}</p>
+                <h3 className="text-xs font-bold text-slate-900">Daily Revenue Timeline</h3>
+                <p className="text-[10px] text-slate-500">Day-by-day sales performance for {currentMonthSummary?.monthLabel || 'selected period'}</p>
               </div>
-              <span className="px-2 py-0.5 rounded-full bg-slate-100 text-slate-700 text-[10px] font-bold">
-                {currentMonthSummary?.dailyStats.length || 0} active trading days
+              <span className="px-1.5 py-0.2 rounded bg-slate-100 text-slate-600 text-[10px] font-medium">
+                {currentMonthSummary?.dailyStats.length || 0} trading days
               </span>
             </div>
 
             {currentMonthSummary?.dailyStats && currentMonthSummary.dailyStats.length > 0 ? (
-              <div className="space-y-2.5 max-h-[360px] overflow-y-auto pr-1">
+              <div className="space-y-1.5 max-h-[300px] overflow-y-auto pr-1 no-scrollbar">
                 {currentMonthSummary.dailyStats.map(day => {
                   const maxRevenue = Math.max(...currentMonthSummary.dailyStats.map(d => d.revenue), 1);
                   const barWidthPercent = Math.min(100, Math.round((day.revenue / maxRevenue) * 100));
 
                   return (
-                    <div key={day.date} className="space-y-1 p-2.5 rounded-2xl bg-slate-50/80 hover:bg-slate-100/80 transition-colors">
-                      <div className="flex items-center justify-between text-xs">
-                        <div className="flex items-center gap-2">
-                          <span className="font-bold text-slate-800">{day.dayLabel}</span>
-                          <span className="text-[10px] font-mono text-slate-400">({day.date})</span>
+                    <div key={day.date} className="p-1.5 rounded-md bg-slate-50 border border-slate-100/80 space-y-1">
+                      <div className="flex items-center justify-between text-[11px]">
+                        <div className="flex items-center gap-1.5">
+                          <span className="font-semibold text-slate-800">{day.dayLabel}</span>
+                          <span className="text-[9px] font-mono text-slate-400">({day.date})</span>
                         </div>
-                        <div className="flex items-center gap-3">
-                          <span className="text-[11px] font-bold text-slate-500">{day.orders} orders</span>
-                          <span className="font-black text-slate-900 font-mono">₹{day.revenue.toLocaleString()}</span>
+                        <div className="flex items-center gap-2">
+                          <span className="text-[10px] text-slate-500">{day.orders} orders</span>
+                          <span className="font-bold text-slate-900 font-mono">₹{day.revenue.toLocaleString()}</span>
                         </div>
                       </div>
                       
-                      {/* Visual Bar */}
-                      <div className="w-full bg-slate-200 rounded-full h-2 overflow-hidden">
+                      {/* Visual Micro Bar */}
+                      <div className="w-full bg-slate-200 rounded-full h-1.5 overflow-hidden">
                         <div 
-                          className="bg-indigo-600 h-2 rounded-full transition-all duration-500" 
+                          className="bg-indigo-600 h-1.5 rounded-full transition-all duration-300" 
                           style={{ width: `${barWidthPercent}%` }} 
                         />
                       </div>
@@ -658,49 +657,49 @@ export function StaffSales() {
                 })}
               </div>
             ) : (
-              <div className="py-12 text-center text-slate-400 text-xs">
+              <div className="py-8 text-center text-slate-400 text-[11px]">
                 No day-by-day sales data recorded for this month.
               </div>
             )}
           </div>
 
           {/* Right 1 Col: Top Dishes Snapshot */}
-          <div className="bg-white p-5 rounded-3xl border border-slate-200/90 shadow-xs space-y-4">
-            <div className="flex items-center justify-between">
+          <div className="bg-white border border-slate-200/90 rounded-lg p-2.5 shadow-2xs space-y-2">
+            <div className="flex items-center justify-between pb-1.5 border-b border-slate-100">
               <div>
-                <h3 className="text-sm font-black text-slate-900">Bestsellers</h3>
-                <p className="text-[11px] text-slate-500">Top dishes in {currentMonthSummary?.monthLabel}</p>
+                <h3 className="text-xs font-bold text-slate-900">Bestsellers</h3>
+                <p className="text-[10px] text-slate-500">Top dishes in {currentMonthSummary?.monthLabel}</p>
               </div>
               <button
                 onClick={() => setActiveTab('dishes')}
-                className="text-xs font-bold text-indigo-600 hover:text-indigo-800 flex items-center gap-0.5"
+                className="text-[10px] font-semibold text-indigo-600 hover:text-indigo-800 flex items-center gap-0.5"
               >
-                <span>View All</span>
-                <ChevronRight className="w-3.5 h-3.5" />
+                <span>All</span>
+                <ChevronRight className="w-2.5 h-2.5" />
               </button>
             </div>
 
             {currentMonthSummary?.topItems && currentMonthSummary.topItems.length > 0 ? (
-              <div className="space-y-2.5">
+              <div className="space-y-1">
                 {currentMonthSummary.topItems.slice(0, 5).map((item, index) => (
-                  <div key={item.name} className="flex items-center justify-between p-2.5 rounded-2xl bg-slate-50 border border-slate-100">
-                    <div className="flex items-center gap-2.5 min-w-0">
-                      <span className="w-6 h-6 rounded-full bg-indigo-100 text-indigo-800 font-black text-[11px] flex items-center justify-center shrink-0">
+                  <div key={item.name} className="flex items-center justify-between p-1.5 rounded-md bg-slate-50 border border-slate-100/80">
+                    <div className="flex items-center gap-1.5 min-w-0">
+                      <span className="w-4 h-4 rounded bg-indigo-100 text-indigo-800 font-mono font-bold text-[9px] flex items-center justify-center shrink-0">
                         #{index + 1}
                       </span>
                       <div className="min-w-0">
-                        <p className="text-xs font-bold text-slate-900 truncate">{item.name}</p>
-                        <p className="text-[10px] text-slate-500">{item.quantity} portions served</p>
+                        <p className="text-[11px] font-medium text-slate-900 truncate">{item.name}</p>
+                        <p className="text-[9px] text-slate-500 font-mono">{item.quantity} portions served</p>
                       </div>
                     </div>
-                    <span className="text-xs font-black text-emerald-700 font-mono shrink-0">
+                    <span className="text-[11px] font-bold text-emerald-700 font-mono shrink-0">
                       ₹{item.revenue.toLocaleString()}
                     </span>
                   </div>
                 ))}
               </div>
             ) : (
-              <div className="py-12 text-center text-slate-400 text-xs">
+              <div className="py-8 text-center text-slate-400 text-[11px]">
                 No dish orders recorded for this month.
               </div>
             )}
@@ -711,26 +710,34 @@ export function StaffSales() {
 
       {/* ================= TAB 2: ITEMIZED ORDERS LEDGER ================= */}
       {activeTab === 'ledger' && (
-        <div className="bg-white rounded-3xl border border-slate-200/90 shadow-xs overflow-hidden space-y-4 p-4 sm:p-5">
+        <div className="bg-white border border-slate-200/90 rounded-lg p-2.5 shadow-2xs space-y-2">
           
           {/* Search & Filter Toolbar */}
-          <div className="flex flex-col md:flex-row gap-3 items-stretch md:items-center justify-between">
-            <div className="relative flex-1">
-              <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
+          <div className="flex flex-col sm:flex-row gap-1.5 items-stretch sm:items-center justify-between">
+            <div className="relative flex-1 max-w-sm">
+              <Search className="w-3 h-3 text-slate-400 absolute left-2.5 top-1/2 -translate-y-1/2" />
               <input
                 type="text"
-                placeholder="Search ticket #, student name, dish name, or roll..."
+                placeholder="Search ticket #, student, dish, roll..."
                 value={searchQuery}
                 onChange={e => setSearchQuery(e.target.value)}
-                className="w-full pl-10 pr-4 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-slate-900 focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                className="w-full pl-7 pr-6 py-1 bg-white border border-slate-200 rounded-md text-[11px] font-medium text-slate-900 shadow-2xs focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 outline-none transition-all placeholder:text-slate-400 h-7"
               />
+              {searchQuery && (
+                <button
+                  onClick={() => setSearchQuery('')}
+                  className="absolute right-1.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-700 p-0.5"
+                >
+                  <X className="w-3 h-3" />
+                </button>
+              )}
             </div>
 
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-1.5 shrink-0">
               <select
                 value={selectedStatusFilter}
                 onChange={e => setSelectedStatusFilter(e.target.value)}
-                className="px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-slate-800 focus:bg-white focus:outline-none cursor-pointer"
+                className="bg-slate-50 border border-slate-200 text-slate-800 text-[11px] font-medium rounded px-2 py-0.5 focus:outline-none cursor-pointer h-7"
               >
                 <option value="ALL">All Statuses</option>
                 <option value="COMPLETED">Completed</option>
@@ -744,25 +751,25 @@ export function StaffSales() {
 
           {/* Orders Table */}
           {!salesData?.orders || salesData.orders.length === 0 ? (
-            <div className="py-16 text-center text-slate-400 space-y-2">
-              <ShoppingBag className="w-8 h-8 mx-auto text-slate-300" />
-              <p className="text-xs font-bold text-slate-500">No orders found matching the filter criteria.</p>
+            <div className="py-12 text-center text-slate-400 space-y-1">
+              <ShoppingBag className="w-6 h-6 mx-auto text-slate-300" />
+              <p className="text-[11px] font-medium text-slate-500">No orders found matching the filter criteria.</p>
             </div>
           ) : (
             <div className="overflow-x-auto">
               <table className="w-full text-left border-collapse">
                 <thead>
-                  <tr className="border-b border-slate-200 bg-slate-50/70 text-[11px] font-black text-slate-600 uppercase tracking-wider">
-                    <th className="py-3 px-3">Ticket #</th>
-                    <th className="py-3 px-3">Date & Time</th>
-                    <th className="py-3 px-3">Customer</th>
-                    <th className="py-3 px-3">Items Ordered</th>
-                    <th className="py-3 px-3">Amount</th>
-                    <th className="py-3 px-3">Status</th>
-                    <th className="py-3 px-3 text-right">PIN</th>
+                  <tr className="border-b border-slate-200 bg-slate-50 text-[10px] font-bold text-slate-500 uppercase tracking-wider">
+                    <th className="py-2 px-2.5">Ticket #</th>
+                    <th className="py-2 px-2.5">Date & Time</th>
+                    <th className="py-2 px-2.5">Customer</th>
+                    <th className="py-2 px-2.5">Items Ordered</th>
+                    <th className="py-2 px-2.5">Amount</th>
+                    <th className="py-2 px-2.5">Status</th>
+                    <th className="py-2 px-2.5 text-right">PIN</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-slate-100 text-xs">
+                <tbody className="divide-y divide-slate-100 text-[11px]">
                   {salesData.orders.map(order => {
                     const isCancelled = order.status === 'CANCELLED';
                     const isCompleted = order.status === 'COMPLETED';
@@ -780,65 +787,66 @@ export function StaffSales() {
                     const dateObj = new Date(order.created_at);
 
                     return (
-                      <tr key={order.id} className="hover:bg-slate-50/80 transition-colors">
+                      <tr key={order.id} className="hover:bg-slate-50 transition-colors">
                         {/* Order Number */}
-                        <td className="py-3 px-3 font-mono font-black text-slate-900 whitespace-nowrap">
+                        <td className="py-2 px-2.5 font-mono font-bold text-slate-900 whitespace-nowrap">
                           {order.order_number}
                           {order.slot_number && (
-                            <span className="ml-1.5 px-1.5 py-0.2 rounded bg-indigo-50 text-indigo-700 text-[9px] font-mono">
-                              Slot {order.slot_number}
+                            <span className="ml-1 px-1 py-0.2 rounded bg-slate-100 text-slate-700 text-[9px] font-mono">
+                              S{order.slot_number}
                             </span>
                           )}
                         </td>
 
                         {/* Date & Time */}
-                        <td className="py-3 px-3 whitespace-nowrap text-slate-600">
-                          <p className="font-bold text-slate-800">{dateObj.toLocaleDateString('en-IN', { month: 'short', day: 'numeric', year: 'numeric' })}</p>
-                          <p className="text-[10px] text-slate-400">{dateObj.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' })}</p>
+                        <td className="py-2 px-2.5 whitespace-nowrap text-slate-600">
+                          <p className="font-medium text-slate-800">{dateObj.toLocaleDateString('en-IN', { month: 'short', day: 'numeric' })}</p>
+                          <p className="text-[9px] text-slate-400 font-mono">{dateObj.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' })}</p>
                         </td>
 
                         {/* Customer */}
-                        <td className="py-3 px-3 whitespace-nowrap">
-                          <p className="font-bold text-slate-900">{order.student_name}</p>
+                        <td className="py-2 px-2.5 whitespace-nowrap">
+                          <p className="font-semibold text-slate-900">{order.student_name}</p>
                           {order.student_roll && (
-                            <p className="text-[10px] text-slate-400 font-mono">{order.student_roll}</p>
+                            <p className="text-[9px] text-slate-400 font-mono">{order.student_roll}</p>
                           )}
                         </td>
 
                         {/* Items */}
-                        <td className="py-3 px-3">
+                        <td className="py-2 px-2.5">
                           <div className="flex flex-wrap gap-1 max-w-xs">
                             {parsedItems.map((item: any, idx: number) => (
                               <span 
                                 key={idx} 
-                                className="px-1.5 py-0.5 rounded bg-slate-100 text-slate-700 text-[10px] font-medium border border-slate-200/60"
+                                className="px-1 py-0.2 rounded bg-slate-100 text-slate-700 text-[10px] font-medium border border-slate-200/60 flex items-center gap-0.5"
                               >
-                                {item.name} <strong className="text-indigo-600 font-bold">×{item.quantity}</strong>
+                                <span>{item.name}</span>
+                                <span className="font-mono font-bold text-amber-800 bg-amber-100/90 px-1 rounded text-[9px]">×{item.quantity}</span>
                               </span>
                             ))}
                           </div>
                         </td>
 
                         {/* Total Amount */}
-                        <td className="py-3 px-3 font-mono font-black text-slate-900 whitespace-nowrap">
+                        <td className="py-2 px-2.5 font-mono font-bold text-slate-900 whitespace-nowrap">
                           ₹{order.total_price}
                         </td>
 
                         {/* Status */}
-                        <td className="py-3 px-3 whitespace-nowrap">
-                          <span className={`px-2 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider border ${
-                            isCompleted ? 'bg-emerald-50 text-emerald-700 border-emerald-200' :
-                            isCancelled ? 'bg-rose-50 text-rose-700 border-rose-200' :
-                            isReady ? 'bg-indigo-50 text-indigo-700 border-indigo-200' :
-                            isPreparing ? 'bg-amber-50 text-amber-700 border-amber-200' :
-                            'bg-blue-50 text-blue-700 border-blue-200'
+                        <td className="py-2 px-2.5 whitespace-nowrap">
+                          <span className={`px-1.5 py-0.2 rounded text-[9px] font-semibold uppercase tracking-wider border ${
+                            isCompleted ? 'bg-emerald-50 text-emerald-700 border-emerald-200/80' :
+                            isCancelled ? 'bg-rose-50 text-rose-700 border-rose-200/80' :
+                            isReady ? 'bg-indigo-50 text-indigo-700 border-indigo-200/80' :
+                            isPreparing ? 'bg-amber-50 text-amber-700 border-amber-200/80' :
+                            'bg-slate-100 text-slate-700 border-slate-200/80'
                           }`}>
                             {order.status}
                           </span>
                         </td>
 
                         {/* Pickup PIN */}
-                        <td className="py-3 px-3 font-mono font-bold text-right text-slate-700 whitespace-nowrap">
+                        <td className="py-2 px-2.5 font-mono font-bold text-right text-slate-700 whitespace-nowrap">
                           {order.pickup_code}
                         </td>
                       </tr>
@@ -853,40 +861,40 @@ export function StaffSales() {
 
       {/* ================= TAB 3: TOP SELLING DISHES ================= */}
       {activeTab === 'dishes' && (
-        <div className="bg-white rounded-3xl border border-slate-200/90 shadow-xs p-5 space-y-4">
-          <div>
-            <h3 className="text-base font-black text-slate-900">Bestselling Dishes & Quantities</h3>
-            <p className="text-xs text-slate-500">Ranking of menu items sold during {currentMonthSummary?.monthLabel}</p>
+        <div className="bg-white border border-slate-200/90 rounded-lg p-2.5 shadow-2xs space-y-2">
+          <div className="pb-1.5 border-b border-slate-100">
+            <h3 className="text-xs font-bold text-slate-900">Bestselling Dishes & Revenue Share</h3>
+            <p className="text-[10px] text-slate-500">Ranking of menu items sold during {currentMonthSummary?.monthLabel}</p>
           </div>
 
           {currentMonthSummary?.topItems && currentMonthSummary.topItems.length > 0 ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-1.5">
               {currentMonthSummary.topItems.map((dish, idx) => {
                 const totalMonthRevenue = currentMonthSummary.totalRevenue || 1;
                 const sharePercent = Math.round((dish.revenue / totalMonthRevenue) * 100);
 
                 return (
-                  <div key={dish.name} className="p-4 rounded-2xl bg-slate-50 border border-slate-200/80 flex items-center justify-between gap-3">
-                    <div className="flex items-center gap-3 min-w-0">
-                      <div className="w-8 h-8 rounded-xl bg-indigo-600 text-white font-black text-xs flex items-center justify-center shrink-0 shadow-2xs">
+                  <div key={dish.name} className="p-2 rounded-md bg-slate-50 border border-slate-100/80 flex items-center justify-between gap-2">
+                    <div className="flex items-center gap-2 min-w-0">
+                      <div className="w-5 h-5 rounded bg-indigo-600 text-white font-mono font-bold text-[10px] flex items-center justify-center shrink-0">
                         #{idx + 1}
                       </div>
                       <div className="min-w-0">
-                        <h4 className="text-xs font-black text-slate-900 truncate">{dish.name}</h4>
-                        <p className="text-[11px] text-slate-500">{dish.quantity} portions served ({sharePercent}% of revenue)</p>
+                        <h4 className="text-[11px] font-semibold text-slate-900 truncate">{dish.name}</h4>
+                        <p className="text-[9px] text-slate-500 font-mono">{dish.quantity} portions served ({sharePercent}% of revenue)</p>
                       </div>
                     </div>
 
                     <div className="text-right shrink-0 font-mono">
-                      <p className="text-xs font-black text-emerald-700">₹{dish.revenue.toLocaleString()}</p>
-                      <p className="text-[10px] text-slate-400">Total Sales</p>
+                      <p className="text-[11px] font-bold text-emerald-700">₹{dish.revenue.toLocaleString()}</p>
+                      <p className="text-[9px] text-slate-400">Total Sales</p>
                     </div>
                   </div>
                 );
               })}
             </div>
           ) : (
-            <div className="py-16 text-center text-slate-400 text-xs">
+            <div className="py-12 text-center text-slate-400 text-[11px]">
               No dishes recorded for the selected period.
             </div>
           )}
@@ -895,60 +903,60 @@ export function StaffSales() {
 
       {/* ================= TAB 4: ALL MONTHS COMPARISON ================= */}
       {activeTab === 'all-months' && (
-        <div className="bg-white rounded-3xl border border-slate-200/90 shadow-xs p-5 space-y-4 overflow-hidden">
-          <div>
-            <h3 className="text-base font-black text-slate-900">Monthly Sales Comparison Table</h3>
-            <p className="text-xs text-slate-500">Permanent record of monthly sales, order counts, and ticket sizes</p>
+        <div className="bg-white border border-slate-200/90 rounded-lg p-2.5 shadow-2xs space-y-2 overflow-hidden">
+          <div className="pb-1.5 border-b border-slate-100">
+            <h3 className="text-xs font-bold text-slate-900">Monthly Sales Comparison</h3>
+            <p className="text-[10px] text-slate-500">Historical performance ledger of monthly revenue, orders, and averages</p>
           </div>
 
           <div className="overflow-x-auto">
             <table className="w-full text-left border-collapse">
               <thead>
-                <tr className="border-b border-slate-200 bg-slate-50/70 text-[11px] font-black text-slate-600 uppercase tracking-wider">
-                  <th className="py-3 px-3">Month</th>
-                  <th className="py-3 px-3">Revenue (₹)</th>
-                  <th className="py-3 px-3">Total Orders</th>
-                  <th className="py-3 px-3">Completed</th>
-                  <th className="py-3 px-3">Cancelled</th>
-                  <th className="py-3 px-3">Avg Ticket (₹)</th>
-                  <th className="py-3 px-3">Dishes Sold</th>
-                  <th className="py-3 px-3 text-right">Action</th>
+                <tr className="border-b border-slate-200 bg-slate-50 text-[10px] font-bold text-slate-500 uppercase tracking-wider">
+                  <th className="py-2 px-2.5">Month</th>
+                  <th className="py-2 px-2.5">Revenue (₹)</th>
+                  <th className="py-2 px-2.5">Total Orders</th>
+                  <th className="py-2 px-2.5">Completed</th>
+                  <th className="py-2 px-2.5">Cancelled</th>
+                  <th className="py-2 px-2.5">Avg Ticket</th>
+                  <th className="py-2 px-2.5">Dishes Sold</th>
+                  <th className="py-2 px-2.5 text-right">Action</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-100 text-xs">
+              <tbody className="divide-y divide-slate-100 text-[11px]">
                 {salesData?.months.map(m => (
-                  <tr key={m.monthKey} className="hover:bg-slate-50/80 transition-colors">
-                    <td className="py-3 px-3 font-bold text-slate-900 whitespace-nowrap">
+                  <tr key={m.monthKey} className="hover:bg-slate-50 transition-colors">
+                    <td className="py-2 px-2.5 font-semibold text-slate-900 whitespace-nowrap">
                       {m.monthLabel}
                     </td>
-                    <td className="py-3 px-3 font-mono font-black text-emerald-700 whitespace-nowrap">
+                    <td className="py-2 px-2.5 font-mono font-bold text-emerald-700 whitespace-nowrap">
                       ₹{m.totalRevenue.toLocaleString()}
                     </td>
-                    <td className="py-3 px-3 font-bold text-slate-800">
+                    <td className="py-2 px-2.5 font-medium text-slate-800">
                       {m.totalOrders}
                     </td>
-                    <td className="py-3 px-3 text-emerald-600 font-bold">
+                    <td className="py-2 px-2.5 text-emerald-700 font-medium">
                       {m.completedOrders}
                     </td>
-                    <td className="py-3 px-3 text-rose-600 font-bold">
+                    <td className="py-2 px-2.5 text-rose-600 font-medium">
                       {m.cancelledOrders}
                     </td>
-                    <td className="py-3 px-3 font-mono text-slate-800">
+                    <td className="py-2 px-2.5 font-mono text-slate-800">
                       ₹{m.avgOrderValue}
                     </td>
-                    <td className="py-3 px-3 font-mono text-slate-800">
+                    <td className="py-2 px-2.5 font-mono text-slate-800">
                       {m.totalItemsSold}
                     </td>
-                    <td className="py-3 px-3 text-right">
+                    <td className="py-2 px-2.5 text-right">
                       <button
                         onClick={() => {
                           setSelectedMonthKey(m.monthKey);
                           setActiveTab('overview');
                         }}
-                        className="px-2.5 py-1 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 font-bold text-[11px] rounded-lg transition-colors inline-flex items-center gap-1"
+                        className="px-2 py-0.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-medium text-[10px] rounded transition-colors inline-flex items-center gap-0.5 active:scale-[0.98]"
                       >
-                        <span>View Month</span>
-                        <ChevronRight className="w-3 h-3" />
+                        <span>View</span>
+                        <ChevronRight className="w-2.5 h-2.5" />
                       </button>
                     </td>
                   </tr>

@@ -703,40 +703,40 @@ export function StudentView() {
 
             {/* Food Menu Items Grid */}
             {isLoadingMenu ? (
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3.5 sm:gap-5">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2.5">
                 {[1, 2, 3, 4, 5, 6].map((n) => (
-                  <div key={n} className="p-4 sm:p-5 rounded-2xl sm:rounded-3xl border border-slate-200/80 bg-white shadow-xs space-y-4 animate-pulse">
+                  <div key={n} className="p-2.5 rounded-lg border border-slate-200/90 bg-white shadow-2xs space-y-2 animate-pulse">
                     <div className="flex justify-between items-center">
-                      <div className="h-4 bg-slate-200 rounded-full w-20"></div>
-                      <div className="h-5 bg-slate-200 rounded-md w-12"></div>
+                      <div className="h-3.5 bg-slate-200 rounded-full w-20"></div>
+                      <div className="h-4 bg-slate-200 rounded-md w-12"></div>
                     </div>
-                    <div className="space-y-2 py-1">
-                      <div className="h-4 bg-slate-200 rounded-md w-3/4"></div>
-                      <div className="h-3 bg-slate-100 rounded-md w-1/2"></div>
+                    <div className="space-y-1 py-1">
+                      <div className="h-3.5 bg-slate-200 rounded-md w-3/4"></div>
+                      <div className="h-2.5 bg-slate-100 rounded-md w-1/2"></div>
                     </div>
-                    <div className="pt-3 border-t border-slate-100">
-                      <div className="h-10 bg-slate-100 rounded-xl w-full"></div>
+                    <div className="pt-2 border-t border-slate-100">
+                      <div className="h-7 bg-slate-100 rounded-md w-full"></div>
                     </div>
                   </div>
                 ))}
               </div>
             ) : filteredMenu.length === 0 ? (
-              <div className="flex-1 flex flex-col items-center justify-center py-16 text-slate-400 text-center bg-white border border-slate-200/80 rounded-3xl p-6">
-                <Coffee className="w-10 h-10 text-slate-300 mb-2" />
-                <span className="text-sm font-bold text-slate-700">No items match your search</span>
-                <span className="text-xs text-slate-400 mt-1">Try resetting the category filter or search keywords</span>
+              <div className="flex-1 flex flex-col items-center justify-center py-12 text-slate-400 text-center bg-white border border-slate-200/90 rounded-lg p-4 shadow-2xs">
+                <Coffee className="w-8 h-8 text-slate-300 mb-1.5" />
+                <span className="text-xs font-bold text-slate-700">No items match your search</span>
+                <span className="text-[10px] text-slate-400 mt-0.5">Try resetting the category filter or search keywords</span>
               </div>
             ) : (
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3.5 sm:gap-5">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2">
                 {filteredMenu.map((item) => {
                   const qty = getItemQuantity(item.id);
                   const isAvailable = item.is_available !== 0;
                   return (
                     <SpotlightCard 
                       key={item.id} 
-                      className={`p-4 sm:p-5 rounded-2xl sm:rounded-3xl flex flex-col justify-between group transition-all border shadow-xs bg-white ${
+                      className={`p-2.5 rounded-lg flex flex-col justify-between group transition-all border shadow-2xs bg-white ${
                         isAvailable 
-                          ? 'border-slate-200/90 hover:border-indigo-500/50 hover:shadow-md' 
+                          ? 'border-slate-200/90 hover:border-indigo-500/40 hover:shadow-xs' 
                           : 'border-rose-200/60 bg-slate-50/80'
                       }`}
                     >
@@ -816,8 +816,8 @@ export function StudentView() {
           </div>
 
           {/* Desktop Sticky Cart Sidebar */}
-          <aside className="hidden lg:block w-[360px] shrink-0 self-start">
-            <div className="bg-white rounded-3xl p-6 sticky top-24 border border-slate-200/90 shadow-lg space-y-5 max-h-[calc(100vh-120px)] overflow-y-auto no-scrollbar">
+          <aside className="hidden lg:block w-[320px] shrink-0 self-start">
+            <div className="bg-white rounded-lg p-3.5 sticky top-20 border border-slate-200/90 shadow-2xs space-y-3.5 max-h-[calc(100vh-120px)] overflow-y-auto no-scrollbar">
               <div className="flex items-center justify-between border-b border-slate-100 pb-3.5">
                 <div className="flex items-center gap-2">
                   <div className="w-8 h-8 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center font-bold">
@@ -1011,25 +1011,25 @@ export function StudentView() {
           </div>
 
           {myOrders.length === 0 ? (
-            <div className="py-16 flex flex-col items-center justify-center text-slate-400 text-center bg-white border border-slate-200/90 rounded-3xl p-8 shadow-sm">
-              <Coffee className="w-12 h-12 text-slate-300 mb-3" />
-              <span className="text-base font-black text-slate-800">No active orders placed</span>
+            <div className="py-12 flex flex-col items-center justify-center text-slate-400 text-center bg-white border border-slate-200/90 rounded-lg p-5 shadow-2xs">
+              <Coffee className="w-8 h-8 text-slate-300 mb-2" />
+              <span className="text-sm font-bold text-slate-800">No active orders placed</span>
               <span className="text-xs text-slate-400 mt-1 max-w-xs">Select delicious food from the menu and pay with Cashfree to generate your pickup token.</span>
               <button
                 onClick={() => setActiveSubTab('menu')}
-                className="mt-4 px-5 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold rounded-full shadow-md active:scale-95 transition-all"
+                className="mt-3 px-4 py-1.5 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-semibold rounded-md shadow-2xs active:scale-[0.98] transition-all"
               >
                 Browse Menu Now
               </button>
             </div>
           ) : (
-            <div className="space-y-4 sm:space-y-5">
+            <div className="space-y-2.5">
               {/* Active Orders List */}
               {myOrders.filter(o => o.status !== 'COMPLETED' && o.status !== 'CANCELLED').length === 0 && myOrders.filter(o => o.status === 'COMPLETED' || o.status === 'CANCELLED').length > 0 && (
-                <div className="bg-white border border-slate-200/90 rounded-2xl p-6 text-center shadow-xs">
-                  <CheckCheck className="w-8 h-8 text-emerald-600 mx-auto mb-2" />
-                  <h3 className="text-sm font-black text-slate-800">No active cooking orders</h3>
-                  <p className="text-xs text-slate-500 mt-0.5">Check your order history below or order fresh food from the menu.</p>
+                <div className="bg-white border border-slate-200/90 rounded-lg p-4 text-center shadow-2xs">
+                  <CheckCheck className="w-6 h-6 text-emerald-600 mx-auto mb-1.5" />
+                  <h3 className="text-xs font-bold text-slate-800">No active cooking orders</h3>
+                  <p className="text-[10px] text-slate-500 mt-0.5">Check your order history below or order fresh food from the menu.</p>
                 </div>
               )}
 
@@ -1039,7 +1039,7 @@ export function StudentView() {
                 return (
                   <SpotlightCard 
                     key={order.id} 
-                    className={`p-5 sm:p-6 flex flex-col md:flex-row gap-5 relative overflow-hidden bg-white border border-slate-200/90 rounded-3xl shadow-md ${
+                    className={`p-3 flex flex-col md:flex-row gap-3 relative overflow-hidden bg-white border border-slate-200/90 rounded-lg shadow-2xs ${
                       isReady ? 'ring-2 ring-emerald-500/80' : ''
                     }`}
                   >
