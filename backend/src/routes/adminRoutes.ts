@@ -64,17 +64,17 @@ router.patch(
 );
 
 // ==============================================================================
-// 2. Order Processing Endpoints (Admin, Store Managers & Cooks)
+// 2. Order Processing Endpoints (Admin, Store Managers, Cooks & Delivery)
 // ==============================================================================
 router.get(
   '/orders', 
-  requireRole(['admin', 'manager', 'cook']), 
+  requireRole(['admin', 'manager', 'cook', 'delivery']), 
   asyncErrorWrapper((req, res) => orderController.getAllOrders(req, res))
 );
 
 router.patch(
   '/orders/:id/status', 
-  requireRole(['admin', 'manager', 'cook']), 
+  requireRole(['admin', 'manager', 'cook', 'delivery']), 
   validateBody(updateOrderStatusSchema), 
   asyncErrorWrapper((req, res) => orderController.updateOrderStatus(req, res))
 );

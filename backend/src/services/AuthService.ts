@@ -36,7 +36,7 @@ export class AuthService {
     const pinAttempt = payload.pin ? String(payload.pin).trim() : null;
     const passwordAttempt = payload.password ? String(payload.password) : null;
 
-    // Strategy 1: Cook Quick PIN Login (By Canteen and PIN)
+    // Strategy 1: Cook & Delivery Quick PIN/Passcode Login (By Canteen and PIN)
     if (pinAttempt && (payload.canteen_id || payload.canteen_slug)) {
       let canteenId = payload.canteen_id;
       if (!canteenId && payload.canteen_slug) {
@@ -47,11 +47,11 @@ export class AuthService {
       }
 
       if (canteenId) {
-        const cooksRes = await db.query(
-          'SELECT * FROM users WHERE canteen_id = $1 AND role = $2',
-          [canteenId, 'cook']
+        const staffRes = await db.query(
+          "SELECT * FROM users WHERE canteen_id = $1 AND role IN ('cook', 'delivery')",
+          [canteenId]
         );
-        for (const candidate of cooksRes.rows) {
+        for (const candidate of staffRes.rows) {
           const hashToTest = candidate.pin_hash || candidate.password_hash;
           if (hashToTest && await bcrypt.compare(pinAttempt, hashToTest)) {
             user = candidate;

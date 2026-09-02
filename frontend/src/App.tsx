@@ -83,7 +83,7 @@ export default function App() {
                   >
                     Orders
                   </Link>
-                  {userRole !== 'cook' && (
+                  {userRole !== 'cook' && userRole !== 'delivery' && (
                     <Link 
                       to="/staff/menu" 
                       className={`text-xs font-bold transition-all ${

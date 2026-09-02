@@ -74,8 +74,8 @@ export class MenuController extends BaseController {
       const body = { ...req.body };
 
       if (authUser) {
-        if (authUser.role === 'cook') {
-          const err = new Error('Cooks are not authorized to add menu items');
+        if (authUser.role === 'cook' || authUser.role === 'delivery') {
+          const err = new Error('Cooks and delivery staff are not authorized to add menu items');
           (err as any).statusCode = 403;
           throw err;
         }
@@ -98,8 +98,8 @@ export class MenuController extends BaseController {
       const body = { ...req.body };
 
       if (authUser) {
-        if (authUser.role === 'cook') {
-          const err = new Error('Cooks are not authorized to edit menu items');
+        if (authUser.role === 'cook' || authUser.role === 'delivery') {
+          const err = new Error('Cooks and delivery staff are not authorized to edit menu items');
           (err as any).statusCode = 403;
           throw err;
         }
@@ -122,8 +122,8 @@ export class MenuController extends BaseController {
       const authUser = (req as any).user;
 
       if (authUser) {
-        if (authUser.role === 'cook') {
-          const err = new Error('Cooks are not authorized to delete menu items');
+        if (authUser.role === 'cook' || authUser.role === 'delivery') {
+          const err = new Error('Cooks and delivery staff are not authorized to delete menu items');
           (err as any).statusCode = 403;
           throw err;
         }

@@ -24,7 +24,7 @@ export interface StaffUserSummary {
   id: string;
   username: string;
   email: string | null;
-  role: 'admin' | 'manager' | 'cook';
+  role: 'admin' | 'manager' | 'cook' | 'delivery';
   displayName: string;
   canteenId: string | null;
   canteenName: string | null;
@@ -190,7 +190,7 @@ export class AdminService {
   }
 
   async createStaffUser(data: {
-    role: 'manager' | 'cook';
+    role: 'manager' | 'cook' | 'delivery';
     displayName: string;
     canteenId: string;
     email?: string;
@@ -213,9 +213,9 @@ export class AdminService {
       }
       passwordHash = bcrypt.hashSync(data.password, 10);
     } else {
-      // Cook account
+      // Cook or Delivery account
       if (!data.pin || data.pin.trim().length < 3) {
-        const err = new Error('An alphanumeric passcode/PIN of at least 3 characters is required for Cook accounts.');
+        const err = new Error('An alphanumeric passcode/PIN of at least 3 characters is required for Cook and Delivery accounts.');
         (err as any).statusCode = 400;
         throw err;
       }
@@ -283,7 +283,7 @@ export class AdminService {
 
     if (data.pin) {
       if (data.pin.trim().length < 3) {
-        const err = new Error('Cook alphanumeric passcode must be at least 3 characters.');
+        const err = new Error('Cook / Delivery alphanumeric passcode must be at least 3 characters.');
         (err as any).statusCode = 400;
         throw err;
       }

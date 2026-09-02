@@ -280,12 +280,12 @@ export function StaffMenu() {
     return matchesSearch && matchesCategory;
   });
 
-  if (userProfile?.role === 'cook') {
+  if (userProfile?.role === 'cook' || userProfile?.role === 'delivery') {
     return (
       <div className="py-20 flex flex-col items-center justify-center text-center glass-card p-6">
         <HelpCircle className="w-12 h-12 text-error mb-3" />
         <h2 className="text-lg font-bold text-slate-800">Access Denied</h2>
-        <p className="text-xs text-text-muted mt-1">Cooks are not authorized to view or edit menu items. Please use the Orders Board.</p>
+        <p className="text-xs text-text-muted mt-1">Cooks and delivery staff are not authorized to view or edit menu items. Please use the Orders Board.</p>
       </div>
     );
   }
@@ -484,7 +484,6 @@ export function StaffMenu() {
                 <table className="w-full text-left border-collapse">
                   <thead className="bg-white/10 border-b border-white/20">
                     <tr>
-                      <th className="px-6 py-4 font-label-md text-text-muted uppercase tracking-wider">Image</th>
                       <th className="px-6 py-4 font-label-md text-text-muted uppercase tracking-wider">Dish Name</th>
                       <th className="px-6 py-4 font-label-md text-text-muted uppercase tracking-wider">Category</th>
                       <th className="px-6 py-4 font-label-md text-text-muted uppercase tracking-wider">Price</th>
@@ -496,13 +495,13 @@ export function StaffMenu() {
                     {filteredMenuItems.map((item) => (
                       <tr key={item.id} className={`hover:bg-white/10 transition-colors ${item.is_available === 0 ? 'opacity-65' : ''}`}>
                         <td className="px-6 py-4">
-                          <div className="w-12 h-12 rounded-lg overflow-hidden bg-cover bg-center border border-white/20">
-                            <img src={item.image} alt={item.name} className="w-full h-full object-cover" />
+                          <div className="flex items-center gap-2">
+                            <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 shrink-0" title="Veg"></span>
+                            <span className="font-label-md font-bold text-text-primary">{item.name}</span>
                           </div>
                         </td>
-                        <td className="px-6 py-4 font-label-md text-text-primary">{item.name}</td>
                         <td className="px-6 py-4">
-                          <span className="bg-hazy-mint text-success px-3 py-1 rounded-full text-label-sm">
+                          <span className="bg-indigo-50 text-indigo-700 font-bold border border-indigo-100 px-3 py-1 rounded-full text-label-sm">
                             {item.category}
                           </span>
                         </td>

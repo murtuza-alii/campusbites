@@ -381,10 +381,10 @@ export function StaffOrders() {
               {currentCanteenObj?.name || canteenName || 'Canteen'} Portal
             </h1>
             <span className="px-2 py-0.5 bg-slate-100 text-slate-700 rounded-full text-[10px] font-black uppercase tracking-wider">
-              {userProfile?.role === 'cook' ? 'Cook Terminal' : userProfile?.role === 'admin' ? 'Master Admin' : 'Staff Terminal'}
+              {userProfile?.role === 'cook' ? 'Cook Terminal' : userProfile?.role === 'delivery' ? 'Delivery Terminal' : userProfile?.role === 'admin' ? 'Master Admin' : 'Staff Terminal'}
             </span>
           </div>
-          <p className="text-xs text-slate-500 mt-0.5">Live Kitchen Queue & Counter PIN Verification</p>
+          <p className="text-xs text-slate-500 mt-0.5">Live Kitchen Queue & Counter / Delivery Handover</p>
         </div>
 
         {error && (

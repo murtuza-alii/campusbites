@@ -207,6 +207,15 @@ export async function initDb(): Promise<void> {
       group_slug: null, 
       description: 'Standalone premium gourmet diner with fresh meals made to order.', 
       image: 'https://images.unsplash.com/photo-1555396273-367ea4eb4db5?w=150&auto=format&fit=crop&q=60' 
+    },
+    { 
+      id: 'c6', 
+      name: 'Anand Stall (Fast Food & Juice Centre)', 
+      slug: 'anand-stall', 
+      group_name: null, 
+      group_slug: null, 
+      description: 'Legendary Mumbai fast food & juice centre since 1978. Famous for buttery vada pavs, jinny & matka dosas, gourmet grill sandwiches & fresh fruit blossoms.', 
+      image: 'https://images.unsplash.com/photo-1601050690597-df0568f70950?w=150&auto=format&fit=crop&q=60' 
     }
   ];
   for (const c of canteens) {
@@ -329,6 +338,56 @@ export async function initDb(): Promise<void> {
       role: 'cook', 
       canteen_id: 'c5', 
       display_name: 'Chef Rajesh' 
+    },
+    { 
+      id: 'u12', 
+      username: 'canteen_a_delivery', 
+      email: null, 
+      password: null, 
+      pin: 'DELIV1', 
+      role: 'delivery', 
+      canteen_id: 'c1', 
+      display_name: 'Raju (Delivery Agent)' 
+    },
+    { 
+      id: 'u13', 
+      username: 'downtown_diner_delivery', 
+      email: null, 
+      password: null, 
+      pin: 'DELIV5', 
+      role: 'delivery', 
+      canteen_id: 'c5', 
+      display_name: 'Vikas (Express Delivery)' 
+    },
+    { 
+      id: 'u14', 
+      username: 'anand_stall_mgr', 
+      email: 'manager@anandstall.com', 
+      password: 'manager123', 
+      pin: null, 
+      role: 'manager', 
+      canteen_id: 'c6', 
+      display_name: 'Anand Stall Store Manager' 
+    },
+    { 
+      id: 'u15', 
+      username: 'anand_stall_cook', 
+      email: null, 
+      password: null, 
+      pin: 'ANAND1', 
+      role: 'cook', 
+      canteen_id: 'c6', 
+      display_name: 'Chef Anand (Master Cook)' 
+    },
+    { 
+      id: 'u16', 
+      username: 'anand_stall_delivery', 
+      email: null, 
+      password: null, 
+      pin: 'ANDEL1', 
+      role: 'delivery', 
+      canteen_id: 'c6', 
+      display_name: 'Anand Express Delivery Agent' 
     }
   ];
 
@@ -356,14 +415,14 @@ export async function initDb(): Promise<void> {
   const countRes = await db.query('SELECT COUNT(*) as count FROM menu');
   const count = parseInt(countRes.rows[0].count, 10);
   const initialItems = [
-    { id: 'm1', name: 'Paneer Tikka Roll', price: 80.0, category: 'Snacks', is_available: 1, image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuAdNAZ_e2m0yqXsZvaM9uCWInUbKAubuRRtdg8KN9wxkW5wXsD8k5FRG-a5He3EQCZOZMyvWhADcvcVfx4mVmGq-06TkQAuioN1bndgdzjNWFQEPIbaE4CrAaGrh24VQ1yO7fYsOb9gZd4F9YBYjYTkvADAT6gUog0-IbUIm_TQAakxeWhuqDvyuVSYMRTZBBUZWtV8v_UrpltU--SP3qTdnj-qhn5scMhuv1DKf_58XyvuCMu87N3n13MTRvAcn4RzTs5eo-pYUAA', canteen_id: 'c1' },
-    { id: 'm2', name: 'Cold Coffee', price: 50.0, category: 'Beverages', is_available: 1, image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuDX09sqX58p13TXbkqe_JuR7otpbvEO5C1CrwLJqL_ttaEghV-Kc53IdhHE3VvQUdcAnEijChm-djT6JuI9QYTee2iBPA6M3schOmxTIforoczMF5AmHFF-MAMWtsZk_mCSTchFWTwo5YKtN6jKhEXrIOsdIEIcL81u45Knkn1IwKsmh8wNUz2CvAeLiTVIM1_yB0JOXgjrPlP3QgjM1QIU-LN8vYOGhnPavmDANuIaEQrpZA7vmOoMMxPvnDodPFaITLY-m_ZxY5I', canteen_id: 'c2' },
-    { id: 'm3', name: 'Cheese Veg Burger', price: 70.0, category: 'Snacks', is_available: 1, image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuAFotwugAGXMSfPMNergZSkElO8zPYngS5-dix215gq--vzUlJ13utSjX5h_9wuYgXMLR4pvRgdZz3YhddTdBzLIwzzJeMcKMORDZFx8nzX3-W_cLSUlBuMv8nYWF7Rbp5UYveh52JEiyeTVNmxmKuzesqd6cMwqdvKp6LS1W3HDqP_jF0iVEDYBcG9BxzYvwo9hSAyM6ohxAtkKcVxfhmVCqI7nVf3OXFW2aCgCEKecCtMJBH7i1-uIlQ8ZksofGbbesOTmSuGGa8', canteen_id: 'c1' },
-    { id: 'm4', name: 'Masala Dosa', price: 60.0, category: 'Meals', is_available: 1, image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuDDl7xfKP3AEX9uh0-7Li6Eq4OL1m3-UckfTkzwMX50pmmNaZ5gN43V_mzLBEMaWuj0xm6Q53TqrWOnUzLSzPeGXsPBosAvf2ZLXaKEaHM438teE9jC422ox6CGge36EAicsD3nV8QwErObDNKQDZhorpKf62ohWNiHw2qw_cngVJqLEo4mA5h-QgM8R3VuUhaqxe-YcJKM1-755nznGdQjPMIAyGsq4lubwXaabVPf31h1_j0TMBR6RzJXlmKrPUwAVXX28BagvDo', canteen_id: 'c4' },
-    { id: 'm5', name: 'Samosa (2 pcs)', price: 20.0, category: 'Snacks', is_available: 1, image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuBlHShZyIr9BX2BZIJzAMzUyNd_Q296o275L3NlA8ClEFUefrot8ycvrUPECUu_4DrazdekwBU_VRlB-y3ufRLv-r8wSPZngd4LgkGFvkxdPmlLhwavugVBBvyP9_hqUTX_WLzz8qWUPRjHUDyImXEoSZQxF1giZ-pHGWTxMJuUscKkGPIq7fPtX2oCTrr7ccwFG7D46TTtDjMtVn1BaJU3cmCQDhU_ZnMxmFKIIgTAg-CWAC3uIGqoB-q8JpCi7R63wfxWP56gnW4', canteen_id: 'c1' },
-    { id: 'm6', name: 'French Fries', price: 55.0, category: 'Snacks', is_available: 1, image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuAB3TTBoiGwnHWphH0hC6HciNZ7AgZ4S2gjD1QfqeTOWHtLa-07S49N818Y2bnhRSo8btHh_V6JaFIgsb45jllGG4xhXpC48Px3yxNKhiaOWn1R1PKIgJizFqw8j-aljJPNPlIZlPjzA2cFaOFTJE0WEKS1FkZWhiWJ-e3iFsp8JAUXPoVElmwYP7AjkDlo06aThkOn0NPXwiMC-cVB9_UqFGPdlsXhxlq930ohMNS79GIvjMKPXt0QuDAkDkOBAMje3r4KEXPjF7M', canteen_id: 'c1' },
-    { id: 'm7', name: 'Mango Lassi', price: 40.0, category: 'Beverages', is_available: 1, image: 'https://images.unsplash.com/photo-1553530666-ba11a7da3888?w=150&auto=format&fit=crop&q=60', canteen_id: 'c3' },
-    { id: 'm8', name: 'Chocolate Brownie', price: 45.0, category: 'Desserts', is_available: 1, image: 'https://images.unsplash.com/photo-1564355808539-22fda35bed7e?w=150&auto=format&fit=crop&q=60', canteen_id: 'c2' }
+    { id: 'm1', name: 'Paneer Tikka Roll', price: 80.0, category: 'Snacks', is_available: 1, image: null, canteen_id: 'c1' },
+    { id: 'm2', name: 'Cold Coffee', price: 50.0, category: 'Beverages', is_available: 1, image: null, canteen_id: 'c2' },
+    { id: 'm3', name: 'Cheese Veg Burger', price: 70.0, category: 'Snacks', is_available: 1, image: null, canteen_id: 'c1' },
+    { id: 'm4', name: 'Masala Dosa', price: 60.0, category: 'Meals', is_available: 1, image: null, canteen_id: 'c4' },
+    { id: 'm5', name: 'Samosa (2 pcs)', price: 20.0, category: 'Snacks', is_available: 1, image: null, canteen_id: 'c1' },
+    { id: 'm6', name: 'French Fries', price: 55.0, category: 'Snacks', is_available: 1, image: null, canteen_id: 'c1' },
+    { id: 'm7', name: 'Mango Lassi', price: 40.0, category: 'Beverages', is_available: 1, image: null, canteen_id: 'c3' },
+    { id: 'm8', name: 'Chocolate Brownie', price: 45.0, category: 'Desserts', is_available: 1, image: null, canteen_id: 'c2' }
   ];
 
   if (count === 0) {

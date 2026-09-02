@@ -6,7 +6,7 @@ export interface AuthenticatedUser {
   id: string;
   username: string;
   email?: string | null;
-  role: 'admin' | 'manager' | 'cook';
+  role: 'admin' | 'manager' | 'cook' | 'delivery';
   displayName: string;
   canteenId?: string | null;
   canteenName?: string | null;
@@ -42,7 +42,7 @@ export function authenticateToken(req: AuthenticatedRequest, res: Response, next
 export const requireAuth = authenticateToken;
 
 // Middleware to enforce specific role(s)
-export function requireRole(allowedRoles: Array<'admin' | 'manager' | 'cook'>) {
+export function requireRole(allowedRoles: Array<'admin' | 'manager' | 'cook' | 'delivery'>) {
   return (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
     if (!req.user) {
       return res.status(401).json({ error: 'Authentication required' });

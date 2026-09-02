@@ -205,7 +205,7 @@ export function StaffLogin() {
             </div>
             <h2 className="text-2xl font-black text-slate-900 tracking-tight">Shop Portal Login</h2>
             <p className="text-xs text-slate-500 mt-1 font-medium">
-              Kitchen Display System & Store Manager Gateway
+              Kitchen Display, Delivery & Store Manager Gateway
             </p>
           </div>
 
@@ -221,7 +221,7 @@ export function StaffLogin() {
               }`}
             >
               <ChefHat className="w-4 h-4" />
-              <span>Kitchen Cook</span>
+              <span>Cook / Delivery</span>
             </button>
 
             <button
@@ -372,16 +372,16 @@ export function StaffLogin() {
               </div>
             )}
 
-            {/* TAB 1: KITCHEN COOK ALPHANUMERIC PASSCODE */}
+            {/* TAB 1: COOK & DELIVERY ALPHANUMERIC PASSCODE */}
             {activeTab === 'cook' && (
               <div className="space-y-4 pt-1">
                 <div className="space-y-1.5">
                   <div className="flex items-center justify-between">
                     <label className="text-[11px] font-bold text-slate-600 uppercase tracking-wider block">
-                      Kitchen Passcode / PIN
+                      Kitchen / Delivery Passcode
                     </label>
                     <span className="text-[10px] font-bold text-indigo-600 bg-indigo-50 px-2 py-0.5 rounded-md">
-                      Alphanumeric (e.g. CHEF50)
+                      Alphanumeric (e.g. CHEF50, DELIV1)
                     </span>
                   </div>
                   
@@ -391,7 +391,7 @@ export function StaffLogin() {
                       type={showCookPin ? 'text' : 'password'}
                       required
                       autoComplete="off"
-                      placeholder="Enter Alphanumeric PIN (e.g. CHEF50)"
+                      placeholder="Enter Passcode (e.g. CHEF50 or DELIV1)"
                       value={pin}
                       onChange={e => setPin(e.target.value)}
                       className="w-full pl-10 pr-20 py-3.5 bg-slate-50 border border-slate-200 rounded-2xl text-sm font-mono font-black text-slate-900 tracking-wider focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all placeholder:text-xs placeholder:font-sans placeholder:font-normal placeholder:tracking-normal"
@@ -417,7 +417,7 @@ export function StaffLogin() {
                     </div>
                   </div>
                   <p className="text-[10px] text-slate-400 font-medium pt-0.5">
-                    Supports letters & numbers for enhanced kitchen security.
+                    Supports passcodes for kitchen cooks and delivery staff.
                   </p>
                 </div>
 
@@ -427,7 +427,7 @@ export function StaffLogin() {
                   disabled={isLoading || pin.trim().length < 3}
                   className="w-full mt-2 py-3.5 px-6 rounded-full bg-indigo-600 hover:bg-indigo-700 disabled:bg-slate-300 text-white font-black text-xs uppercase tracking-wider shadow-lg shadow-indigo-600/25 active:scale-[0.98] transition-all flex items-center justify-center gap-2 group"
                 >
-                  <span>{isLoading ? 'Verifying Passcode...' : 'Enter Kitchen Display (KDS)'}</span>
+                  <span>{isLoading ? 'Verifying Passcode...' : 'Enter Orders & Kitchen Terminal'}</span>
                   <div className="w-6 h-6 rounded-full bg-white/20 flex items-center justify-center group-hover:translate-x-0.5 transition-transform">
                     <ArrowRight className="w-3.5 h-3.5" />
                   </div>

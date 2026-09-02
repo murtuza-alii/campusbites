@@ -610,75 +610,66 @@ export function StudentView() {
                   return (
                     <SpotlightCard 
                       key={item.id} 
-                      className={`rounded-2xl sm:rounded-3xl overflow-hidden flex flex-col group transition-all border border-slate-200/90 shadow-sm ${
+                      className={`p-4 sm:p-5 rounded-2xl sm:rounded-3xl flex flex-col justify-between group transition-all border border-slate-200/90 shadow-xs bg-white ${
                         isAvailable 
-                          ? 'hover:border-indigo-500/40 hover:shadow-md' 
+                          ? 'hover:border-indigo-500/50 hover:shadow-md' 
                           : 'opacity-60 bg-slate-50'
                       }`}
                     >
-                      {item.image && (
-                        <div className="h-36 sm:h-44 overflow-hidden relative bg-slate-100">
-                          <img 
-                            src={item.image} 
-                            alt={item.name} 
-                            className={`w-full h-full object-cover transition-transform duration-500 ${
-                              isAvailable ? 'group-hover:scale-105 ease-out' : 'grayscale-[50%]'
-                            }`}
-                            loading="lazy"
-                          />
-                          <div className="absolute top-2.5 right-2.5">
-                            <span className="px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-white/90 backdrop-blur-md text-indigo-700 border border-white shadow-xs">
+                      <div className="space-y-3">
+                        <div className="flex items-start justify-between gap-2.5">
+                          <div className="flex items-center gap-2 min-w-0">
+                            <span className="w-3 h-3 rounded-xs border border-emerald-600 flex items-center justify-center shrink-0" title="Pure Veg">
+                              <span className="w-1.5 h-1.5 rounded-full bg-emerald-600"></span>
+                            </span>
+                            <span className="px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-indigo-50 text-indigo-700 border border-indigo-100 truncate">
                               {item.category}
                             </span>
                           </div>
-                        </div>
-                      )}
-                      <div className="p-3.5 sm:p-4 flex-1 flex flex-col justify-between gap-3">
-                        <div>
-                          <div className="flex justify-between items-start gap-2">
-                            <h3 className="font-black text-sm sm:text-base text-slate-900 leading-snug">{item.name}</h3>
-                            {!item.image && (
-                              <span className="px-2 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-indigo-50 text-indigo-700 border border-indigo-100 shrink-0">
-                                {item.category}
-                              </span>
-                            )}
-                          </div>
-                          <p className="text-base sm:text-lg font-black text-indigo-600 mt-1">₹{item.price}</p>
+                          <span className="text-base sm:text-lg font-black text-indigo-600 tracking-tight shrink-0">
+                            ₹{item.price}
+                          </span>
                         </div>
 
                         <div>
-                          {!isAvailable ? (
-                            <div className="w-full py-2 bg-slate-100 border border-slate-200 rounded-xl text-[11px] font-bold text-slate-400 text-center select-none uppercase tracking-wider">
-                              Out of Stock
-                            </div>
-                          ) : qty > 0 ? (
-                            <div className="flex items-center justify-between bg-slate-100 border border-slate-200 p-1 select-none rounded-xl">
-                              <button
-                                onClick={() => removeFromCart(item.id)}
-                                className="w-8 h-8 rounded-lg bg-white border border-slate-200 hover:bg-slate-50 flex items-center justify-center text-slate-700 font-bold active:scale-95 transition-all shadow-xs"
-                                aria-label="Decrease quantity"
-                              >
-                                <Minus className="w-3.5 h-3.5" />
-                              </button>
-                              <span className="font-black text-sm text-slate-900 w-8 text-center">{qty}</span>
-                              <button
-                                onClick={() => addToCart(item)}
-                                className="w-8 h-8 rounded-lg bg-indigo-600 text-white hover:bg-indigo-700 flex items-center justify-center font-bold active:scale-95 transition-all shadow-xs"
-                                aria-label="Increase quantity"
-                              >
-                                <Plus className="w-3.5 h-3.5" />
-                              </button>
-                            </div>
-                          ) : (
+                          <h3 className="font-black text-sm sm:text-base text-slate-900 leading-snug group-hover:text-indigo-600 transition-colors">
+                            {item.name}
+                          </h3>
+                        </div>
+                      </div>
+
+                      <div className="pt-3.5 mt-2 border-t border-slate-100/90">
+                        {!isAvailable ? (
+                          <div className="w-full py-2 bg-slate-100 border border-slate-200 rounded-xl text-[11px] font-bold text-slate-400 text-center select-none uppercase tracking-wider">
+                            Out of Stock
+                          </div>
+                        ) : qty > 0 ? (
+                          <div className="flex items-center justify-between bg-slate-100 border border-slate-200 p-1 select-none rounded-xl">
+                            <button
+                              onClick={() => removeFromCart(item.id)}
+                              className="w-8 h-8 rounded-lg bg-white border border-slate-200 hover:bg-slate-50 flex items-center justify-center text-slate-700 font-bold active:scale-95 transition-all shadow-xs"
+                              aria-label="Decrease quantity"
+                            >
+                              <Minus className="w-3.5 h-3.5" />
+                            </button>
+                            <span className="font-black text-sm text-slate-900 w-8 text-center">{qty}</span>
                             <button
                               onClick={() => addToCart(item)}
-                              className="w-full py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-black text-xs flex items-center justify-center gap-1.5 shadow-md shadow-indigo-600/20 active:scale-[0.98] transition-all"
+                              className="w-8 h-8 rounded-lg bg-indigo-600 text-white hover:bg-indigo-700 flex items-center justify-center font-bold active:scale-95 transition-all shadow-xs"
+                              aria-label="Increase quantity"
                             >
-                              <ShoppingBag className="w-3.5 h-3.5" />
-                              <span>Add to Order</span>
+                              <Plus className="w-3.5 h-3.5" />
                             </button>
-                          )}
-                        </div>
+                          </div>
+                        ) : (
+                          <button
+                            onClick={() => addToCart(item)}
+                            className="w-full py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-black text-xs flex items-center justify-center gap-1.5 shadow-sm shadow-indigo-600/20 active:scale-[0.98] transition-all"
+                          >
+                            <ShoppingBag className="w-3.5 h-3.5" />
+                            <span>Add to Order</span>
+                          </button>
+                        )}
                       </div>
                     </SpotlightCard>
                   );

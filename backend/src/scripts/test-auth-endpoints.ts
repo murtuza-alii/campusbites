@@ -41,8 +41,19 @@ async function testAuth() {
   if (decodedCook.role !== 'cook') throw new Error(`Expected cook role, got ${decodedCook.role}`);
   console.log('✔ Cook Alphanumeric PIN login verified. Token payload:', { role: decodedCook.role, canteenId: decodedCook.canteenId, displayName: decodedCook.displayName });
 
-  // 4. Test Invalid PIN
-  console.log('4. Testing Invalid Cook PIN (Should fail)...');
+  // 4. Test Delivery Guy Login (Canteen + Alphanumeric Passcode)
+  console.log('4. Testing Delivery Agent Login with Passcode (DELIV1)...');
+  const delivToken = await authService.login({ 
+    canteen_slug: 'mithibai-canteen-a', 
+    pin: 'DELIV1' 
+  });
+  if (!delivToken) throw new Error('Delivery Agent passcode login failed');
+  const decodedDeliv: any = jwt.verify(delivToken, config.auth.jwtSecret);
+  if (decodedDeliv.role !== 'delivery') throw new Error(`Expected delivery role, got ${decodedDeliv.role}`);
+  console.log('✔ Delivery Agent PIN login verified. Token payload:', { role: decodedDeliv.role, canteenId: decodedDeliv.canteenId, displayName: decodedDeliv.displayName });
+
+  // 5. Test Invalid PIN
+  console.log('5. Testing Invalid Staff PIN (Should fail)...');
   const invalidCookToken = await authService.login({ 
     canteen_slug: 'mithibai-canteen-a', 
     pin: '9999' 
@@ -50,8 +61,8 @@ async function testAuth() {
   if (invalidCookToken !== null) throw new Error('Expected invalid PIN to fail but got token');
   console.log('✔ Invalid PIN correctly rejected with null.');
 
-  // 5. Test Invalid Admin Password
-  console.log('5. Testing Invalid Admin Password (Should fail)...');
+  // 6. Test Invalid Admin Password
+  console.log('6. Testing Invalid Admin Password (Should fail)...');
   const invalidAdminToken = await authService.login({ 
     email: 'admin@campusbites.com', 
     password: 'wrongpassword' 

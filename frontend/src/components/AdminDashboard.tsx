@@ -16,6 +16,7 @@ import {
   AlertCircle, 
   ShieldCheck, 
   ChefHat, 
+  Bike,
   ExternalLink,
   Layers,
   User,
@@ -47,7 +48,7 @@ interface StaffUser {
   id: string;
   username: string;
   email: string | null;
-  role: 'admin' | 'manager' | 'cook';
+  role: 'admin' | 'manager' | 'cook' | 'delivery';
   displayName: string;
   canteenId: string | null;
   canteenName: string | null;
@@ -89,7 +90,7 @@ export function AdminDashboard() {
   const [isSavingCredentials, setIsSavingCredentials] = useState<boolean>(false);
 
   const [isAddStaffOpen, setIsAddStaffOpen] = useState<boolean>(false);
-  const [addStaffRole, setAddStaffRole] = useState<'manager' | 'cook'>('cook');
+  const [addStaffRole, setAddStaffRole] = useState<'manager' | 'cook' | 'delivery'>('cook');
   const [addStaffName, setAddStaffName] = useState<string>('');
   const [addStaffCanteenId, setAddStaffCanteenId] = useState<string>('');
   const [addStaffEmail, setAddStaffEmail] = useState<string>('');
@@ -116,7 +117,7 @@ export function AdminDashboard() {
     }
 
     setAdminProfile(decoded);
-  }, [navigate]);
+  }, []);
 
   // 2. Fetch Metrics & Data
   const fetchData = useCallback(async (showRefreshing = false) => {
@@ -191,11 +192,10 @@ export function AdminDashboard() {
     return () => clearInterval(interval);
   }, [fetchData]);
 
-  // Handle Staff Credential Update (Cook PIN or Manager Password)
+  // Handle Staff Credential Update (Cook/Delivery PIN or Manager Password)
   const handleUpdateCredentials = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!editingStaff) return;
-
     const token = getAuthToken();
     setIsSavingCredentials(true);
     setError('');
@@ -203,9 +203,9 @@ export function AdminDashboard() {
 
     try {
       const payload: any = {};
-      if (editingStaff.role === 'cook') {
+      if (editingStaff.role === 'cook' || editingStaff.role === 'delivery') {
         if (!newPin || newPin.trim().length < 3) {
-          throw new Error('Cook alphanumeric passcode must be at least 3 characters');
+          throw new Error('Cook / Delivery alphanumeric passcode must be at least 3 characters');
         }
         payload.pin = newPin.trim();
       } else {
@@ -266,7 +266,7 @@ export function AdminDashboard() {
         payload.password = addStaffPassword;
       } else {
         if (!addStaffPin || addStaffPin.trim().length < 3) {
-          throw new Error('An alphanumeric passcode of at least 3 characters is required for Kitchen Cooks');
+          throw new Error('An alphanumeric passcode of at least 3 characters is required for Cook and Delivery accounts');
         }
         payload.pin = addStaffPin.trim();
       }
@@ -637,6 +637,7 @@ export function AdminDashboard() {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-4">
             {staffList.map((staff) => {
               const isCook = staff.role === 'cook';
+              const isDelivery = staff.role === 'delivery';
               const isAdmin = staff.role === 'admin';
 
               return (
@@ -648,9 +649,10 @@ export function AdminDashboard() {
                     <div className={`w-11 h-11 rounded-2xl flex items-center justify-center shrink-0 ${
                       isAdmin ? 'bg-amber-100 text-amber-800' :
                       isCook ? 'bg-orange-100 text-orange-800' :
+                      isDelivery ? 'bg-emerald-100 text-emerald-800' :
                       'bg-indigo-100 text-indigo-800'
                     }`}>
-                      {isAdmin ? <Crown className="w-5 h-5" /> : isCook ? <ChefHat className="w-5 h-5" /> : <ShieldCheck className="w-5 h-5" />}
+                      {isAdmin ? <Crown className="w-5 h-5" /> : isCook ? <ChefHat className="w-5 h-5" /> : isDelivery ? <Bike className="w-5 h-5" /> : <ShieldCheck className="w-5 h-5" />}
                     </div>
 
                     <div className="min-w-0">
@@ -659,6 +661,7 @@ export function AdminDashboard() {
                         <span className={`text-[9px] font-black uppercase tracking-wider px-2 py-0.5 rounded-full ${
                           isAdmin ? 'bg-amber-50 text-amber-700 border border-amber-200' :
                           isCook ? 'bg-orange-50 text-orange-700 border border-orange-200' :
+                          isDelivery ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' :
                           'bg-indigo-50 text-indigo-700 border border-indigo-200'
                         }`}>
                           {staff.role}
@@ -685,7 +688,7 @@ export function AdminDashboard() {
                       className="px-3 py-2 bg-slate-50 hover:bg-slate-100 active:scale-95 border border-slate-200 rounded-xl text-xs font-bold text-slate-700 transition-all flex items-center gap-1.5 shrink-0"
                     >
                       <KeyRound className="w-3.5 h-3.5 text-indigo-600" />
-                      <span>{isCook ? 'Reset PIN' : 'Change Pass'}</span>
+                      <span>{isCook || isDelivery ? 'Reset PIN' : 'Change Pass'}</span>
                     </button>
                   )}
                 </div>
@@ -748,7 +751,7 @@ export function AdminDashboard() {
               <div className="flex items-center gap-2">
                 <KeyRound className="w-5 h-5 text-indigo-600" />
                 <h3 className="text-base font-black text-slate-900">
-                  {editingStaff.role === 'cook' ? 'Reset Kitchen Cook PIN' : 'Update Manager Password'}
+                  {editingStaff.role === 'cook' ? 'Reset Kitchen Cook PIN' : editingStaff.role === 'delivery' ? 'Reset Delivery PIN' : 'Update Manager Password'}
                 </h3>
               </div>
               <button onClick={() => setEditingStaff(null)}><X className="w-5 h-5 text-slate-400" /></button>
@@ -759,7 +762,7 @@ export function AdminDashboard() {
             </p>
 
             <form onSubmit={handleUpdateCredentials} className="space-y-4">
-              {editingStaff.role === 'cook' ? (
+              {editingStaff.role === 'cook' || editingStaff.role === 'delivery' ? (
                 <div className="space-y-1.5">
                   <label className="text-[11px] font-bold text-slate-600 uppercase tracking-wider block">
                     New Alphanumeric Passcode / PIN
@@ -767,12 +770,12 @@ export function AdminDashboard() {
                   <input
                     type="text"
                     required
-                    placeholder="e.g. CHEF50"
+                    placeholder={editingStaff.role === 'cook' ? 'e.g. CHEF50' : 'e.g. DELIV1'}
                     value={newPin}
                     onChange={e => setNewPin(e.target.value)}
                     className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-2xl text-center text-lg font-mono font-black text-slate-900 tracking-widest focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500 uppercase placeholder:normal-case placeholder:font-normal placeholder:text-sm placeholder:tracking-normal"
                   />
-                  <p className="text-[10px] text-slate-400 font-medium">Supports letters & numbers (e.g. CHEF50, KITCHEN1, 4812).</p>
+                  <p className="text-[10px] text-slate-400 font-medium">Supports letters & numbers (e.g. CHEF50, DELIV1, 4812).</p>
                 </div>
               ) : (
                 <div className="space-y-1.5">
@@ -816,25 +819,34 @@ export function AdminDashboard() {
 
             <form onSubmit={handleCreateStaff} className="space-y-3.5">
               
-              {/* Role Picker */}
-              <div className="grid grid-cols-2 gap-2 p-1 bg-slate-100 rounded-2xl">
+              {/* 3-Way Role Picker */}
+              <div className="grid grid-cols-3 gap-1.5 p-1 bg-slate-100 rounded-2xl">
                 <button
                   type="button"
                   onClick={() => setAddStaffRole('cook')}
-                  className={`py-2 rounded-xl text-xs font-black transition-all ${
+                  className={`py-2 px-1 rounded-xl text-[11px] font-black transition-all ${
                     addStaffRole === 'cook' ? 'bg-white text-indigo-600 shadow-sm' : 'text-slate-600'
                   }`}
                 >
-                  Kitchen Cook (Passcode)
+                  Cook
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setAddStaffRole('delivery')}
+                  className={`py-2 px-1 rounded-xl text-[11px] font-black transition-all ${
+                    addStaffRole === 'delivery' ? 'bg-white text-indigo-600 shadow-sm' : 'text-slate-600'
+                  }`}
+                >
+                  Delivery
                 </button>
                 <button
                   type="button"
                   onClick={() => setAddStaffRole('manager')}
-                  className={`py-2 rounded-xl text-xs font-black transition-all ${
+                  className={`py-2 px-1 rounded-xl text-[11px] font-black transition-all ${
                     addStaffRole === 'manager' ? 'bg-white text-indigo-600 shadow-sm' : 'text-slate-600'
                   }`}
                 >
-                  Store Manager
+                  Manager
                 </button>
               </div>
 
@@ -844,7 +856,7 @@ export function AdminDashboard() {
                 <input
                   type="text"
                   required
-                  placeholder="e.g. Chef Ramesh or Manager Rahul"
+                  placeholder="e.g. Chef Ramesh or Delivery Raju"
                   value={addStaffName}
                   onChange={e => setAddStaffName(e.target.value)}
                   className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold"
@@ -865,13 +877,13 @@ export function AdminDashboard() {
                 </select>
               </div>
 
-              {addStaffRole === 'cook' ? (
+              {addStaffRole === 'cook' || addStaffRole === 'delivery' ? (
                 <div className="space-y-1">
                   <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider block">Alphanumeric Passcode / PIN</label>
                   <input
                     type="text"
                     required
-                    placeholder="e.g. CHEF50"
+                    placeholder={addStaffRole === 'cook' ? 'e.g. CHEF50' : 'e.g. DELIV1'}
                     value={addStaffPin}
                     onChange={e => setAddStaffPin(e.target.value)}
                     className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-mono font-bold text-center uppercase placeholder:normal-case placeholder:font-sans"
