@@ -6,6 +6,8 @@ import { StaffView } from './components/StaffView';
 import { StaffLogin } from './components/StaffLogin';
 import { StaffOrders } from './components/StaffOrders';
 import { StaffMenu } from './components/StaffMenu';
+import { AdminLogin } from './components/AdminLogin';
+import { AdminDashboard } from './components/AdminDashboard';
 import { SmoothCursor } from './components/ui/SmoothCursor';
 import { InteractiveBackground } from './components/ui/InteractiveBackground';
 import { ServerWarmupBanner } from './components/ServerWarmupBanner';
@@ -20,8 +22,8 @@ export default function App() {
   const [userRole, setUserRole] = useState<string | null>(null);
 
   useEffect(() => {
-    // Check if staff token exists in localStorage
-    const token = localStorage.getItem('staffToken');
+    // Check if staff or admin token exists in localStorage
+    const token = localStorage.getItem('adminToken') || localStorage.getItem('staffToken');
     setIsStaffLoggedIn(!!token);
     if (token) {
       const decoded = decodeToken(token);
@@ -33,6 +35,7 @@ export default function App() {
 
   const handleLogout = () => {
     localStorage.removeItem('staffToken');
+    localStorage.removeItem('adminToken');
     setIsStaffLoggedIn(false);
     setUserRole(null);
     navigate('/');
@@ -126,6 +129,15 @@ export default function App() {
                 <Utensils className="w-3.5 h-3.5 text-indigo-600" />
                 <span>Mithibai Campus Menu</span>
               </Link>
+              {userRole === 'admin' && (
+                <Link
+                  to="/admin"
+                  className="flex items-center gap-1.5 px-3 py-1.5 sm:px-4 sm:py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-full text-xs font-bold transition-all active:scale-95 shadow-sm shrink-0"
+                >
+                  <ShieldCheck className="w-3.5 h-3.5 text-amber-300" />
+                  <span>Admin Center</span>
+                </Link>
+              )}
               <Link
                 to="/staff"
                 className="flex items-center gap-1.5 px-3 py-1.5 sm:px-4 sm:py-2 bg-slate-900 hover:bg-black text-white rounded-full text-xs font-bold transition-all active:scale-95 shadow-sm shrink-0"
@@ -153,6 +165,10 @@ export default function App() {
           <Route path="/staff/login/:slug" element={<StaffLogin />} />
           <Route path="/c/:slug/staff/login" element={<StaffLogin />} />
           <Route path="/canteen/:slug/staff/login" element={<StaffLogin />} />
+
+          {/* Super Admin Executive Portal Routes */}
+          <Route path="/admin/login" element={<AdminLogin />} />
+          <Route path="/admin" element={<AdminDashboard />} />
 
           {/* Legal, Customer Policies & Contact Routes for Payment Gateway Compliance */}
           <Route path="/terms" element={<LegalPolicies initialTab="terms" />} />

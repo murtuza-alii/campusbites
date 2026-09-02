@@ -1,6 +1,8 @@
 export interface DecodedToken {
   id: string;
   username: string;
+  email?: string | null;
+  displayName?: string | null;
   role: 'cook' | 'manager' | 'admin';
   canteenId: string | null;
   canteenName?: string | null;
