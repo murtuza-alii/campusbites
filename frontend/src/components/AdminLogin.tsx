@@ -33,11 +33,13 @@ export function AdminLogin() {
     setIsLoading(true);
 
     try {
+      const isEmail = email.includes('@');
       const res = await fetch(`${API_BASE_URL}/api/auth/login`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          email: email.trim(),
+          email: isEmail ? email.trim() : undefined,
+          username: !isEmail ? email.trim() : undefined,
           password: password
         })
       });
@@ -101,20 +103,20 @@ export function AdminLogin() {
 
           {/* Form Content */}
           <form onSubmit={handleLogin} className="space-y-4 relative z-10">
-            {/* Email Input */}
+            {/* Email / Username Input */}
             <div className="space-y-1.5">
               <label className="text-[11px] font-bold text-slate-400 uppercase tracking-wider block">
-                Master Admin Email
+                Master Admin Email / Username
               </label>
               <div className="relative">
                 <Mail className="w-4 h-4 text-slate-500 absolute left-3.5 top-1/2 -translate-y-1/2" />
                 <input
-                  type="email"
+                  type="text"
                   required
-                  placeholder="admin@campusbites.com"
+                  placeholder="admin@campusbites.com or admin"
                   value={email}
                   onChange={e => setEmail(e.target.value)}
-                  className="w-full pl-10 pr-4 py-3 bg-slate-900/90 border border-slate-800 rounded-2xl text-xs font-bold text-white placeholder:text-slate-600 focus:bg-slate-900 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all"
+                  className="w-full pl-10 pr-4 py-3 bg-slate-900 border border-slate-800 rounded-2xl text-xs font-bold text-white focus:bg-slate-900/90 focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all placeholder:text-slate-600"
                 />
               </div>
             </div>
