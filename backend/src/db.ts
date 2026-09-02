@@ -118,16 +118,23 @@ export async function initDb(): Promise<void> {
   }
 
 
-  try {
-    await db.query('ALTER TABLE users ADD COLUMN IF NOT EXISTS email TEXT UNIQUE');
-    await db.query('ALTER TABLE users ADD COLUMN IF NOT EXISTS pin_hash TEXT');
-    await db.query('ALTER TABLE users ADD COLUMN IF NOT EXISTS display_name TEXT DEFAULT \'Staff Member\'');
-    await db.query('ALTER TABLE users ADD COLUMN IF NOT EXISTS created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()');
-    await db.query('ALTER TABLE users ADD COLUMN IF NOT EXISTS updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()');
-    await db.query('CREATE INDEX IF NOT EXISTS idx_users_canteen_role ON users(canteen_id, role)');
-    await db.query('CREATE INDEX IF NOT EXISTS idx_users_email ON users(email)');
-  } catch (e) {
-    console.log('Could not alter users table or create users indexes');
+  const userAlterQueries = [
+    'ALTER TABLE users ADD COLUMN IF NOT EXISTS email TEXT UNIQUE',
+    'ALTER TABLE users ADD COLUMN IF NOT EXISTS pin_hash TEXT',
+    'ALTER TABLE users ADD COLUMN IF NOT EXISTS display_name TEXT DEFAULT \'Staff Member\'',
+    'ALTER TABLE users ADD COLUMN IF NOT EXISTS created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()',
+    'ALTER TABLE users ADD COLUMN IF NOT EXISTS updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()',
+    'ALTER TABLE users ALTER COLUMN password_hash DROP NOT NULL',
+    'CREATE INDEX IF NOT EXISTS idx_users_canteen_role ON users(canteen_id, role)',
+    'CREATE INDEX IF NOT EXISTS idx_users_email ON users(email)'
+  ];
+
+  for (const q of userAlterQueries) {
+    try {
+      await db.query(q);
+    } catch (e) {
+      // ignore if already present or applied
+    }
   }
 
   // Create restaurant partner registrations table
