@@ -5,7 +5,9 @@ import { OrderRepository } from '../repositories/OrderRepository.js';
 import { MenuController } from '../controllers/MenuController.js';
 import { MenuService } from '../services/MenuService.js';
 import { MenuRepository } from '../repositories/MenuRepository.js';
-import { authenticateToken } from '../middleware/authMiddleware.js';
+import { AdminController } from '../controllers/AdminController.js';
+import { AdminService } from '../services/AdminService.js';
+import { authenticateToken, requireRole } from '../middleware/authMiddleware.js';
 import { validateBody } from '../middleware/validationMiddleware.js';
 import { updateOrderStatusSchema } from '../validators/order.schema.js';
 import { createMenuItemSchema, updateMenuItemSchema } from '../validators/menu.schema.js';
@@ -22,17 +24,88 @@ const menuRepository = new MenuRepository();
 const menuService = new MenuService(menuRepository);
 const menuController = new MenuController(menuService);
 
-// Apply auth middleware to all routes in this router
+const adminService = new AdminService();
+const adminController = new AdminController(adminService);
+
+// Apply base authentication to all admin router routes
 router.use(authenticateToken);
 
-// Order admin endpoints
-router.get('/orders', asyncErrorWrapper((req, res) => orderController.getAllOrders(req, res)));
-router.patch('/orders/:id/status', validateBody(updateOrderStatusSchema), asyncErrorWrapper((req, res) => orderController.updateOrderStatus(req, res)));
+// ==============================================================================
+// 1. Super Admin Executive Command Center Endpoints (Strictly 'admin' Role)
+// ==============================================================================
+router.get(
+  '/overview', 
+  requireRole(['admin']), 
+  asyncErrorWrapper((req, res) => adminController.getOverview(req, res))
+);
 
-// Menu admin endpoints
-router.get('/menu', asyncErrorWrapper((req, res) => menuController.getAdminMenu(req, res)));
-router.post('/menu', validateBody(createMenuItemSchema), asyncErrorWrapper((req, res) => menuController.addMenuItem(req, res)));
-router.put('/menu/:id', validateBody(updateMenuItemSchema), asyncErrorWrapper((req, res) => menuController.editMenuItem(req, res)));
-router.delete('/menu/:id', asyncErrorWrapper((req, res) => menuController.deleteMenuItem(req, res)));
+router.get(
+  '/orders-global', 
+  requireRole(['admin']), 
+  asyncErrorWrapper((req, res) => adminController.getAllOrdersGlobal(req, res))
+);
+
+router.get(
+  '/staff', 
+  requireRole(['admin']), 
+  asyncErrorWrapper((req, res) => adminController.getStaffList(req, res))
+);
+
+router.post(
+  '/staff', 
+  requireRole(['admin']), 
+  asyncErrorWrapper((req, res) => adminController.createStaffUser(req, res))
+);
+
+router.patch(
+  '/staff/:id', 
+  requireRole(['admin']), 
+  asyncErrorWrapper((req, res) => adminController.updateStaffCredentials(req, res))
+);
+
+// ==============================================================================
+// 2. Order Processing Endpoints (Admin, Store Managers & Cooks)
+// ==============================================================================
+router.get(
+  '/orders', 
+  requireRole(['admin', 'manager', 'cook']), 
+  asyncErrorWrapper((req, res) => orderController.getAllOrders(req, res))
+);
+
+router.patch(
+  '/orders/:id/status', 
+  requireRole(['admin', 'manager', 'cook']), 
+  validateBody(updateOrderStatusSchema), 
+  asyncErrorWrapper((req, res) => orderController.updateOrderStatus(req, res))
+);
+
+// ==============================================================================
+// 3. Menu Management Endpoints (Admin & Store Managers)
+// ==============================================================================
+router.get(
+  '/menu', 
+  requireRole(['admin', 'manager']), 
+  asyncErrorWrapper((req, res) => menuController.getAdminMenu(req, res))
+);
+
+router.post(
+  '/menu', 
+  requireRole(['admin', 'manager']), 
+  validateBody(createMenuItemSchema), 
+  asyncErrorWrapper((req, res) => menuController.addMenuItem(req, res))
+);
+
+router.put(
+  '/menu/:id', 
+  requireRole(['admin', 'manager']), 
+  validateBody(updateMenuItemSchema), 
+  asyncErrorWrapper((req, res) => menuController.editMenuItem(req, res))
+);
+
+router.delete(
+  '/menu/:id', 
+  requireRole(['admin', 'manager']), 
+  asyncErrorWrapper((req, res) => menuController.deleteMenuItem(req, res))
+);
 
 export default router;
