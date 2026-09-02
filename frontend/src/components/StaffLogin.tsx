@@ -5,7 +5,6 @@ import {
   ChefHat, 
   ShieldCheck, 
   Lock, 
-  Building2, 
   ArrowRight, 
   Delete,
   Mail,
@@ -48,7 +47,6 @@ export function StaffLogin() {
 
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const [isFetchingCanteens, setIsFetchingCanteens] = useState(true);
   const navigate = useNavigate();
 
   // 1. Fetch available outlets
@@ -73,8 +71,6 @@ export function StaffLogin() {
         }
       } catch (err) {
         console.error('Failed to load canteens', err);
-      } finally {
-        setIsFetchingCanteens(false);
       }
     }
     loadCanteens();
