@@ -4,7 +4,6 @@ import {
   X, 
   RefreshCw, 
   Coffee, 
-  ShieldAlert, 
   Store, 
   Building2, 
   ArrowLeft, 
@@ -78,15 +77,37 @@ export function StudentView() {
   const [selectedCanteenId, setSelectedCanteenId] = useState<string>('');
   const [isLoadingCanteens, setIsLoadingCanteens] = useState<boolean>(true);
 
-  // Fetch Canteens from Server
+  // Helper for auto-retry on server cold start / wake-up
+  const fetchWithRetry = async (url: string, retries = 8, delayMs = 2000): Promise<any> => {
+    let lastError: any = null;
+    for (let attempt = 1; attempt <= retries; attempt++) {
+      try {
+        const res = await fetch(url);
+        if (res.ok) {
+          return await res.json();
+        }
+        if (res.status === 404) {
+          throw new Error('Resource not found');
+        }
+      } catch (err: any) {
+        lastError = err;
+        if (err.message === 'Resource not found') throw err;
+      }
+      if (attempt < retries) {
+        await new Promise(r => setTimeout(r, delayMs));
+      }
+    }
+    throw lastError || new Error('Server connection timed out');
+  };
+
+  // Fetch Canteens from Server with auto-recovery
   const fetchCanteens = async () => {
     try {
       setServerError('');
       setIsLoadingCanteens(true);
       if (slug) {
-        const response = await fetch(`${API_BASE_URL}/api/canteens/by-slug/${slug}`);
-        if (response.ok) {
-          const data = await response.json();
+        const data = await fetchWithRetry(`${API_BASE_URL}/api/canteens/by-slug/${slug}`);
+        if (data?.canteen) {
           setCurrentCanteen(data.canteen);
           setSisterCanteens(data.sisterCanteens || [data.canteen]);
           setSelectedCanteenId(data.canteen.id);
@@ -94,46 +115,38 @@ export function StudentView() {
           setServerError('Requested diner or canteen was not found.');
         }
       } else {
-        const response = await fetch(`${API_BASE_URL}/api/canteens`);
-        if (response.ok) {
-          const data = await response.json();
-          if (data.length > 0) {
-            const first = data[0];
-            setCurrentCanteen(first);
-            setSelectedCanteenId(first.id);
-            if (first.group_name) {
-              setSisterCanteens(data.filter((c: any) => c.group_name === first.group_name));
-            } else {
-              setSisterCanteens([first]);
-            }
+        const data = await fetchWithRetry(`${API_BASE_URL}/api/canteens`);
+        if (Array.isArray(data) && data.length > 0) {
+          const first = data[0];
+          setCurrentCanteen(first);
+          setSelectedCanteenId(first.id);
+          if (first.group_name) {
+            setSisterCanteens(data.filter((c: any) => c.group_name === first.group_name));
+          } else {
+            setSisterCanteens([first]);
           }
         } else {
-          setServerError('Failed to load canteens.');
+          setServerError('No canteens available.');
         }
       }
     } catch (err: any) {
-      setServerError(`Connection Error: ${err?.message || String(err)}`);
+      setServerError(`Connection issue: Cloud server is warming up.`);
     } finally {
       setIsLoadingCanteens(false);
     }
   };
 
-  // Fetch Menu from Server
+  // Fetch Menu from Server with auto-recovery
   const fetchMenu = async (canteenId?: string) => {
     const id = canteenId || selectedCanteenId;
     if (!id) return;
     try {
       setServerError('');
       setIsLoadingMenu(true);
-      const response = await fetch(`${API_BASE_URL}/api/menu?canteenId=${id}`);
-      if (response.ok) {
-        const data = await response.json();
-        setMenu(data);
-      } else {
-        setServerError('Failed to load canteen menu.');
-      }
+      const data = await fetchWithRetry(`${API_BASE_URL}/api/menu?canteenId=${id}`);
+      setMenu(data);
     } catch (err: any) {
-      setServerError(`Connection Error: ${err?.message || String(err)}`);
+      setServerError(`Connection issue: Could not load items.`);
     } finally {
       setIsLoadingMenu(false);
     }
@@ -155,6 +168,14 @@ export function StudentView() {
   useEffect(() => {
     fetchCanteens();
   }, [slug]);
+
+  useEffect(() => {
+    const handleServerReady = () => {
+      fetchCanteens();
+    };
+    window.addEventListener('serverReady', handleServerReady);
+    return () => window.removeEventListener('serverReady', handleServerReady);
+  }, []);
 
   useEffect(() => {
     if (selectedCanteenId) {
@@ -460,9 +481,20 @@ export function StudentView() {
       </div>
 
       {serverError && (
-        <div className="flex items-center gap-2 px-3.5 py-2.5 bg-rose-50 border border-rose-200 text-rose-700 rounded-2xl text-xs font-bold animate-pulse self-start">
-          <ShieldAlert className="w-4 h-4 shrink-0 text-rose-600" />
-          <span>{serverError}</span>
+        <div className="flex items-center justify-between gap-3 p-3.5 bg-amber-50 border border-amber-200 text-amber-900 rounded-2xl text-xs font-bold shadow-xs">
+          <div className="flex items-center gap-2">
+            <RefreshCw className="w-4 h-4 text-amber-600 animate-spin shrink-0" />
+            <span>Connecting to cloud server... items will appear automatically.</span>
+          </div>
+          <button
+            onClick={() => {
+              fetchCanteens();
+              if (selectedCanteenId) fetchMenu(selectedCanteenId);
+            }}
+            className="px-3 py-1 bg-amber-600 text-white rounded-xl text-xs font-bold hover:bg-amber-700 transition-all shrink-0 shadow-xs"
+          >
+            Retry Now
+          </button>
         </div>
       )}
 
@@ -473,9 +505,15 @@ export function StudentView() {
             
             {/* Canteen Header / Sister Outlets Switcher */}
             {isLoadingCanteens ? (
-              <div className="flex items-center gap-2 text-slate-400 py-3 text-xs font-semibold">
-                <RefreshCw className="w-4 h-4 animate-spin text-indigo-600" />
-                <span>Loading dining options...</span>
+              <div className="h-18 bg-white rounded-2xl border border-slate-200/80 p-3.5 sm:p-4 flex items-center justify-between animate-pulse shadow-xs">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-xl bg-slate-200"></div>
+                  <div className="space-y-2">
+                    <div className="h-3.5 bg-slate-200 rounded-md w-28 sm:w-40"></div>
+                    <div className="h-2.5 bg-slate-200 rounded-md w-36 sm:w-56"></div>
+                  </div>
+                </div>
+                <div className="h-7 w-20 bg-slate-100 rounded-full hidden sm:block"></div>
               </div>
             ) : sisterCanteens.length > 1 ? (
               <div className="space-y-3">
@@ -592,9 +630,22 @@ export function StudentView() {
 
             {/* Food Menu Items Grid */}
             {isLoadingMenu ? (
-              <div className="flex-1 flex flex-col items-center justify-center py-16 text-slate-400 gap-3">
-                <RefreshCw className="w-7 h-7 animate-spin text-indigo-600" />
-                <span className="text-xs font-bold">Loading delicious items...</span>
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3.5 sm:gap-5">
+                {[1, 2, 3, 4, 5, 6].map((n) => (
+                  <div key={n} className="p-4 sm:p-5 rounded-2xl sm:rounded-3xl border border-slate-200/80 bg-white shadow-xs space-y-4 animate-pulse">
+                    <div className="flex justify-between items-center">
+                      <div className="h-4 bg-slate-200 rounded-full w-20"></div>
+                      <div className="h-5 bg-slate-200 rounded-md w-12"></div>
+                    </div>
+                    <div className="space-y-2 py-1">
+                      <div className="h-4 bg-slate-200 rounded-md w-3/4"></div>
+                      <div className="h-3 bg-slate-100 rounded-md w-1/2"></div>
+                    </div>
+                    <div className="pt-3 border-t border-slate-100">
+                      <div className="h-10 bg-slate-100 rounded-xl w-full"></div>
+                    </div>
+                  </div>
+                ))}
               </div>
             ) : filteredMenu.length === 0 ? (
               <div className="flex-1 flex flex-col items-center justify-center py-16 text-slate-400 text-center bg-white border border-slate-200/80 rounded-3xl p-6">

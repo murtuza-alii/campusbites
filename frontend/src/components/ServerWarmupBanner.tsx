@@ -28,6 +28,7 @@ export function ServerWarmupBanner() {
 
         if (res.ok) {
           setLatency(elapsed);
+          window.dispatchEvent(new CustomEvent('serverReady'));
           if (elapsed > 1800) {
             // Was warming up, show success then fade
             setStatus('ready');
