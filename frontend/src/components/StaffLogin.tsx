@@ -7,7 +7,7 @@ import {
   ShieldCheck, 
   Lock, 
   ArrowRight, 
-  Mail, 
+  User,
   Eye, 
   EyeOff, 
   CheckCircle2, 
@@ -53,8 +53,8 @@ export function StaffLogin() {
   const [pin, setPin] = useState('');
   const [showCookPin, setShowCookPin] = useState(false);
 
-  // Store Manager Mode Credentials
-  const [managerEmail, setManagerEmail] = useState('');
+  // Store Manager Mode Credentials (Username + Password)
+  const [managerUsername, setManagerUsername] = useState('');
   const [managerPassword, setManagerPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
 
@@ -151,12 +151,12 @@ export function StaffLogin() {
         role: 'cook'
       };
     } else {
-      if (!managerEmail || !managerPassword) {
-        setError('Please enter your Store Manager email & password');
+      if (!managerUsername || !managerPassword) {
+        setError('Please enter your Outlet Manager username & password');
         return;
       }
       payload = {
-        email: managerEmail.trim(),
+        username: managerUsername.trim(),
         password: managerPassword
       };
     }
@@ -435,25 +435,28 @@ export function StaffLogin() {
               </div>
             )}
 
-            {/* TAB 2: STORE MANAGER EMAIL & PASSWORD */}
+            {/* TAB 2: STORE MANAGER USERNAME & PASSWORD */}
             {activeTab === 'manager' && (
               <div className="space-y-4">
-                {/* Email Input */}
+                {/* Username Input */}
                 <div className="space-y-1.5">
                   <label className="text-[11px] font-bold text-slate-600 uppercase tracking-wider block">
-                    Manager Email
+                    Manager Username
                   </label>
                   <div className="relative">
-                    <Mail className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
+                    <User className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
                     <input
-                      type="email"
+                      type="text"
                       required
-                      placeholder="manager@heritage50.com"
-                      value={managerEmail}
-                      onChange={e => setManagerEmail(e.target.value)}
-                      className="w-full pl-10 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-2xl text-xs font-bold text-slate-900 focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all"
+                      placeholder="e.g. anand_stall_mgr"
+                      value={managerUsername}
+                      onChange={e => setManagerUsername(e.target.value)}
+                      className="w-full pl-10 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-2xl text-xs font-bold text-slate-900 focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all font-mono"
                     />
                   </div>
+                  <p className="text-[10px] text-slate-400 font-medium pt-0.5">
+                    Enter your outlet manager username (e.g. <span className="font-mono font-bold text-slate-600">anand_stall_mgr</span>).
+                  </p>
                 </div>
 
                 {/* Password Input */}

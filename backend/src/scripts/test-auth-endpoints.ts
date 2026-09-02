@@ -62,7 +62,26 @@ async function testAuth() {
   console.log('✔ Invalid PIN correctly rejected with null.');
 
   // 6. Test Invalid Admin Password
-  console.log('6. Testing Invalid Admin Password (Should fail)...');
+  // 6. Test Anand Stall Outlet Manager Login with Username + Password
+  console.log('6. Testing Anand Stall Outlet Manager Login with Username (anand_stall_mgr)...');
+  const anandMgrToken = await authService.login({ 
+    username: 'anand_stall_mgr', 
+    password: 'manager123' 
+  });
+  if (!anandMgrToken) throw new Error('Anand Stall Manager username login failed');
+  const decodedAnandMgr: any = jwt.verify(anandMgrToken, config.auth.jwtSecret);
+  if (decodedAnandMgr.role !== 'manager' || decodedAnandMgr.canteenId !== 'c6') {
+    throw new Error(`Invalid Anand Manager token payload: ${JSON.stringify(decodedAnandMgr)}`);
+  }
+  console.log('✔ Anand Stall Outlet Manager username login verified:', { 
+    username: decodedAnandMgr.username, 
+    role: decodedAnandMgr.role, 
+    canteenId: decodedAnandMgr.canteenId, 
+    displayName: decodedAnandMgr.displayName 
+  });
+
+  // 7. Test Invalid Admin Password
+  console.log('7. Testing Invalid Admin Password (Should fail)...');
   const invalidAdminToken = await authService.login({ 
     email: 'admin@campusbites.com', 
     password: 'wrongpassword' 
