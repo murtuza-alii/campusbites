@@ -3,7 +3,7 @@ import { BaseController } from './BaseController.js';
 import { PaymentService } from '../services/PaymentService.js';
 import { OrderRepository } from '../repositories/OrderRepository.js';
 import { emitOrderCreated, emitOrderStatusChanged } from '../utils/websocket.js';
-import { buildQRPayload } from '../utils/qrSigner.js';
+import { buildQRPayload, generatePickupCode } from '../utils/qrSigner.js';
 import { getDb } from '../db.js';
 import { config } from '../config/unifiedConfig.js';
 
@@ -46,8 +46,8 @@ export class PaymentController extends BaseController {
       const orderNum = 1001 + totalOrders;
       const orderNumber = `#${orderNum}`;
 
-      // Generate 4-digit pickup code
-      const pickupCode = Math.floor(1000 + Math.random() * 9000).toString();
+      // Generate alphanumeric pickup code
+      const pickupCode = generatePickupCode(4);
 
       // 3. Persist order with initial payment_status
       const db = await getDb();

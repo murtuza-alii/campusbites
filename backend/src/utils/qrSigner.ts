@@ -27,6 +27,16 @@ export function buildQRPayload(order: { id: string; order_number: string; cantee
   };
 }
 
+export function generatePickupCode(length = 4): string {
+  // Clear unambiguous uppercase alphanumeric charset (excludes easily confused 0/O, 1/I/L)
+  const charset = '23456789ABCDEFGHJKMNPQRSTUVWXYZ';
+  let code = '';
+  for (let i = 0; i < length; i++) {
+    code += charset.charAt(Math.floor(Math.random() * charset.length));
+  }
+  return code;
+}
+
 export function verifyQRSignature(orderId: string, pickupCode: string, signature: string): boolean {
   try {
     const expected = generateQRSignature(orderId, pickupCode);
@@ -38,3 +48,5 @@ export function verifyQRSignature(orderId: string, pickupCode: string, signature
     return false;
   }
 }
+
+

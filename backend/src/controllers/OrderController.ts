@@ -93,13 +93,13 @@ export class OrderController extends BaseController {
 
       // Sanitize string inputs
       if (order_id && typeof order_id === 'string') order_id = order_id.trim();
-      if (pickup_code && typeof pickup_code === 'string') pickup_code = pickup_code.trim();
+      if (pickup_code && typeof pickup_code === 'string') pickup_code = pickup_code.trim().toUpperCase();
 
       const db = await getDb();
       let order: any = null;
 
       // Strategy 1: Look up by explicit order_id or order_number (e.g. ord_..., #1001, 1001)
-      if (order_id && !(/^\d{4}$/.test(order_id) && !pickup_code)) {
+      if (order_id && !pickup_code) {
         const orderRes = await db.query(
           'SELECT * FROM orders WHERE id = $1 OR order_number = $1 OR order_number = $2',
           [order_id, `#${order_id}`]
@@ -109,10 +109,10 @@ export class OrderController extends BaseController {
         }
       }
 
-      // Strategy 2: If not found yet and pickup_code (or 4-digit PIN in order_id) is provided, find active ready order
-      const pinCandidate = pickup_code || (/^\d{4}$/.test(order_id) ? order_id : null);
+      // Strategy 2: If not found yet and pickup_code (or alphanumeric code in order_id) is provided, find active ready order
+      const pinCandidate = pickup_code || (order_id && order_id.length <= 8 && !order_id.startsWith('ord_') ? order_id.toUpperCase() : null);
       if (!order && pinCandidate) {
-        let query = `SELECT * FROM orders WHERE pickup_code = $1 AND status != 'COMPLETED'`;
+        let query = `SELECT * FROM orders WHERE UPPER(pickup_code) = UPPER($1) AND status != 'COMPLETED'`;
         const params: any[] = [pinCandidate];
         if (canteen_id) {
           query += ` AND canteen_id = $2`;
@@ -127,7 +127,7 @@ export class OrderController extends BaseController {
         } else {
           // Check if the order was already completed
           const completedRes = await db.query(
-            `SELECT * FROM orders WHERE pickup_code = $1 AND status = 'COMPLETED' ORDER BY created_at DESC LIMIT 1`,
+            `SELECT * FROM orders WHERE UPPER(pickup_code) = UPPER($1) AND status = 'COMPLETED' ORDER BY created_at DESC LIMIT 1`,
             [pinCandidate]
           );
           if (completedRes.rows.length > 0) {
@@ -139,21 +139,21 @@ export class OrderController extends BaseController {
       }
 
       if (!order) {
-        const err = new Error(pickup_code ? `No active order found matching PIN "${pickup_code}".` : 'Order not found.');
+        const err = new Error(pickup_code ? `No active order found matching Pickup Code "${pickup_code}".` : 'Order not found.');
         (err as any).statusCode = 404;
         throw err;
       }
 
       // Verify cryptographic signature or match pickup code
       if (signature && pickup_code) {
-        const isValid = verifyQRSignature(order.id, pickup_code, signature);
-        if (!isValid && order.pickup_code !== pickup_code) {
+        const isValid = verifyQRSignature(order.id, order.pickup_code, signature);
+        if (!isValid && order.pickup_code.toUpperCase() !== pickup_code.toUpperCase()) {
           const err = new Error('Invalid or forged QR verification signature.');
           (err as any).statusCode = 400;
           throw err;
         }
-      } else if (pickup_code && order.pickup_code !== pickup_code) {
-        const err = new Error(`Incorrect PIN for order ${order.order_number}. Expected PIN does not match.`);
+      } else if (pickup_code && order.pickup_code.toUpperCase() !== pickup_code.toUpperCase()) {
+        const err = new Error(`Incorrect pickup code for order ${order.order_number}. Expected code does not match.`);
         (err as any).statusCode = 400;
         throw err;
       }

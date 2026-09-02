@@ -2,6 +2,7 @@ import { Queue, Worker, Job } from 'bullmq';
 import { redisConnectionOptions } from '../config/redis.js';
 import { OrderRepository } from '../repositories/OrderRepository.js';
 import { emitOrderCreated, emitOrderStatusChanged } from '../utils/websocket.js';
+import { generatePickupCode } from '../utils/qrSigner.js';
 
 const QUEUE_NAME = 'order-queue';
 
@@ -23,7 +24,7 @@ export function initOrderWorker(): Worker {
     async (job: Job) => {
       console.log(`Processing checkout job ${job.id} for order ${job.data.id}...`);
 
-      const { id, student_name, student_roll, canteen_id, items, total_price } = job.data;
+      const { id, student_name, student_roll, canteen_id, items, total_price, pickupCode } = job.data;
 
       try {
         // Calculate order number sequentially
@@ -31,8 +32,8 @@ export function initOrderWorker(): Worker {
         const orderNum = 1001 + totalOrders;
         const orderNumber = `#${orderNum}`;
 
-        // Generate 4-digit pickup code
-        const pickupCode = Math.floor(1000 + Math.random() * 9000).toString();
+        // Alphanumeric pickup code
+        const finalPickupCode = pickupCode || generatePickupCode(4);
 
         // Write order details to PostgreSQL
         await orderRepository.create({
@@ -44,7 +45,7 @@ export function initOrderWorker(): Worker {
           items: typeof items === 'string' ? items : JSON.stringify(items),
           total_price,
           status: 'PENDING',
-          pickup_code: pickupCode,
+          pickup_code: finalPickupCode,
         });
 
         // Retrieve and notify

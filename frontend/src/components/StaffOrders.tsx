@@ -243,11 +243,11 @@ export function StaffOrders() {
     await updateOrderStatus(order.id, 'CANCELLED');
   };
 
-  // Strictly authenticate handover using 4-digit PIN with Modal confirmation cue
+  // Strictly authenticate handover using alphanumeric pickup code with Modal confirmation cue
   const handleVerifyOrderPin = async (order: Order, pinOverride?: string) => {
-    const pin = (pinOverride !== undefined ? pinOverride : pinInputs[order.id] || '').trim();
-    if (!pin || pin.length < 4) {
-      setOrderErrors(prev => ({ ...prev, [order.id]: 'Enter 4-digit PIN' }));
+    const pin = (pinOverride !== undefined ? pinOverride : pinInputs[order.id] || '').trim().toUpperCase();
+    if (!pin || pin.length < 3) {
+      setOrderErrors(prev => ({ ...prev, [order.id]: 'Enter pickup code (e.g. 7K9P)' }));
       return;
     }
 
@@ -761,19 +761,19 @@ export function StaffOrders() {
                       </div>
                     </div>
 
-                    {/* STRICT 4-DIGIT PIN VERIFICATION FORM */}
+                    {/* ALPHANUMERIC PICKUP CODE VERIFICATION FORM */}
                     <div className="space-y-2 pt-1">
                       <label className="text-[11px] font-black text-slate-600 uppercase tracking-wider block">
-                        Enter Student 4-Digit PIN:
+                        Enter Student Pickup Code / PIN:
                       </label>
                       <div className="flex items-center gap-2">
                         <input
                           type="text"
-                          maxLength={4}
-                          placeholder="e.g. 9799"
+                          maxLength={8}
+                          placeholder="e.g. 7K9P"
                           value={pinInputs[order.id] || ''}
                           onChange={(e) => {
-                            const val = e.target.value.replace(/\D/g, '');
+                            const val = e.target.value.toUpperCase();
                             setPinInputs(prev => ({ ...prev, [order.id]: val }));
                             if (val.length === 4) {
                               handleVerifyOrderPin(order, val);
@@ -782,11 +782,11 @@ export function StaffOrders() {
                           onKeyDown={(e) => {
                             if (e.key === 'Enter') handleVerifyOrderPin(order);
                           }}
-                          className="w-28 px-3 py-2.5 text-center font-mono font-black text-sm tracking-widest bg-slate-50 border-2 border-slate-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 outline-none transition-all placeholder:text-slate-400 placeholder:font-normal"
+                          className="w-32 px-3 py-2.5 text-center font-mono font-black text-sm tracking-widest bg-slate-50 border-2 border-slate-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 outline-none transition-all placeholder:text-slate-400 placeholder:font-normal uppercase"
                         />
                         <button
                           onClick={() => handleVerifyOrderPin(order)}
-                          disabled={verifyingOrders[order.id] || (pinInputs[order.id] || '').length < 4}
+                          disabled={verifyingOrders[order.id] || (pinInputs[order.id] || '').length < 3}
                           className="flex-1 py-2.5 px-4 bg-emerald-600 hover:bg-emerald-700 text-white font-black text-xs rounded-xl shadow-md shadow-emerald-600/20 active:scale-95 transition-all disabled:opacity-50 disabled:pointer-events-none flex items-center justify-center gap-1.5"
                         >
                           {verifyingOrders[order.id] ? (

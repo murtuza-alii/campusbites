@@ -2,7 +2,7 @@ import { OrderRepository } from '../repositories/OrderRepository.js';
 import { ParsedOrder } from '../types/index.js';
 import { emitOrderCreated, emitOrderStatusChanged } from '../utils/websocket.js';
 import { orderQueue } from '../queues/orderQueue.js';
-import { buildQRPayload } from '../utils/qrSigner.js';
+import { buildQRPayload, generatePickupCode } from '../utils/qrSigner.js';
 
 export class OrderService {
   constructor(private readonly orderRepository: OrderRepository) {}
@@ -14,18 +14,15 @@ export class OrderService {
     items: any[];
     totalPrice: number;
   }): Promise<ParsedOrder> {
-    // Generate order ID synchronously so the client can immediately subscribe to updates
-    const id = 'ord_' + Math.random().toString(36).substring(2, 11);
+    const id = `ord_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+    const pickupCode = generatePickupCode(4);
 
     try {
-      // Push the checkout task to the BullMQ Redis queue
-      await orderQueue.add('checkout', {
+      // Direct fast-path via Redis Bull Queue
+      await orderQueue.add('process_order', {
         id,
-        student_name: data.name,
-        student_roll: data.rollNumber,
-        canteen_id: data.canteenId,
-        items: JSON.stringify(data.items),
-        total_price: data.totalPrice,
+        pickupCode,
+        ...data,
       });
 
       console.log(`Enqueued checkout job for order ID: ${id}`);
@@ -40,7 +37,7 @@ export class OrderService {
         items: data.items,
         total_price: data.totalPrice,
         status: 'PENDING',
-        pickup_code: '...',
+        pickup_code: pickupCode,
         created_at: new Date().toISOString(),
       };
     } catch (queueError) {
@@ -50,9 +47,6 @@ export class OrderService {
       const totalOrders = await this.orderRepository.countAll();
       const orderNum = 1001 + totalOrders;
       const orderNumber = `#${orderNum}`;
-
-      // Generate 4-digit pickup code
-      const pickupCode = Math.floor(1000 + Math.random() * 9000).toString();
 
       // Write order directly to PostgreSQL
       await this.orderRepository.create({
