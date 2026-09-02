@@ -131,6 +131,7 @@ export function StudentView() {
       setServerError('');
       setIsLoadingCanteens(true);
       if (slug) {
+        localStorage.setItem('cb_last_diner_slug', slug);
         const data = await fetchWithRetry(`${API_BASE_URL}/api/canteens/by-slug/${slug}`);
         if (data?.canteen) {
           setCurrentCanteen(data.canteen);

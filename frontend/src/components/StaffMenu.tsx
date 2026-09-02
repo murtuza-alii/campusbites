@@ -397,8 +397,10 @@ export function StaffMenu() {
                     url += `/c/${current.group_slug}?canteen=${current.slug || current.id}`;
                   } else if (current?.slug) {
                     url += `/c/${current.slug}`;
+                  } else if (userProfile?.canteenSlug) {
+                    url += `/c/${userProfile.canteenSlug}`;
                   } else {
-                    url += `/c/mithibai-main-campus`;
+                    url += `/c/anand-stall`;
                   }
                   navigator.clipboard.writeText(url);
                   alert(`Direct Student Link copied to clipboard:\n${url}`);

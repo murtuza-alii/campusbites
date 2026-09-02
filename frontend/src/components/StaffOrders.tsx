@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { socket } from '../utils/socket.js';
 import { 
   RotateCw, 
-  CheckCircle, 
+  CheckCircle,
   ShieldAlert, 
   Search, 
   X, 
@@ -13,14 +13,14 @@ import {
   Link as LinkIcon, 
   ChevronDown, 
   ChevronUp, 
-  Flame, 
   Clock, 
   CheckCheck,
   User,
   Phone,
-  Sparkles,
   Ban,
-  Building2
+  Building2,
+  Flame,
+  Sparkles
 } from 'lucide-react';
 import { SpotlightCard } from './ui/SpotlightCard';
 import { decodeToken, type DecodedToken } from '../utils/jwt.js';
@@ -562,7 +562,8 @@ export function StaffOrders() {
               const current = canteens.find(c => c.id === (selectedAdminCanteenId || userProfile?.canteenId));
               let url = window.location.origin;
               if (current?.slug) url += `/c/${current.slug}`;
-              else url += `/c/mithibai-main-campus`;
+              else if (userProfile?.canteenSlug) url += `/c/${userProfile.canteenSlug}`;
+              else url += `/c/anand-stall`;
               navigator.clipboard.writeText(url);
               alert(`Student menu URL copied:\n${url}`);
             }}

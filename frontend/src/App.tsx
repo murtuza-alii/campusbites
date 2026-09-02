@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { Routes, Route, Link, useNavigate, useLocation } from 'react-router-dom';
 import { LandingPage } from './components/LandingPage';
 import { StudentView } from './components/StudentView';
@@ -20,6 +20,7 @@ export default function App() {
   const location = useLocation();
   const [isStaffLoggedIn, setIsStaffLoggedIn] = useState<boolean>(false);
   const [userRole, setUserRole] = useState<string | null>(null);
+  const [staffCanteenSlug, setStaffCanteenSlug] = useState<string | null>(null);
 
   useEffect(() => {
     // Check if staff or admin token exists in localStorage
@@ -28,20 +29,35 @@ export default function App() {
     if (token) {
       const decoded = decodeToken(token);
       setUserRole(decoded?.role || null);
+      setStaffCanteenSlug(decoded?.canteenSlug || null);
     } else {
       setUserRole(null);
+      setStaffCanteenSlug(null);
     }
   }, [location]);
+
+  // Dynamically determine the destination when clicking "Menu"
+  const targetMenuUrl = useMemo(() => {
+    if (staffCanteenSlug) {
+      return `/c/${staffCanteenSlug}`;
+    }
+    const lastSlug = localStorage.getItem('cb_last_diner_slug');
+    if (lastSlug) {
+      return `/c/${lastSlug}`;
+    }
+    return '/c/anand-stall';
+  }, [staffCanteenSlug, location.pathname]);
 
   const handleLogout = () => {
     localStorage.removeItem('staffToken');
     localStorage.removeItem('adminToken');
     setIsStaffLoggedIn(false);
     setUserRole(null);
+    setStaffCanteenSlug(null);
     navigate('/');
   };
 
-  const isStaffPath = location.pathname.startsWith('/staff');
+  const isStaffPath = location.pathname.startsWith('/staff') || location.pathname.startsWith('/admin');
 
   return (
     <div className="min-h-screen flex flex-col antialiased relative bg-[#F8FAFC]">
@@ -55,30 +71,34 @@ export default function App() {
       <ServerWarmupBanner />
 
       {/* Navigation Bar */}
-      <header className="fixed top-0 w-full h-[68px] z-40 bg-white/90 backdrop-blur-xl border-b border-slate-200/90 flex items-center justify-between px-3.5 sm:px-8 shadow-sm">
+      <header className={`fixed top-0 w-full z-40 bg-white/95 backdrop-blur-md border-b border-slate-200/80 flex items-center justify-between shadow-xs transition-all ${
+        isStaffPath ? 'h-[52px] px-3 sm:px-6' : 'h-[64px] px-3.5 sm:px-8'
+      }`}>
         {/* Brand Logo */}
-        <Link to="/" className="flex items-center gap-2.5 sm:gap-3 group shrink-0">
-          <div className="w-9 h-9 sm:w-10 sm:h-10 bg-indigo-600 group-hover:bg-indigo-700 rounded-2xl flex items-center justify-center text-white shadow-md shadow-indigo-600/25 transition-all shrink-0">
-            <UtensilsCrossed className="w-4 h-4 sm:w-5 sm:h-5" />
+        <Link to="/" className="flex items-center gap-2 group shrink-0">
+          <div className="w-7 h-7 sm:w-8 sm:h-8 bg-indigo-600 group-hover:bg-indigo-700 rounded-lg flex items-center justify-center text-white shadow-xs transition-all shrink-0">
+            <UtensilsCrossed className="w-4 h-4" />
           </div>
           <div className="min-w-0">
-            <h1 className="font-black text-base sm:text-lg text-slate-900 leading-none tracking-tight">CampusBites</h1>
-            <p className="hidden sm:block text-[11px] font-semibold text-slate-500 mt-0.5">College Dining & Canteen Hub</p>
+            <h1 className="font-bold text-sm sm:text-base text-slate-900 leading-none tracking-tight">CampusBites</h1>
+            {!isStaffPath && (
+              <p className="hidden sm:block text-[11px] text-slate-500 mt-0.5 font-normal">College Dining & Canteen Hub</p>
+            )}
           </div>
         </Link>
 
         {/* Header Right Actions */}
-        <div className="flex items-center gap-2 sm:gap-4 shrink-0">
+        <div className="flex items-center gap-2 sm:gap-3 shrink-0">
           {isStaffPath ? (
             <>
               {isStaffLoggedIn && (
-                <nav className="hidden md:flex items-center gap-5 mr-2">
+                <nav className="hidden md:flex items-center gap-4 mr-1 text-xs font-semibold">
                   <Link 
                     to="/staff" 
-                    className={`text-xs font-bold transition-all ${
+                    className={`transition-colors ${
                       location.pathname === '/staff' 
-                        ? 'text-indigo-600 border-b-2 border-indigo-600 pb-1' 
-                        : 'text-slate-600 hover:text-indigo-600'
+                        ? 'text-indigo-600 font-bold' 
+                        : 'text-slate-600 hover:text-slate-900'
                     }`}
                   >
                     Orders
@@ -86,32 +106,31 @@ export default function App() {
                   {userRole !== 'cook' && userRole !== 'delivery' && (
                     <Link 
                       to="/staff/menu" 
-                      className={`text-xs font-bold transition-all ${
+                      className={`transition-colors ${
                         location.pathname === '/staff/menu' 
-                          ? 'text-indigo-600 border-b-2 border-indigo-600 pb-1' 
-                          : 'text-slate-600 hover:text-indigo-600'
+                          ? 'text-indigo-600 font-bold' 
+                          : 'text-slate-600 hover:text-slate-900'
                       }`}
                     >
-                      Edit Menu
+                      Menu
                     </Link>
                   )}
                 </nav>
               )}
 
-              <div className="flex items-center gap-2 shrink-0">
+              <div className="flex items-center gap-1.5 shrink-0">
                 <Link 
-                  to="/c/mithibai-main-campus" 
-                  className="flex items-center gap-1.5 px-3 py-1.5 sm:px-4 sm:py-2 border border-slate-200/90 rounded-full text-xs font-bold text-slate-700 bg-white hover:bg-slate-50 hover:border-slate-300 shadow-sm transition-all active:scale-95 shrink-0"
+                  to={targetMenuUrl} 
+                  className="flex items-center gap-1 px-2.5 py-1 sm:px-3 sm:py-1.5 border border-slate-200 rounded-lg text-xs font-medium text-slate-700 bg-white hover:bg-slate-50 transition-colors shadow-xs shrink-0"
                 >
-                  <ArrowLeft className="w-3.5 h-3.5 text-indigo-600 shrink-0" />
-                  <span className="hidden xs:inline">Student </span>
+                  <ArrowLeft className="w-3.5 h-3.5 text-slate-500 shrink-0" />
                   <span>Menu</span>
                 </Link>
 
                 {isStaffLoggedIn && (
                   <button
                     onClick={handleLogout}
-                    className="flex items-center gap-1.5 px-3 py-1.5 sm:px-4 sm:py-2 border border-rose-200 rounded-full text-xs font-bold text-rose-700 bg-rose-50 hover:bg-rose-100 transition-all active:scale-95 shadow-sm shrink-0"
+                    className="flex items-center gap-1 px-2.5 py-1 sm:px-3 sm:py-1.5 border border-rose-200/80 rounded-lg text-xs font-medium text-rose-700 bg-rose-50/60 hover:bg-rose-100 transition-colors shadow-xs shrink-0"
                     title="Sign out of staff dashboard"
                   >
                     <LogOut className="w-3.5 h-3.5 text-rose-600 shrink-0" />
@@ -123,27 +142,27 @@ export default function App() {
           ) : (
             <div className="flex items-center gap-2 sm:gap-3 shrink-0">
               <Link
-                to="/c/mithibai-main-campus"
-                className="hidden sm:flex items-center gap-1.5 px-4 py-2 border border-indigo-200 rounded-full text-xs font-bold text-indigo-700 bg-indigo-50/80 hover:bg-indigo-100 transition-all active:scale-95 shadow-sm shrink-0"
+                to="/c/anand-stall"
+                className="hidden sm:flex items-center gap-1.5 px-3.5 py-1.5 border border-orange-200 rounded-full text-xs font-bold text-orange-700 bg-orange-50 hover:bg-orange-100 transition-all active:scale-95 shadow-xs shrink-0"
               >
-                <Utensils className="w-3.5 h-3.5 text-indigo-600" />
-                <span>Mithibai Campus Menu</span>
+                <Utensils className="w-3.5 h-3.5 text-orange-600" />
+                <span>Anand Stall Menu</span>
               </Link>
               {userRole === 'admin' && (
                 <Link
                   to="/admin"
-                  className="flex items-center gap-1.5 px-3 py-1.5 sm:px-4 sm:py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-full text-xs font-bold transition-all active:scale-95 shadow-sm shrink-0"
+                  className="flex items-center gap-1.5 px-3 py-1.5 sm:px-3.5 sm:py-1.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-full text-xs font-semibold transition-all active:scale-95 shadow-xs shrink-0"
                 >
                   <ShieldCheck className="w-3.5 h-3.5 text-amber-300" />
-                  <span>Admin Center</span>
+                  <span>Admin</span>
                 </Link>
               )}
               <Link
                 to="/staff"
-                className="flex items-center gap-1.5 px-3 py-1.5 sm:px-4 sm:py-2 bg-slate-900 hover:bg-black text-white rounded-full text-xs font-bold transition-all active:scale-95 shadow-sm shrink-0"
+                className="flex items-center gap-1.5 px-3 py-1.5 sm:px-3.5 sm:py-1.5 bg-slate-900 hover:bg-black text-white rounded-full text-xs font-semibold transition-all active:scale-95 shadow-xs shrink-0"
               >
                 <ShieldCheck className="w-3.5 h-3.5 text-indigo-400" />
-                <span>Staff Portal</span>
+                <span>Staff</span>
               </Link>
             </div>
           )}
@@ -151,7 +170,11 @@ export default function App() {
       </header>
 
       {/* Main Content Area */}
-      <main className="relative z-10 pt-[96px] pb-[40px] px-margin-mobile md:px-margin-desktop max-w-container-max w-full mx-auto flex-1 flex flex-col">
+      <main className={`relative z-10 w-full mx-auto flex-1 flex flex-col ${
+        isStaffPath 
+          ? 'pt-[60px] pb-4 px-2.5 sm:px-4 max-w-7xl' 
+          : 'pt-[84px] pb-10 px-margin-mobile md:px-margin-desktop max-w-container-max'
+      }`}>
         <Routes>
           <Route path="/" element={<LandingPage />} />
           <Route path="/menu" element={<StudentView />} />
@@ -185,8 +208,9 @@ export default function App() {
         </Routes>
       </main>
 
-      {/* Footer */}
-      <footer className="w-full py-8 border-t border-slate-200/80 bg-white/70 backdrop-blur-md mt-auto">
+      {/* Footer (Hidden on Operational Staff & Admin Routes) */}
+      {!isStaffPath && (
+        <footer className="w-full py-8 border-t border-slate-200/80 bg-white/70 backdrop-blur-md mt-auto">
         <div className="max-w-6xl mx-auto px-4 sm:px-8 space-y-6">
           {/* Main Footer Links & Info */}
           <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 border-b border-slate-200/60 pb-6">
@@ -211,10 +235,10 @@ export default function App() {
                 <p className="font-bold text-slate-900 uppercase tracking-wider text-[11px]">Campus Menus</p>
                 <ul className="space-y-1.5 text-slate-600">
                   <li>
-                    <Link to="/c/mithibai-main-campus" className="hover:text-indigo-600 transition-colors">Mithibai Campus</Link>
+                    <Link to="/c/anand-stall" className="hover:text-orange-600 font-bold transition-colors">Anand Stall (Diner)</Link>
                   </li>
                   <li>
-                    <Link to="/c/downtown-diner" className="hover:text-indigo-600 transition-colors">Downtown Diner</Link>
+                    <Link to="/c/mithibai-main-campus" className="hover:text-indigo-600 transition-colors">Mithibai Campus</Link>
                   </li>
                   <li>
                     <Link to="/staff" className="hover:text-indigo-600 transition-colors">Staff Terminal</Link>
@@ -274,6 +298,7 @@ export default function App() {
           </div>
         </div>
       </footer>
+      )}
     </div>
   );
 }
