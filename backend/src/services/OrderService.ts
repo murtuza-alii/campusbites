@@ -14,6 +14,8 @@ export class OrderService {
     canteenId: string;
     items: any[];
     totalPrice: number;
+    additionalCharges?: number;
+    additional_charges?: number;
     building?: string;
     breakTiming?: string;
     break_timing?: string;
@@ -22,6 +24,7 @@ export class OrderService {
     const pickupCode = generatePickupCode(4);
     const building = data.building;
     const break_timing = data.breakTiming || data.break_timing;
+    const additional_charges = data.additionalCharges || data.additional_charges || 0;
 
     try {
       // Direct fast-path via Redis Bull Queue
@@ -31,6 +34,7 @@ export class OrderService {
         ...data,
         building,
         break_timing,
+        additional_charges,
       });
 
       console.log(`Enqueued checkout job for order ID: ${id}`);
@@ -44,6 +48,7 @@ export class OrderService {
         canteen_id: data.canteenId,
         items: data.items,
         total_price: data.totalPrice,
+        additional_charges,
         status: 'PENDING',
         pickup_code: pickupCode,
         created_at: new Date().toISOString(),
@@ -66,6 +71,7 @@ export class OrderService {
         canteen_id: data.canteenId,
         items: JSON.stringify(data.items),
         total_price: data.totalPrice,
+        additional_charges,
         status: 'PENDING',
         pickup_code: pickupCode,
         building,
@@ -81,6 +87,7 @@ export class OrderService {
         canteen_id: data.canteenId,
         items: data.items,
         total_price: data.totalPrice,
+        additional_charges,
         status: 'PENDING',
         pickup_code: pickupCode,
         created_at: new Date().toISOString(),

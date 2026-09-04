@@ -25,11 +25,13 @@ import {
 import { SpotlightCard } from './ui/SpotlightCard';
 import { socket } from '../utils/socket.js';
 import { API_BASE_URL } from '../config.js';
+import { calculateHike } from '../utils/pricing.js';
 
 interface MenuItem {
   id: string;
   name: string;
   price: number;
+  price_hike?: number;
   category: string;
   is_available: number;
   image: string;
@@ -39,6 +41,7 @@ interface CartItem {
   id: string;
   name: string;
   price: number;
+  price_hike?: number;
   quantity: number;
 }
 
@@ -67,6 +70,7 @@ interface Order {
   student_roll: string;
   items: CartItem[];
   total_price: number;
+  additional_charges?: number;
   status: 'PENDING' | 'PREPARING' | 'READY' | 'COMPLETED' | 'CANCELLED';
   pickup_code: string;
   created_at: string;
@@ -307,12 +311,15 @@ export function StudentView() {
       alert(`"${item.name}" is currently sold out and unavailable to order.`);
       return;
     }
+    const hike = item.price_hike !== undefined && item.price_hike !== null
+      ? item.price_hike
+      : calculateHike(item.price);
     setCart((prevCart) => {
       const existing = prevCart.find((i) => i.id === item.id);
       if (existing) {
         return prevCart.map((i) => (i.id === item.id ? { ...i, quantity: i.quantity + 1 } : i));
       }
-      return [...prevCart, { id: item.id, name: item.name, price: item.price, quantity: 1 }];
+      return [...prevCart, { id: item.id, name: item.name, price: item.price, price_hike: hike, quantity: 1 }];
     });
   };
 
@@ -327,7 +334,12 @@ export function StudentView() {
   };
 
   const getCartCount = () => cart.reduce((total, item) => total + item.quantity, 0);
-  const getCartTotal = () => cart.reduce((total, item) => total + item.price * item.quantity, 0);
+  const getSubtotal = () => cart.reduce((total, item) => total + item.price * item.quantity, 0);
+  const getAdditionalCharges = () => cart.reduce((total, item) => {
+    const hike = item.price_hike !== undefined && item.price_hike !== null ? item.price_hike : calculateHike(item.price);
+    return total + hike * item.quantity;
+  }, 0);
+  const getCartTotal = () => getSubtotal() + getAdditionalCharges();
 
   const getItemQuantity = (itemId: string) => {
     const item = cart.find((i) => i.id === itemId);
@@ -440,6 +452,8 @@ export function StudentView() {
           phone: studentPhone,
           canteenId: selectedCanteenId,
           items: cart,
+          subtotal: getSubtotal(),
+          additionalCharges: getAdditionalCharges(),
           totalPrice: getCartTotal(),
           building: isAnand ? selectedBuilding : undefined,
           breakTiming: isAnand ? selectedBreakTiming : undefined,
@@ -508,11 +522,13 @@ export function StudentView() {
     localStorage.setItem('myOrdersList', JSON.stringify(updated));
   };
 
-  const filteredMenu = menu.filter((item) => {
-    const matchesSearch = item.name.toLowerCase().includes(searchQuery.toLowerCase());
-    const matchesCategory = selectedCategory === 'All' || item.category === selectedCategory;
-    return matchesSearch && matchesCategory;
-  });
+  const filteredMenu = menu
+    .filter((item) => {
+      const matchesSearch = item.name.toLowerCase().includes(searchQuery.toLowerCase());
+      const matchesCategory = selectedCategory === 'All' || item.category === selectedCategory;
+      return matchesSearch && matchesCategory;
+    })
+    .sort((a, b) => a.price - b.price);
 
   return (
     <div className="flex-1 flex flex-col gap-5 md:gap-6 animate-in">
@@ -966,8 +982,15 @@ export function StudentView() {
 
                     <div className="pt-2 space-y-1.5 text-xs">
                       <div className="flex justify-between items-center text-slate-500 font-semibold">
-                        <span>Subtotal</span>
-                        <span>₹{getCartTotal()}</span>
+                        <span>Items Subtotal</span>
+                        <span>₹{getSubtotal()}</span>
+                      </div>
+                      <div className="flex justify-between items-center text-slate-600 font-semibold">
+                        <div className="flex items-center gap-1">
+                          <span>Additional Charges</span>
+                          <span className="text-[10px] text-slate-400 font-normal">(Platform Fee)</span>
+                        </div>
+                        <span className="font-bold text-slate-800">+₹{getAdditionalCharges()}</span>
                       </div>
                       <div className="flex justify-between items-center text-slate-900 font-black text-sm border-t border-slate-100 pt-2">
                         <span>Total to Pay</span>
@@ -1086,6 +1109,14 @@ export function StudentView() {
                                 <span className="font-black text-slate-900">₹{item.price * item.quantity}</span>
                               </div>
                             ))}
+                            {((order.additional_charges && order.additional_charges > 0) || (order.total_price > order.items.reduce((s, i) => s + i.price * i.quantity, 0))) && (
+                              <div className="flex justify-between items-center text-xs pt-1 border-t border-slate-200/60 text-slate-500">
+                                <span className="font-semibold text-slate-600">Additional Charges (Platform Fee)</span>
+                                <span className="font-bold text-slate-700">
+                                  +₹{order.additional_charges || (order.total_price - order.items.reduce((s, i) => s + i.price * i.quantity, 0))}
+                                </span>
+                              </div>
+                            )}
                           </div>
                         </div>
                       </div>
@@ -1436,8 +1467,15 @@ export function StudentView() {
 
               <div className="pt-1 space-y-1 text-xs">
                 <div className="flex justify-between items-center text-slate-500 font-semibold">
-                  <span>Subtotal</span>
-                  <span>₹{getCartTotal()}</span>
+                  <span>Items Subtotal</span>
+                  <span>₹{getSubtotal()}</span>
+                </div>
+                <div className="flex justify-between items-center text-slate-600 font-semibold">
+                  <div className="flex items-center gap-1">
+                    <span>Additional Charges</span>
+                    <span className="text-[10px] text-slate-400 font-normal">(Platform Fee)</span>
+                  </div>
+                  <span className="font-bold text-slate-800">+₹{getAdditionalCharges()}</span>
                 </div>
                 <div className="flex justify-between items-center text-slate-900 font-black text-sm border-t border-slate-100 pt-1.5">
                   <span>Total Amount</span>

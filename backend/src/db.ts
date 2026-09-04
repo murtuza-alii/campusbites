@@ -85,6 +85,7 @@ export async function initDb(): Promise<void> {
       id TEXT PRIMARY KEY,
       name TEXT NOT NULL,
       price DOUBLE PRECISION NOT NULL,
+      price_hike DOUBLE PRECISION DEFAULT 0,
       category TEXT NOT NULL,
       is_available INTEGER DEFAULT 1,
       image TEXT,
@@ -105,15 +106,25 @@ export async function initDb(): Promise<void> {
       pickup_code TEXT NOT NULL,
       created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
       canteen_id TEXT REFERENCES canteen(id),
-      slot_number INTEGER
+      slot_number INTEGER,
+      additional_charges DOUBLE PRECISION DEFAULT 0
     )
   `);
 
-  // Alter tables to add canteen_id column if they existed before without it
+  // Alter tables to add canteen_id and price_hike column if they existed before without it
   try {
     await db.query('ALTER TABLE menu ADD COLUMN IF NOT EXISTS canteen_id TEXT REFERENCES canteen(id)');
+    await db.query('ALTER TABLE menu ADD COLUMN IF NOT EXISTS price_hike DOUBLE PRECISION DEFAULT 0');
+    await db.query(`
+      UPDATE menu SET price_hike = CASE
+        WHEN price < 50 THEN 4
+        WHEN price < 100 THEN 5
+        WHEN price < 200 THEN 10
+        ELSE 13
+      END WHERE price_hike IS NULL OR price_hike = 0
+    `);
   } catch (e) {
-    console.log('Could not alter menu table (might already have canteen_id or using sqlite fallback)');
+    console.log('Could not alter menu table (might already have canteen_id/price_hike or using sqlite fallback)');
   }
 
   try {
@@ -125,6 +136,7 @@ export async function initDb(): Promise<void> {
     await db.query('ALTER TABLE orders ADD COLUMN IF NOT EXISTS break_timing TEXT');
     await db.query('ALTER TABLE orders ADD COLUMN IF NOT EXISTS slot_number INTEGER');
     await db.query('ALTER TABLE orders ADD COLUMN IF NOT EXISTS cancellation_reason TEXT');
+    await db.query('ALTER TABLE orders ADD COLUMN IF NOT EXISTS additional_charges DOUBLE PRECISION DEFAULT 0');
     await db.query('CREATE INDEX IF NOT EXISTS idx_orders_canteen_status ON orders (canteen_id, status)');
     await db.query('CREATE INDEX IF NOT EXISTS idx_orders_created_at ON orders (created_at DESC)');
     await db.query('CREATE INDEX IF NOT EXISTS idx_orders_student_roll ON orders (student_roll)');

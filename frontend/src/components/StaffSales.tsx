@@ -74,6 +74,7 @@ interface SalesOrder {
   student_roll: string;
   items: string | OrderItem[];
   total_price: number;
+  additional_charges?: number;
   status: 'PLACED' | 'PENDING' | 'PREPARING' | 'READY' | 'COMPLETED' | 'CANCELLED';
   pickup_code: string;
   created_at: string;

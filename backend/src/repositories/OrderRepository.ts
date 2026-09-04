@@ -15,6 +15,7 @@ export class OrderRepository {
     student_roll: string;
     items: string;
     total_price: number;
+    additional_charges?: number;
     status: string;
     pickup_code: string;
     canteen_id: string;
@@ -24,8 +25,8 @@ export class OrderRepository {
   }): Promise<void> {
     const db = await getDb();
     await db.query(
-      `INSERT INTO orders (id, order_number, student_name, student_roll, items, total_price, status, pickup_code, canteen_id, building, break_timing, slot_number)
-       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)`,
+      `INSERT INTO orders (id, order_number, student_name, student_roll, items, total_price, additional_charges, status, pickup_code, canteen_id, building, break_timing, slot_number)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)`,
       [
         order.id,
         order.order_number,
@@ -33,6 +34,7 @@ export class OrderRepository {
         order.student_roll,
         order.items,
         order.total_price,
+        order.additional_charges || 0,
         order.status,
         order.pickup_code,
         order.canteen_id,

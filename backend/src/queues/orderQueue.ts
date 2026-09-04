@@ -25,7 +25,7 @@ export function initOrderWorker(): Worker {
     async (job: Job) => {
       console.log(`Processing checkout job ${job.id} for order ${job.data.id}...`);
 
-      const { id, student_name, student_roll, canteen_id, items, total_price, pickupCode, building, break_timing } = job.data;
+      const { id, student_name, student_roll, canteen_id, items, total_price, additional_charges, additionalCharges, pickupCode, building, break_timing } = job.data;
 
       try {
         // Calculate slot and alphanumeric order number
@@ -44,6 +44,7 @@ export function initOrderWorker(): Worker {
           canteen_id,
           items: typeof items === 'string' ? items : JSON.stringify(items),
           total_price,
+          additional_charges: additional_charges || additionalCharges || 0,
           status: 'PENDING',
           pickup_code: finalPickupCode,
           building,

@@ -7,6 +7,7 @@ import { buildQRPayload, generatePickupCode } from '../utils/qrSigner.js';
 import { generateSlotOrderNumber } from '../utils/orderNumber.js';
 import { getDb } from '../db.js';
 import { config } from '../config/unifiedConfig.js';
+import { calculateHike } from '../utils/pricing.js';
 
 
 export class PaymentController extends BaseController {
@@ -22,28 +23,88 @@ export class PaymentController extends BaseController {
    */
   async createPaymentSession(req: Request, res: Response): Promise<void> {
     try {
-      const { name, rollNumber, canteenId, items, totalPrice, phone, email, building, breakTiming, break_timing } = req.body;
+      const { name, rollNumber, canteenId, items, phone, email, building, breakTiming, break_timing } = req.body;
 
-      if (!name || !rollNumber || !canteenId || !items || !Array.isArray(items) || items.length === 0 || !totalPrice) {
+      if (!name || !rollNumber || !canteenId || !items || !Array.isArray(items) || items.length === 0) {
         res.status(400).json({ error: 'Missing required order details' });
         return;
       }
 
-      // Check if any ordered items are out of stock
+      // Check stock and compute subtotal + additional charges against DB records
       const db = await getDb();
       const itemIds = items.map((i: any) => i.id).filter(Boolean);
+
+      let calculatedSubtotal = 0;
+      let calculatedAdditionalCharges = 0;
+      const verifiedItems: any[] = [];
+
       if (itemIds.length > 0) {
         const placeholders = itemIds.map((_: any, idx: number) => `$${idx + 1}`).join(',');
         const stockRes = await db.query(
-          `SELECT id, name, is_available FROM menu WHERE id IN (${placeholders}) AND is_available = 0`,
+          `SELECT id, name, price, price_hike, is_available FROM menu WHERE id IN (${placeholders})`,
           itemIds
         );
-        if (stockRes.rows.length > 0) {
-          const outOfStockNames = stockRes.rows.map((r: any) => r.name).join(', ');
-          res.status(400).json({ error: `The following dish(es) are currently sold out: ${outOfStockNames}. Please remove them from your cart.` });
+        const menuMap = new Map(stockRes.rows.map((r: any) => [r.id, r]));
+
+        const outOfStockNames: string[] = [];
+        for (const item of items) {
+          const dbItem = menuMap.get(item.id);
+          if (dbItem) {
+            if (dbItem.is_available === 0) {
+              outOfStockNames.push(dbItem.name);
+            }
+            const itemHike = dbItem.price_hike !== undefined && dbItem.price_hike !== null
+              ? Number(dbItem.price_hike)
+              : calculateHike(Number(dbItem.price));
+            const qty = Number(item.quantity) || 1;
+            calculatedSubtotal += Number(dbItem.price) * qty;
+            calculatedAdditionalCharges += itemHike * qty;
+            verifiedItems.push({
+              id: dbItem.id,
+              name: dbItem.name,
+              price: Number(dbItem.price),
+              price_hike: itemHike,
+              quantity: qty,
+            });
+          } else {
+            const price = Number(item.price) || 0;
+            const itemHike = item.price_hike !== undefined && item.price_hike !== null
+              ? Number(item.price_hike)
+              : calculateHike(price);
+            const qty = Number(item.quantity) || 1;
+            calculatedSubtotal += price * qty;
+            calculatedAdditionalCharges += itemHike * qty;
+            verifiedItems.push({
+              ...item,
+              price,
+              price_hike: itemHike,
+              quantity: qty,
+            });
+          }
+        }
+
+        if (outOfStockNames.length > 0) {
+          res.status(400).json({ error: `The following dish(es) are currently sold out: ${outOfStockNames.join(', ')}. Please remove them from your cart.` });
           return;
         }
+      } else {
+        // Fallback calculation if item IDs are missing
+        for (const item of items) {
+          const price = Number(item.price) || 0;
+          const itemHike = item.price_hike !== undefined ? Number(item.price_hike) : calculateHike(price);
+          const qty = Number(item.quantity) || 1;
+          calculatedSubtotal += price * qty;
+          calculatedAdditionalCharges += itemHike * qty;
+          verifiedItems.push({
+            ...item,
+            price,
+            price_hike: itemHike,
+            quantity: qty,
+          });
+        }
       }
+
+      const finalTotalPrice = Number((calculatedSubtotal + calculatedAdditionalCharges).toFixed(2));
 
       const orderBuilding = building || null;
       const orderBreakTiming = breakTiming || break_timing || null;
@@ -54,7 +115,7 @@ export class PaymentController extends BaseController {
       // 1. Call Cashfree to provision the PG payment session
       const cfOrder = await this.paymentService.createCashfreeOrder({
         orderId,
-        orderAmount: Number(totalPrice),
+        orderAmount: finalTotalPrice,
         customerName: name,
         customerRoll: rollNumber,
         customerPhone: phone,
@@ -68,17 +129,18 @@ export class PaymentController extends BaseController {
       // Generate alphanumeric pickup code
       const pickupCode = generatePickupCode(4);
 
-      // 3. Persist order with initial payment_status and slot_number
+      // 3. Persist order with additional_charges, payment_status, and slot_number
       await db.query(
-        `INSERT INTO orders (id, order_number, student_name, student_roll, items, total_price, status, pickup_code, canteen_id, payment_status, payment_session_id, cf_order_id, building, break_timing, slot_number)
-         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15)`,
+        `INSERT INTO orders (id, order_number, student_name, student_roll, items, total_price, additional_charges, status, pickup_code, canteen_id, payment_status, payment_session_id, cf_order_id, building, break_timing, slot_number)
+         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16)`,
         [
           orderId,
           orderNumber,
           name,
           rollNumber,
-          JSON.stringify(items),
-          totalPrice,
+          JSON.stringify(verifiedItems),
+          finalTotalPrice,
+          calculatedAdditionalCharges,
           'PENDING',
           pickupCode,
           canteenId,
@@ -100,6 +162,8 @@ export class PaymentController extends BaseController {
           paymentSessionId: cfOrder.payment_session_id,
           cfOrderId: cfOrder.cf_order_id,
           orderAmount: cfOrder.order_amount,
+          subtotal: calculatedSubtotal,
+          additionalCharges: calculatedAdditionalCharges,
           environment: config.cashfree.env === 'PROD' ? 'production' : 'sandbox',
         },
         201

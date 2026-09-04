@@ -3,11 +3,13 @@ import { useNavigate, Link } from 'react-router-dom';
 import { Plus, RotateCw, HelpCircle, Search, Filter, Store, Link as LinkIcon, Edit3, Trash2, X, Save, TrendingUp } from 'lucide-react';
 import { decodeToken, type DecodedToken } from '../utils/jwt.js';
 import { API_BASE_URL } from '../config.js';
+import { calculateHike } from '../utils/pricing.js';
 
 interface MenuItem {
   id: string;
   name: string;
   price: number;
+  price_hike?: number;
   category: string;
   is_available: number;
   image: string;
@@ -286,15 +288,17 @@ export function StaffMenu() {
 
   // Filter menu items based on search query, category, and live stock availability
   const filteredMenuItems = useMemo(() => {
-    return menuItems.filter(item => {
-      const matchesSearch = !searchQuery.trim() || item.name.toLowerCase().includes(searchQuery.toLowerCase().trim());
-      const matchesCategory = selectedCategory === '' || item.category === selectedCategory;
-      const matchesStock = 
-        stockFilter === 'ALL' || 
-        (stockFilter === 'IN_STOCK' && item.is_available === 1) || 
-        (stockFilter === 'OUT_OF_STOCK' && item.is_available === 0);
-      return matchesSearch && matchesCategory && matchesStock;
-    });
+    return menuItems
+      .filter(item => {
+        const matchesSearch = !searchQuery.trim() || item.name.toLowerCase().includes(searchQuery.toLowerCase().trim());
+        const matchesCategory = selectedCategory === '' || item.category === selectedCategory;
+        const matchesStock = 
+          stockFilter === 'ALL' || 
+          (stockFilter === 'IN_STOCK' && item.is_available === 1) || 
+          (stockFilter === 'OUT_OF_STOCK' && item.is_available === 0);
+        return matchesSearch && matchesCategory && matchesStock;
+      })
+      .sort((a, b) => a.price - b.price);
   }, [menuItems, searchQuery, selectedCategory, stockFilter]);
 
   if (userProfile?.role === 'cook' || userProfile?.role === 'delivery') {
@@ -552,7 +556,14 @@ export function StaffMenu() {
                               {item.category}
                             </span>
                           </td>
-                          <td className="px-3 py-2 font-mono font-bold text-[11px] text-slate-900">₹{item.price}</td>
+                          <td className="px-3 py-2 font-mono font-bold text-[11px] text-slate-900">
+                            <div className="flex items-center gap-1.5">
+                              <span>₹{item.price}</span>
+                              <span className="text-[10px] text-indigo-600 bg-indigo-50 px-1.5 py-0.5 rounded font-sans font-medium">
+                                +₹{item.price_hike !== undefined && item.price_hike !== null ? item.price_hike : calculateHike(item.price)}
+                              </span>
+                            </div>
+                          </td>
                           <td className="px-3 py-2 text-center">
                             <button
                               type="button"
@@ -690,6 +701,11 @@ export function StaffMenu() {
                         className="w-full bg-slate-50 border border-slate-200 rounded-md pl-6 pr-2 py-1 text-[11px] font-mono font-medium text-slate-900 focus:bg-white focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 outline-none transition-all h-7"
                       />
                     </div>
+                    {price && !isNaN(parseFloat(price)) && (
+                      <span className="text-[10px] text-indigo-600 font-medium block">
+                        Tiered checkout markup: +₹{calculateHike(parseFloat(price))}
+                      </span>
+                    )}
                   </div>
 
                   {/* Category */}

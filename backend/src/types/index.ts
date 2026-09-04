@@ -2,6 +2,7 @@ export interface MenuItem {
   id: string;
   name: string;
   price: number;
+  price_hike?: number;
   category: string;
   is_available: number; // 0 or 1 in DB
   image?: string;
@@ -12,6 +13,7 @@ export interface OrderItem {
   id: string;
   name: string;
   price: number;
+  price_hike?: number;
   quantity: number;
 }
 
@@ -22,6 +24,7 @@ export interface Order {
   student_roll: string;
   items: string; // JSON string in DB, parsed in repository/service
   total_price: number;
+  additional_charges?: number;
   status: 'PENDING' | 'PREPARING' | 'READY' | 'COMPLETED' | 'CANCELLED';
   pickup_code: string;
   created_at: string;

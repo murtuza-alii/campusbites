@@ -59,7 +59,7 @@ export class MenuService {
     return menu;
   }
 
-  async addMenuItem(data: { name: string; price: number; category: string; image?: string; canteen_id: string }): Promise<MenuItem> {
+  async addMenuItem(data: { name: string; price: number; price_hike?: number; category: string; image?: string; canteen_id: string }): Promise<MenuItem> {
     const id = 'item_' + Math.random().toString(36).substring(2, 11);
     const defaultImage = data.image || 'https://images.unsplash.com/photo-1498837167922-ddd27525d352?w=150&auto=format&fit=crop&q=60';
     
@@ -67,6 +67,7 @@ export class MenuService {
       id,
       name: data.name,
       price: data.price,
+      price_hike: data.price_hike,
       category: data.category,
       image: defaultImage,
       canteen_id: data.canteen_id
@@ -86,7 +87,7 @@ export class MenuService {
     return newItem;
   }
 
-  async editMenuItem(id: string, data: { name: string; price: number; category: string; is_available: boolean; image?: string; canteen_id?: string }, restrictCanteenId?: string): Promise<MenuItem> {
+  async editMenuItem(id: string, data: { name: string; price: number; price_hike?: number; category: string; is_available: boolean; image?: string; canteen_id?: string }, restrictCanteenId?: string): Promise<MenuItem> {
     const existing = await this.menuRepository.findById(id);
     if (!existing) {
       const err = new Error('Menu item not found');
@@ -105,6 +106,7 @@ export class MenuService {
     await this.menuRepository.update(id, {
       name: data.name,
       price: data.price,
+      price_hike: data.price_hike,
       category: data.category,
       is_available: data.is_available ? 1 : 0,
       image: data.image || existing.image || '',

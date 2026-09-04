@@ -40,6 +40,7 @@ interface Order {
   student_roll: string;
   items: CartItem[];
   total_price: number;
+  additional_charges?: number;
   status: 'PENDING' | 'PREPARING' | 'READY' | 'COMPLETED' | 'CANCELLED';
   pickup_code: string;
   created_at: string;
