@@ -1323,187 +1323,224 @@ export function StudentView() {
         <div className="lg:hidden fixed inset-0 z-50 flex flex-col justify-end bg-black/60 backdrop-blur-xs">
           <div className="absolute inset-0" onClick={() => setIsCartOpen(false)}></div>
           
-          <div className="relative max-h-[88vh] bg-white rounded-t-3xl p-5 sm:p-6 flex flex-col animate-slide-up shadow-2xl space-y-4">
-            <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+          <div className="relative max-h-[92vh] h-[85vh] bg-white rounded-t-[28px] flex flex-col animate-slide-up shadow-2xl overflow-hidden">
+            {/* Top Sheet Drag Pill */}
+            <div className="w-10 h-1 rounded-full bg-slate-300 mx-auto mt-2.5 mb-1 shrink-0" />
+
+            {/* Fixed Drawer Header */}
+            <div className="flex items-center justify-between px-5 pb-3 pt-1 border-b border-slate-100 shrink-0 bg-white">
               <div className="flex items-center gap-2">
                 <div className="w-8 h-8 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center font-bold">
                   <ShoppingBag className="w-4 h-4" />
                 </div>
                 <h3 className="font-black text-base text-slate-900">
-                  Your Cart ({getCartCount()} Items)
+                  Your Cart <span className="text-xs text-indigo-600 font-bold ml-1">({getCartCount()} {getCartCount() === 1 ? 'item' : 'items'})</span>
                 </h3>
               </div>
               <button
                 onClick={() => setIsCartOpen(false)}
-                className="w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center text-slate-500 hover:text-slate-900"
+                className="w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center text-slate-500 hover:text-slate-900 active:scale-95 transition-all"
+                aria-label="Close cart"
               >
                 <X className="w-4 h-4" />
               </button>
             </div>
 
-            <div className="flex-1 overflow-y-auto py-1 space-y-2.5 max-h-56 pr-1 no-scrollbar">
-              {cart.map((item) => {
-                const isItemUnavailable = menu.find(m => m.id === item.id)?.is_available === 0;
-                return (
-                  <div key={item.id} className={`flex justify-between items-center p-2.5 rounded-2xl border ${
-                    isItemUnavailable ? 'bg-rose-50/70 border-rose-200' : 'bg-slate-50 border-slate-200/80'
-                  }`}>
-                    <div className="flex-1 min-w-0 pr-2">
-                      <div className="flex items-center gap-1.5 flex-wrap">
-                        <h4 className={`text-xs font-black truncate ${isItemUnavailable ? 'text-rose-900 line-through' : 'text-slate-900'}`}>
-                          {item.name}
-                        </h4>
-                        {isItemUnavailable && (
-                          <span className="px-1.5 py-0.5 rounded text-[9px] font-black uppercase tracking-wider bg-rose-200 text-rose-800">
-                            Sold Out
-                          </span>
-                        )}
-                      </div>
-                      <span className="text-[11px] text-slate-500 font-semibold">₹{item.price} each</span>
-                    </div>
-                    <div className="flex items-center gap-2 shrink-0">
-                      <div className="flex items-center bg-white rounded-xl border border-slate-200 p-0.5">
-                        <button onClick={() => removeFromCart(item.id)} className="w-6 h-6 flex items-center justify-center text-slate-700">
-                          <Minus className="w-3.5 h-3.5" />
-                        </button>
-                        <span className="text-xs font-black text-slate-900 w-5 text-center">{item.quantity}</span>
-                        <button 
-                          onClick={() => addToCart(item as any)} 
-                          disabled={isItemUnavailable}
-                          className={`w-6 h-6 flex items-center justify-center ${isItemUnavailable ? 'text-slate-300 cursor-not-allowed' : 'text-slate-700'}`}
-                        >
-                          <Plus className="w-3.5 h-3.5" />
-                        </button>
-                      </div>
-                      <span className="text-xs font-black text-slate-900 w-12 text-right">₹{item.price * item.quantity}</span>
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-
-            <hr className="border-slate-100" />
-
-            <form onSubmit={handleCheckout} className="space-y-3">
-              <div className="space-y-1">
-                <label className="text-[11px] font-bold text-slate-600 uppercase tracking-wider">Your Full Name</label>
-                <input
-                  type="text"
-                  required
-                  placeholder="e.g. Rahul Sharma"
-                  value={studentName}
-                  onChange={(e) => setStudentName(e.target.value)}
-                  className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-slate-900 focus:bg-white focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 outline-none transition-all placeholder:text-slate-400 placeholder:font-normal"
-                />
-              </div>
-              <div className="space-y-1">
-                <label className="text-[11px] font-bold text-slate-600 uppercase tracking-wider">Phone Number</label>
-                <input
-                  type="tel"
-                  required
-                  placeholder="e.g. 9876543210"
-                  value={studentPhone}
-                  onChange={(e) => setStudentPhone(e.target.value)}
-                  className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-slate-900 focus:bg-white focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 outline-none transition-all placeholder:text-slate-400 placeholder:font-normal"
-                />
-              </div>
-
-              {/* 📍 ANAND STALL SPECIFIC: Building & Break Timings Dropdowns (Mobile Drawer) */}
-              {isAnand && (
-                <div className="space-y-2.5 p-3 bg-orange-50/80 border border-orange-200 rounded-2xl animate-in fade-in duration-200">
-                  <div className="flex items-center gap-1.5 text-orange-950 font-black text-xs">
-                    <Building2 className="w-3.5 h-3.5 text-orange-600 shrink-0" />
-                    <span>Delivery / Break Slot</span>
+            {/* Unified Form containing Scrollable Content & Fixed Bottom Action Bar */}
+            <form onSubmit={handleCheckout} className="flex-1 flex flex-col min-h-0">
+              {/* Scrollable Center Container (Allows scrolling through items AND contact/delivery details) */}
+              <div className="flex-1 overflow-y-auto px-4 py-3.5 space-y-3.5 overscroll-contain">
+                
+                {/* 🛒 Section 1: Cart Items */}
+                <div className="bg-slate-50/90 border border-slate-200/90 rounded-2xl p-3 space-y-2.5 shadow-2xs">
+                  <div className="flex items-center justify-between border-b border-slate-200/70 pb-2">
+                    <span className="text-[11px] font-black uppercase tracking-wider text-slate-600 flex items-center gap-1.5">
+                      <ShoppingBag className="w-3.5 h-3.5 text-indigo-600" />
+                      <span>Items in Order ({cart.length})</span>
+                    </span>
+                    <span className="text-xs font-black text-slate-900">₹{getSubtotal()}</span>
                   </div>
 
-                  {/* Dropdown 1: Select Building */}
-                  <div className="space-y-1">
-                    <label className="text-[10px] font-bold text-slate-700 uppercase tracking-wider flex items-center justify-between">
-                      <span>Select Building</span>
-                      <span className="text-orange-600 font-bold text-[9px] bg-orange-100 px-1.5 py-0.5 rounded">Required</span>
-                    </label>
-                    <div className="relative">
-                      <select
+                  <div className="space-y-2">
+                    {cart.map((item) => {
+                      const isItemUnavailable = menu.find(m => m.id === item.id)?.is_available === 0;
+                      return (
+                        <div key={item.id} className={`flex justify-between items-center p-2.5 rounded-xl border ${
+                          isItemUnavailable ? 'bg-rose-50/80 border-rose-200' : 'bg-white border-slate-200/80 shadow-2xs'
+                        }`}>
+                          <div className="flex-1 min-w-0 pr-2">
+                            <div className="flex items-center gap-1.5 flex-wrap">
+                              <h4 className={`text-xs font-black truncate ${isItemUnavailable ? 'text-rose-900 line-through' : 'text-slate-900'}`}>
+                                {item.name}
+                              </h4>
+                              {isItemUnavailable && (
+                                <span className="px-1.5 py-0.5 rounded text-[9px] font-black uppercase tracking-wider bg-rose-200 text-rose-800">
+                                  Sold Out
+                                </span>
+                              )}
+                            </div>
+                            <span className="text-[11px] text-slate-500 font-semibold">₹{item.price} each</span>
+                          </div>
+                          <div className="flex items-center gap-2 shrink-0">
+                            <div className="flex items-center bg-slate-100 rounded-lg border border-slate-200 p-0.5">
+                              <button 
+                                type="button" 
+                                onClick={() => removeFromCart(item.id)} 
+                                className="w-6 h-6 flex items-center justify-center text-slate-700 active:scale-95 transition-all"
+                                aria-label="Decrease quantity"
+                              >
+                                <Minus className="w-3 h-3" />
+                              </button>
+                              <span className="text-xs font-black text-slate-900 w-5 text-center">{item.quantity}</span>
+                              <button 
+                                type="button" 
+                                onClick={() => addToCart(item as any)} 
+                                disabled={isItemUnavailable}
+                                className={`w-6 h-6 flex items-center justify-center active:scale-95 transition-all ${isItemUnavailable ? 'text-slate-300 cursor-not-allowed' : 'text-slate-700'}`}
+                                aria-label="Increase quantity"
+                              >
+                                <Plus className="w-3 h-3" />
+                              </button>
+                            </div>
+                            <span className="text-xs font-black text-slate-900 w-12 text-right">₹{item.price * item.quantity}</span>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+
+                {/* 👤 Section 2: Contact Details */}
+                <div className="bg-white border border-slate-200/90 rounded-2xl p-3.5 space-y-3 shadow-2xs">
+                  <span className="text-[11px] font-black uppercase tracking-wider text-slate-600 block">
+                    Your Contact Details
+                  </span>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                    <div className="space-y-1">
+                      <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Your Full Name</label>
+                      <input
+                        type="text"
                         required
-                        value={selectedBuilding}
-                        onChange={(e) => handleBuildingChange(e.target.value)}
-                        className="w-full px-3 py-2 bg-white border border-orange-200 rounded-xl text-xs font-bold text-slate-900 focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500 outline-none transition-all cursor-pointer appearance-none shadow-xs"
-                      >
-                        <option value="" disabled>-- Select Building --</option>
-                        {ANAND_BUILDINGS.map((b) => (
-                          <option key={b.id} value={b.name}>{b.name}</option>
-                        ))}
-                      </select>
-                      <ChevronDown className="w-3.5 h-3.5 text-slate-400 absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none" />
+                        placeholder="e.g. Rahul Sharma"
+                        value={studentName}
+                        onChange={(e) => setStudentName(e.target.value)}
+                        className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-slate-900 focus:bg-white focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 outline-none transition-all placeholder:text-slate-400 placeholder:font-normal"
+                      />
                     </div>
-                  </div>
-
-                  {/* Dropdown 2: Select Break Timing */}
-                  <div className="space-y-1">
-                    <label className="text-[10px] font-bold text-slate-700 uppercase tracking-wider flex items-center justify-between">
-                      <span>Select Break Timing</span>
-                      <span className="text-orange-600 font-bold text-[9px] bg-orange-100 px-1.5 py-0.5 rounded">Required</span>
-                    </label>
-                    <div className="relative">
-                      <select
+                    <div className="space-y-1">
+                      <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Phone Number</label>
+                      <input
+                        type="tel"
                         required
-                        disabled={!selectedBuilding || availableBreakTimings.length === 0}
-                        value={selectedBreakTiming}
-                        onChange={(e) => setSelectedBreakTiming(e.target.value)}
-                        className="w-full px-3 py-2 bg-white border border-orange-200 rounded-xl text-xs font-bold text-slate-900 focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500 outline-none transition-all cursor-pointer appearance-none shadow-xs disabled:bg-slate-100 disabled:text-slate-400 disabled:border-slate-200 disabled:cursor-not-allowed"
-                      >
-                        <option value="" disabled>
-                          {selectedBuilding ? '-- Select Break Timing --' : '-- Choose building first --'}
-                        </option>
-                        {availableBreakTimings.map((timing) => (
-                          <option key={timing} value={timing}>{timing}</option>
-                        ))}
-                      </select>
-                      <ChevronDown className="w-3.5 h-3.5 text-slate-400 absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none" />
+                        placeholder="e.g. 9876543210"
+                        value={studentPhone}
+                        onChange={(e) => setStudentPhone(e.target.value)}
+                        className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-slate-900 focus:bg-white focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 outline-none transition-all placeholder:text-slate-400 placeholder:font-normal"
+                      />
                     </div>
                   </div>
                 </div>
-              )}
 
-              <div className="pt-1 space-y-1 text-xs">
-                <div className="flex justify-between items-center text-slate-500 font-semibold">
-                  <span>Items Subtotal</span>
-                  <span>₹{getSubtotal()}</span>
-                </div>
-                <div className="flex justify-between items-center text-slate-600 font-semibold">
-                  <div className="flex items-center gap-1">
-                    <span>Additional Charges</span>
-                    <span className="text-[10px] text-slate-400 font-normal">(Platform Fee)</span>
+                {/* 📍 Section 3: ANAND STALL SPECIFIC Delivery / Break Slot */}
+                {isAnand && (
+                  <div className="p-3.5 bg-orange-50/80 border border-orange-200/90 rounded-2xl space-y-2.5 shadow-2xs">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-1.5 text-orange-950 font-black text-xs">
+                        <Building2 className="w-3.5 h-3.5 text-orange-600 shrink-0" />
+                        <span>Delivery / Break Slot</span>
+                      </div>
+                      <span className="text-orange-600 font-bold text-[9px] bg-orange-100/90 px-1.5 py-0.5 rounded">Required</span>
+                    </div>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                      <div className="space-y-1">
+                        <label className="text-[10px] font-bold text-slate-700 uppercase tracking-wider">Select Building</label>
+                        <div className="relative">
+                          <select
+                            required
+                            value={selectedBuilding}
+                            onChange={(e) => handleBuildingChange(e.target.value)}
+                            className="w-full px-3 py-2 bg-white border border-orange-200 rounded-xl text-xs font-bold text-slate-900 focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500 outline-none transition-all cursor-pointer appearance-none shadow-xs"
+                          >
+                            <option value="" disabled>-- Select Building --</option>
+                            {ANAND_BUILDINGS.map((b) => (
+                              <option key={b.id} value={b.name}>{b.name}</option>
+                            ))}
+                          </select>
+                          <ChevronDown className="w-3.5 h-3.5 text-slate-400 absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none" />
+                        </div>
+                      </div>
+
+                      <div className="space-y-1">
+                        <label className="text-[10px] font-bold text-slate-700 uppercase tracking-wider">Select Break Timing</label>
+                        <div className="relative">
+                          <select
+                            required
+                            disabled={!selectedBuilding || availableBreakTimings.length === 0}
+                            value={selectedBreakTiming}
+                            onChange={(e) => setSelectedBreakTiming(e.target.value)}
+                            className="w-full px-3 py-2 bg-white border border-orange-200 rounded-xl text-xs font-bold text-slate-900 focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500 outline-none transition-all cursor-pointer appearance-none shadow-xs disabled:bg-slate-100 disabled:text-slate-400 disabled:border-slate-200 disabled:cursor-not-allowed"
+                          >
+                            <option value="" disabled>
+                              {selectedBuilding ? '-- Select Break Timing --' : '-- Choose building first --'}
+                            </option>
+                            {availableBreakTimings.map((timing) => (
+                              <option key={timing} value={timing}>{timing}</option>
+                            ))}
+                          </select>
+                          <ChevronDown className="w-3.5 h-3.5 text-slate-400 absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none" />
+                        </div>
+                      </div>
+                    </div>
                   </div>
-                  <span className="font-bold text-slate-800">+₹{getAdditionalCharges()}</span>
-                </div>
-                <div className="flex justify-between items-center text-slate-900 font-black text-sm border-t border-slate-100 pt-1.5">
-                  <span>Total Amount</span>
-                  <span className="text-indigo-600 text-base">₹{getCartTotal()}</span>
-                </div>
-              </div>
-
-              <button
-                type="submit"
-                disabled={isSubmitting}
-                className="w-full py-3.5 rounded-2xl bg-indigo-600 hover:bg-indigo-700 text-white font-black text-xs flex items-center justify-center gap-2 shadow-lg shadow-indigo-600/25 active:scale-[0.98] transition-all disabled:opacity-50"
-              >
-                {isSubmitting ? (
-                  <>
-                    <RefreshCw className="w-4 h-4 animate-spin" />
-                    <span>Processing Gateway...</span>
-                  </>
-                ) : (
-                  <>
-                    <Lock className="w-3.5 h-3.5" />
-                    <span>Pay ₹{getCartTotal()} with Cashfree</span>
-                  </>
                 )}
-              </button>
-              <p className="text-[10px] text-center font-bold text-slate-400 flex items-center justify-center gap-1 pb-1">
-                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
-                <span>100% Secure Sandbox Checkout • Cashfree PG</span>
-              </p>
+
+                {/* 🧾 Section 4: Bill Summary Card */}
+                <div className="p-3 bg-slate-50 border border-slate-200/80 rounded-2xl space-y-1.5 text-xs shadow-2xs">
+                  <div className="flex justify-between items-center text-slate-600 font-semibold">
+                    <span>Items Subtotal</span>
+                    <span>₹{getSubtotal()}</span>
+                  </div>
+                  <div className="flex justify-between items-center text-slate-600 font-semibold">
+                    <div className="flex items-center gap-1">
+                      <span>Additional Charges</span>
+                      <span className="text-[10px] text-slate-400 font-normal">(Platform Fee)</span>
+                    </div>
+                    <span className="font-bold text-slate-800">+₹{getAdditionalCharges()}</span>
+                  </div>
+                  <div className="flex justify-between items-center text-slate-900 font-black text-sm border-t border-slate-200/70 pt-2 mt-1">
+                    <span>Total Bill</span>
+                    <span className="text-indigo-600 text-base">₹{getCartTotal()}</span>
+                  </div>
+                </div>
+
+              </div>
+
+              {/* 🔒 Fixed Bottom Sticky Action Bar */}
+              <div className="shrink-0 p-3.5 sm:p-4 bg-white border-t border-slate-100 shadow-[0_-4px_20px_rgba(0,0,0,0.06)] space-y-2">
+                <button
+                  type="submit"
+                  disabled={isSubmitting}
+                  className="w-full py-3.5 rounded-2xl bg-indigo-600 hover:bg-indigo-700 text-white font-black text-xs sm:text-sm flex items-center justify-center gap-2 shadow-lg shadow-indigo-600/25 active:scale-[0.98] transition-all disabled:opacity-50"
+                >
+                  {isSubmitting ? (
+                    <>
+                      <RefreshCw className="w-4 h-4 animate-spin" />
+                      <span>Processing Gateway...</span>
+                    </>
+                  ) : (
+                    <>
+                      <Lock className="w-3.5 h-3.5" />
+                      <span>Pay ₹{getCartTotal()} with Cashfree</span>
+                    </>
+                  )}
+                </button>
+                <p className="text-[10px] text-center font-bold text-slate-400 flex items-center justify-center gap-1">
+                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+                  <span>100% Secure Sandbox Checkout • Cashfree PG</span>
+                </p>
+              </div>
             </form>
           </div>
         </div>
